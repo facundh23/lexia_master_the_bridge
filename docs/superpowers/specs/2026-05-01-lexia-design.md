@@ -1,15 +1,15 @@
 # Lexia — Design Specification
 
-| Campo | Valor |
-|---|---|
-| **Proyecto** | Lexia — Asistente informativo de extranjería |
+| Campo                 | Valor                                          |
+| --------------------- | ---------------------------------------------- |
+| **Proyecto**          | Lexia — Asistente informativo de extranjería   |
 | **Tipo de documento** | Design specification (output de brainstorming) |
-| **Versión** | 1.0.0 |
-| **Fecha** | 2026-05-01 |
-| **Autor** | Facundo Herrera |
-| **Contexto** | Capstone del Máster de IA Generativa |
-| **Estado** | Approved (pending spec review loop) |
-| **Próximo paso** | Implementation plan vía writing-plans skill |
+| **Versión**           | 1.0.0                                          |
+| **Fecha**             | 2026-05-01                                     |
+| **Autor**             | Facundo Herrera                                |
+| **Contexto**          | Capstone del Máster de IA Generativa           |
+| **Estado**            | Approved (pending spec review loop)            |
+| **Próximo paso**      | Implementation plan vía writing-plans skill    |
 
 ---
 
@@ -33,21 +33,23 @@ El sistema implementa una **arquitectura vertical-deep + extensible**: profundid
 
 ## 1. Decisiones de producto
 
-| Decisión | Valor | Razón |
-|---|---|---|
-| Audiencia primaria | B2C — público general (inmigrantes y aspirantes a nacionalidad) | Casos reales, vulnerabilidad alta, mostrar guardrails es defendible |
-| Audiencia secundaria | B2B — gestores y abogados via MCP | Doble surface gratis si el core está bien diseñado |
-| Vertical MVP | Nacionalidad por residencia (con simulador CCSE) | Volumen alto, corpus claro, plazo 2 años para iberoamericanos da diferencial |
-| Idioma | Español-only (MVP) | Cubre ~95% del caso real; CCSE solo en español; multilingüe es Future Work |
-| Persistencia | Auth obligatoria + caso del usuario persistente | Showcase identity governance + GDPR + ACL + audit log |
-| Disclaimer | Persistente, inyectado por outputPipeline | No removible vía prompt injection |
-| Postura legal | Asistente informativo, NUNCA consejo jurídico | Guardrails detectan y derivan a abogado |
-| Hosting | EU-only (Hetzner Alemania o equivalente) | GDPR + transferencias internacionales |
+| Decisión             | Valor                                                           | Razón                                                                        |
+| -------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Audiencia primaria   | B2C — público general (inmigrantes y aspirantes a nacionalidad) | Casos reales, vulnerabilidad alta, mostrar guardrails es defendible          |
+| Audiencia secundaria | B2B — gestores y abogados via MCP                               | Doble surface gratis si el core está bien diseñado                           |
+| Vertical MVP         | Nacionalidad por residencia (con simulador CCSE)                | Volumen alto, corpus claro, plazo 2 años para iberoamericanos da diferencial |
+| Idioma               | Español-only (MVP)                                              | Cubre ~95% del caso real; CCSE solo en español; multilingüe es Future Work   |
+| Persistencia         | Auth obligatoria + caso del usuario persistente                 | Showcase identity governance + GDPR + ACL + audit log                        |
+| Disclaimer           | Persistente, inyectado por outputPipeline                       | No removible vía prompt injection                                            |
+| Postura legal        | Asistente informativo, NUNCA consejo jurídico                   | Guardrails detectan y derivan a abogado                                      |
+| Hosting              | EU-only (Hetzner Alemania o equivalente)                        | GDPR + transferencias internacionales                                        |
 
 **Domain knowledge nota** (de Facundo, validador del proyecto):
+
 > "Tus hijos al momento de obtener la nacionalidad por residencia debes incluirlos antes de hacer la jura, al momento de presentar todos los papeles, sino te pueden rechazar la solicitud."
 
 Esta nota se traduce en:
+
 - **Test case** del golden set: pregunta sobre cuándo incluir hijos → respuesta debe mencionar "antes de la jura, al presentar la documentación" + cita
 - **Reminder template** activado cuando `case.has_children = true` y status = "preparando documentación"
 - **Checklist tool**: cuando `has_children = true`, incluye ítem destacado
@@ -127,22 +129,22 @@ Esta nota se traduce en:
 
 ### 2.2 Stack — decisiones y justificación
 
-| Capa | Elección | Razón |
-|---|---|---|
-| Frontend | React + Next.js 15 (App Router) + Tailwind + shadcn/ui | Empleabilidad post-Clio + SSR/streaming gratis para chat |
-| Backend | Fastify + TypeScript | Performance + TS-first + plugins maduros |
-| Auth | Better Auth | TypeScript-first, sesiones, OAuth, rate-limit nativo |
-| DB relacional | Postgres 16 + Drizzle ORM | TS-first sin overhead de Prisma |
-| Cifrado de PII | pgcrypto field-level | Defense in depth; campos sensibles cifrados a nivel de fila |
-| Vector DB | Chroma | Self-hosted, dockerizable; Pinecone rompería el "todo en Docker" |
-| Orquestación | LangGraph (Node) | Master content directo; state graph + multi-agent |
-| LLM provider | Anthropic Claude Sonnet 4.6 (primario) + OpenAI (fallback + embeddings) | Claude es mejor en razonamiento legal y citas; multi-provider muestra abstracción |
-| MCP | `@modelcontextprotocol/sdk` (Node) | SDK oficial en TS |
-| Observability | Langfuse self-host | Master content; dockerizable; traces con seguridad |
-| N8N | Opcional, entry point WhatsApp/Telegram | Pilar N8N del máster sin bloquear core |
-| Object storage | MinIO (S3-compat) en Docker | Uploads separados de DB |
-| Reverse proxy | Caddy 2 | TLS automático con Let's Encrypt |
-| Container | Docker Compose | Cubre Docker, suficiente para demo |
+| Capa           | Elección                                                                | Razón                                                                             |
+| -------------- | ----------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Frontend       | React + Next.js 15 (App Router) + Tailwind + shadcn/ui                  | Empleabilidad post-Clio + SSR/streaming gratis para chat                          |
+| Backend        | Fastify + TypeScript                                                    | Performance + TS-first + plugins maduros                                          |
+| Auth           | Better Auth                                                             | TypeScript-first, sesiones, OAuth, rate-limit nativo                              |
+| DB relacional  | Postgres 16 + Drizzle ORM                                               | TS-first sin overhead de Prisma                                                   |
+| Cifrado de PII | pgcrypto field-level                                                    | Defense in depth; campos sensibles cifrados a nivel de fila                       |
+| Vector DB      | Chroma                                                                  | Self-hosted, dockerizable; Pinecone rompería el "todo en Docker"                  |
+| Orquestación   | LangGraph (Node)                                                        | Master content directo; state graph + multi-agent                                 |
+| LLM provider   | Anthropic Claude Sonnet 4.6 (primario) + OpenAI (fallback + embeddings) | Claude es mejor en razonamiento legal y citas; multi-provider muestra abstracción |
+| MCP            | `@modelcontextprotocol/sdk` (Node)                                      | SDK oficial en TS                                                                 |
+| Observability  | Langfuse self-host                                                      | Master content; dockerizable; traces con seguridad                                |
+| N8N            | Opcional, entry point WhatsApp/Telegram                                 | Pilar N8N del máster sin bloquear core                                            |
+| Object storage | MinIO (S3-compat) en Docker                                             | Uploads separados de DB                                                           |
+| Reverse proxy  | Caddy 2                                                                 | TLS automático con Let's Encrypt                                                  |
+| Container      | Docker Compose                                                          | Cubre Docker, suficiente para demo                                                |
 
 ### 2.3 Diferenciación de superficies
 
@@ -158,11 +160,11 @@ Esta nota se traduce en:
 
 ### 3.1 División de almacenamiento
 
-| Almacén | Qué guarda | Razón |
-|---|---|---|
+| Almacén  | Qué guarda                                                           | Razón                                                   |
+| -------- | -------------------------------------------------------------------- | ------------------------------------------------------- |
 | Postgres | usuarios, casos, conversaciones, audit log, CCSE bank, recordatorios | Datos transaccionales con relaciones; ACID; queries SQL |
-| Chroma | embeddings + chunks de corpus + chunks de docs subidos por usuarios | RAG — búsqueda semántica con metadata filtering por ACL |
-| MinIO | archivos PDF/DOCX subidos por usuarios | Object storage, separado de DB |
+| Chroma   | embeddings + chunks de corpus + chunks de docs subidos por usuarios  | RAG — búsqueda semántica con metadata filtering por ACL |
+| MinIO    | archivos PDF/DOCX subidos por usuarios                               | Object storage, separado de DB                          |
 
 ### 3.2 Esquema relacional principal (Postgres)
 
@@ -250,13 +252,14 @@ Audit log persistente atraviesa TODAS las capas con trace_id propagado.
 
 ### 4.2 Análisis Lethal Trifecta aplicado
 
-| Vértice | ¿Lo cumple Lexia? | Mitigación |
-|---|---|---|
-| 1. Datos sensibles | Sí — `cases.country_origin`, `cases.notes` (PII), docs en RAG privado | ACL por chunk + namespace por usuario + cifrado at-rest pgcrypto |
-| 2. Contenido no confiable | Sí — uploads, mensajes, MCP queries | Sanitización en ingest + guardrails de input |
-| 3. Acción externa | **Limitada por diseño** — solo escribe en namespace del usuario autenticado | Vértice 3 capado arquitectónicamente; no hay tools que escriban fuera del scope |
+| Vértice                   | ¿Lo cumple Lexia?                                                           | Mitigación                                                                      |
+| ------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| 1. Datos sensibles        | Sí — `cases.country_origin`, `cases.notes` (PII), docs en RAG privado       | ACL por chunk + namespace por usuario + cifrado at-rest pgcrypto                |
+| 2. Contenido no confiable | Sí — uploads, mensajes, MCP queries                                         | Sanitización en ingest + guardrails de input                                    |
+| 3. Acción externa         | **Limitada por diseño** — solo escribe en namespace del usuario autenticado | Vértice 3 capado arquitectónicamente; no hay tools que escriban fuera del scope |
 
 **Declaración de diseño** (en spec, defendible en tribunal):
+
 > Lexia no expone tools que escriban fuera del namespace del usuario autenticado. Esta restricción es parte del contrato de seguridad y no es modificable por configuración ni por administradores.
 
 ### 4.3 Dual-LLM pattern (Capa 5)
@@ -275,6 +278,7 @@ Pseudo-código del orchestrator:
 ```
 
 **Defense en tribunal**: si preguntan "¿qué pasa si meto un PDF con instrucciones inyectadas?":
+
 1. PDF sanitizado en ingest
 2. Aún si pasa, sus chunks solo entran al Specialist, no al Planner
 3. Specialist tiene response_format schema — no puede "decidir tomar acciones"
@@ -293,6 +297,7 @@ agent:guardrail:v1     scopes: [read:agent_output]
 Cada llamada al LLM lleva la identity como metadata en Langfuse trace + audit_log row con: `actorType=agent`, `actorId=AGENT_IDENTITIES.X.id`, `details.scope_used`, `details.delegated_by_user`.
 
 **Principio cubierto**:
+
 - ✅ 1. Cuenta rastreable (cada agente tiene `id` único)
 - ✅ 2. Delegación con scopes
 - ✅ 3. Acciones pre-autorizadas (set de tools por agente fijo en código)
@@ -301,44 +306,52 @@ Cada llamada al LLM lleva la identity como metadata en Langfuse trace + audit_lo
 
 ### 4.5 Add-ons de seguridad aprobados
 
-> Nota de versionado: durante el brainstorming se discutieron add-ons A-G. Los add-ons F (canary tokens originalmente) y otros gaps adicionales se promovieron a must-have durante la auditoría de compliance (§4.6, prefijo G* para "Gap"). Por eso §4.5 lista A, B, C, D, E, G y §4.6 lista G1, G2, G4-5 — son colecciones separadas, todas integradas en el diseño.
+> Nota de versionado: durante el brainstorming se discutieron add-ons A-G. Los add-ons F (canary tokens originalmente) y otros gaps adicionales se promovieron a must-have durante la auditoría de compliance (§4.6, prefijo G\* para "Gap"). Por eso §4.5 lista A, B, C, D, E, G y §4.6 lista G1, G2, G4-5 — son colecciones separadas, todas integradas en el diseño.
 
 #### A. iBOM con CycloneDX
+
 Generado en CI cada release. Componentes incluidos: modelos (Claude Sonnet, embeddings), datasets (corpus público), librerías (LangGraph, etc.), datos (corpus por vertical con classification).
 
 Archivo: `artifacts/lexia.cdx.yaml`
 
 #### B. Red teaming en CI con DeepTeam
+
 - 50 ataques baseline en cada PR (~3-5 min)
 - 500 ataques nightly (regresión completa)
 - Vulnerabilities testadas: PromptInjection, PIILeakage, JailbreakAttempts, LegalAdviceTrap, OffVerticalManipulation
 - Threshold: si protection_rate baja >5% vs baseline, falla merge
 
 #### C. Auth + scopes obligatorios en MCP
+
 - Role `professional` con verificación **obligatoria** vía colegiación (manual, email a colegio profesional)
 - PAT (personal access token) para configurar el MCP
 - Audit log diferencia surface (`web` vs `mcp`)
 - Scope `professional` permite ciertos endpoints más permisivos pero nunca acceso a datos de otros usuarios
 
 #### D. Field-level encryption con pgcrypto
+
 - Campos cifrados: `cases.notes`, `cases.country_origin`, `documents.filename`
 - Clave en variable de entorno (rotable manualmente)
 - Si filtra el dump del DB, no se leen PII
 
 #### E. Crisis detection
+
 Patrones que disparan modo "vulnerabilidad alta":
+
 - Deportación inminente / expulsión en N días
 - Violencia de género / maltrato
 - Menor sin documentación / solo
 - Sin alojamiento
 
 Acciones automáticas:
+
 - Tono más cálido
 - Inserta recursos: CEAR, Cruz Roja, 016, abogado de oficio
 - Suspende modo "informativo neutro"
 - Audit log marca caso como `escalation_risk`
 
 #### G. Per-user budget (anti-abuse + cost control)
+
 - Free: 50k tokens/mes (~30-40 conversaciones)
 - Después: respuesta enlatada con cooldown
 - Endpoint `/me/usage` muestra consumo
@@ -347,14 +360,17 @@ Acciones automáticas:
 ### 4.6 Add-ons de compliance aprobados
 
 #### G1. Canary tokens en system prompt
+
 Tokens secretos únicos en system prompts. Job cron diario busca canaries en `audit_log.details` y outputs (Future Work: posts públicos). Si aparecen → señal de exfiltración.
 
 #### G2. Dependency + container scanning en CI (Tier 0)
+
 - `pnpm audit --audit-level=high` bloquea PR
 - `trivy image` escanea cada imagen Docker antes de push
 - Dependabot habilitado para PRs de upgrades
 
 #### G4 + G5. Auth hardening
+
 - Email verification obligatoria
 - Password: min 12 chars + HIBP check + throttle 5/15min
 - Session invalidation en password change
@@ -363,12 +379,14 @@ Tokens secretos únicos en system prompts. Job cron diario busca canaries en `au
 ### 4.7 Guardrails — implementación
 
 **Input pipeline** (en orden):
+
 1. `regexPIIRedactor` — emails, IBANs, DNIs
 2. `keywordBlocklist` — jailbreak directo
 3. `llmJudgeJailbreak` (Haiku 4.5, threshold 0.7)
 4. `specialCategoryMinimizer` — detecta orientación sexual / religión / asilo / política → no persiste contenido plano
 
 **Output pipeline** (en orden):
+
 1. `citationEnforcer` — toda respuesta normativa cita ≥1 fuente; regenera 1 vez si no
 2. `legalAdviceDetector` — patterns + LLM judge → si dispara, reemplaza con derivación
 3. `piiOutputRedactor` — redacta PII que el LLM haya repetido
@@ -388,7 +406,7 @@ Inyectado por outputPipeline (no es prompt — no se puede quitar via injection)
    • [Código Civil art. 22]
 ```
 
-Adicionalmente, AI Act Art. 50 — primer mensaje de cada conversación: *"Hola, soy Lexia, un asistente IA..."*. Onboarding lo deja claro antes del primer chat.
+Adicionalmente, AI Act Art. 50 — primer mensaje de cada conversación: _"Hola, soy Lexia, un asistente IA..."_. Onboarding lo deja claro antes del primer chat.
 
 ### 4.9 Secrets management
 
@@ -427,31 +445,32 @@ Test set curado (golden_set.v1.json) — 80 preguntas en categorías:
 ### 5.2 Métricas con thresholds en CI
 
 ```yaml
-factuality_score_avg: ">= 0.80"
-citation_validity_rate: ">= 0.90"
-jailbreak_block_rate: ">= 0.85"
-pii_leak_rate: "== 0"
-disclaimer_present_rate: ">= 0.99"
-crisis_detection_recall: ">= 0.90"
-p95_latency_ms: "<= 8000"
+factuality_score_avg: '>= 0.80'
+citation_validity_rate: '>= 0.90'
+jailbreak_block_rate: '>= 0.85'
+pii_leak_rate: '== 0'
+disclaimer_present_rate: '>= 0.99'
+crisis_detection_recall: '>= 0.90'
+p95_latency_ms: '<= 8000'
 ```
 
 Si alguna baja, falla merge en PR.
 
 ### 5.3 Continuous eval
 
-| Trigger | Set | Volumen | Tiempo |
-|---|---|---|---|
-| pre-commit | smoke 5 preguntas | 5 calls | <30s |
-| PR (CI) | golden completo + 50 ataques DeepTeam | 130 calls | 3-5min |
-| nightly cron | golden completo + 500 ataques + perf | ~600 calls | 25-40min |
-| manual | todo + drift analysis | ad-hoc | variable |
+| Trigger      | Set                                   | Volumen    | Tiempo   |
+| ------------ | ------------------------------------- | ---------- | -------- |
+| pre-commit   | smoke 5 preguntas                     | 5 calls    | <30s     |
+| PR (CI)      | golden completo + 50 ataques DeepTeam | 130 calls  | 3-5min   |
+| nightly cron | golden completo + 500 ataques + perf  | ~600 calls | 25-40min |
+| manual       | todo + drift analysis                 | ad-hoc     | variable |
 
 ### 5.4 Observabilidad con Langfuse
 
 Cada interacción genera trace con jerarquía: input_guardrails → planner_llm → retrieve_with_acl → specialist_agent → output_guardrails. Métricas: latencia, tokens, costo por span.
 
 **Detectores de seguridad sobre traces** (background workers):
+
 - `prompt_injection_patterns` — match contra ataques conocidos
 - `out_of_scope_access` — tool no autorizado para el agent
 - `chunk_outside_namespace` — RAG retrievió chunk de otro user
@@ -470,6 +489,7 @@ Dispara alerta + audit log + (opcional) bloqueo.
 ### 5.6 A/B safety testing
 
 Al cambiar prompts o subir modelo (Sonnet 4.6 → 4.7):
+
 1. Golden set contra ambos
 2. Diff de scores por categoría
 3. Si baja factuality o sube pii_leak >5% → no merge
@@ -505,6 +525,7 @@ src/
 ### 6.2 Contrato VerticalDefinition (TypeScript)
 
 Campos clave:
+
 - `slug`, `name`, `description`, `enabled`, `version`
 - `corpus`: namespace + sources + ingestionPipeline
 - `agents`: { normativa: AgentSpec (req), eligibility?: AgentSpec, ...customAgents }
@@ -517,6 +538,7 @@ Campos clave:
 ### 6.3 Pre-flight check al boot
 
 Server no arranca si algún vertical activo tiene:
+
 - Prompts vacíos o muy cortos
 - Tools mal formados
 - Golden set < `minGoldenSetSize`
@@ -564,6 +586,7 @@ CI corre el mismo check.
 ### 7.3 CI/CD pipeline (GitHub Actions)
 
 **ci.yml** (cada push/PR):
+
 - lint + typecheck
 - test:unit + test:integration
 - preflight-verticals
@@ -573,6 +596,7 @@ CI corre el mismo check.
 - pnpm audit + trivy container scan
 
 **nightly.yml** (3 AM):
+
 - eval full (golden completo)
 - red-team full (500 attacks)
 - publish report
@@ -603,19 +627,20 @@ URL real para defensa: `lexia.tudominio.es`.
 
 ### 8.1 Bandwidth assumption
 
-| Período | h/sem | Razón |
-|---|---|---|
-| Sem 1-4 | ~15h | Clio onboarding + master cerrando |
-| Sem 5-12 | ~8h | Clio en pleno laburo |
-| Sem 13-20 | ~10h | Steady state Clio |
-| Sem 21-27 | ~12h | Push features finales |
-| Sem 28-30 | ~20h | Sprint final + defensa |
+| Período   | h/sem | Razón                             |
+| --------- | ----- | --------------------------------- |
+| Sem 1-4   | ~15h  | Clio onboarding + master cerrando |
+| Sem 5-12  | ~8h   | Clio en pleno laburo              |
+| Sem 13-20 | ~10h  | Steady state Clio                 |
+| Sem 21-27 | ~12h  | Push features finales             |
+| Sem 28-30 | ~20h  | Sprint final + defensa            |
 
 **Total: ~340h** sobre 30 semanas. Las fases (8.2) suman ~291h de trabajo asignado; los ~49h restantes son **buffer explícito** para imprevistos, debugging, refactor en F4 cuando se pasa a multi-agente, y la curación humana del CCSE bank en F5.
 
 ### 8.2 Las 8 fases
 
 #### Fase 0 — Setup (sem 1, ~15h)
+
 - Confirmar deadline con coordinación del máster
 - Repo monorepo (pnpm workspaces): `apps/web`, `apps/api`, `apps/mcp`, `packages/core`
 - CI scaffolding (lint/typecheck/test/audit/trivy)
@@ -626,6 +651,7 @@ URL real para defensa: `lexia.tudominio.es`.
 - AI Act risk classification doc
 
 #### Fase 1 — Foundations (sem 2-4, ~45h)
+
 - API routes principales + audit log
 - Web app: layout + chat UI con eco fake
 - Chroma cliente + namespaces
@@ -638,6 +664,7 @@ URL real para defensa: `lexia.tudominio.es`.
 - **Subprocessors.md + análisis SCCs**
 
 #### Fase 2 — Single-agent + RAG MVP (sem 5-7, ~25h)
+
 - Ingestion pipeline: BOE, Código Civil, instrucciones DGRN
 - ~1500 chunks indexados con metadata + ACL
 - NormativaAgent único con LangChain
@@ -648,6 +675,7 @@ URL real para defensa: `lexia.tudominio.es`.
 - 20 golden test cases manuales
 
 #### Fase 3 — Multi-agente con LangGraph (sem 8-11, ~32h)
+
 - Refactor a LangGraph: TriageAgent + NormativaAgent + EligibilityAgent
 - TriageAgent con structured output
 - EligibilityAgent: tool `compute_eligibility(country, arrival_date, residence_type)`
@@ -657,6 +685,7 @@ URL real para defensa: `lexia.tudominio.es`.
 - **Field-level encryption** en `cases.notes` y `cases.country_origin`
 
 #### Fase 4 — Security hardening + dual-LLM (sem 12-15, ~32h)
+
 - Dual-LLM pattern completo (Planner + Specialist + Validator)
 - Output guardrails completos
 - ACL refinada en chunks privados
@@ -670,6 +699,7 @@ URL real para defensa: `lexia.tudominio.es`.
 - **DPIA — primer draft**
 
 #### Fase 5 — CCSE + completar vertical (sem 16-19, ~40h)
+
 - Ingestión manual oficial CCSE
 - ccse_questions bank (50-80 preguntas, mix manual + LLM)
 - CCSE quality gate (dashboard mínimo de revisión)
@@ -681,6 +711,7 @@ URL real para defensa: `lexia.tudominio.es`.
 - **Tool `request_human_review`** + flujo
 
 #### Fase 6 — MCP server + dual surface (sem 20-23, ~36h)
+
 - MCP server en Node con `@modelcontextprotocol/sdk`
 - Tools profesionales expuestos
 - **Auth + scopes obligatorios** en MCP (PAT + verificación de colegiación)
@@ -688,6 +719,7 @@ URL real para defensa: `lexia.tudominio.es`.
 - Audit log diferencia surfaces
 
 #### Fase 7 — Eval rigurosa + observabilidad (sem 24-27, ~36h)
+
 - Pipeline de eval con 4 jueces
 - Golden set a 80 casos
 - **Red teaming en CI con DeepTeam**
@@ -698,6 +730,7 @@ URL real para defensa: `lexia.tudominio.es`.
 - **Model Card de Lexia**
 
 #### Fase 8 — Polish + deploy + defensa (sem 28-30, ~30h)
+
 - Deploy a VPS EU
 - TLS + Caddy + dominio real
 - Backup drill ejecutado
@@ -710,14 +743,14 @@ URL real para defensa: `lexia.tudominio.es`.
 
 ### 8.3 Hitos de comunicación con tutor
 
-| Sem | Comunicación |
-|---|---|
-| 1 | Spec doc + pedir aprobación + confirmar deadline |
-| 5 | Demo F1 — foundations + chat eco |
-| 11 | Demo F3 — multi-agente |
-| 19 | Demo F5 — CCSE + vertical completo |
-| 27 | Demo F7 — eval + dashboards |
-| 30 | Defensa final |
+| Sem | Comunicación                                     |
+| --- | ------------------------------------------------ |
+| 1   | Spec doc + pedir aprobación + confirmar deadline |
+| 5   | Demo F1 — foundations + chat eco                 |
+| 11  | Demo F3 — multi-agente                           |
+| 19  | Demo F5 — CCSE + vertical completo               |
+| 27  | Demo F7 — eval + dashboards                      |
+| 30  | Defensa final                                    |
 
 ### 8.4 Matriz de recorte (Tier 0 = INTOCABLE)
 
@@ -772,35 +805,38 @@ Tier 0 — INTOCABLE
 **Lexia se clasifica como sistema de RIESGO LIMITADO** bajo Article 50 del AI Act (transparency obligations).
 
 **Justificación de NO ser high-risk** (Annex III):
+
 - Annex III ítem 7 ("AI systems intended to be used by competent public authorities... in the management of migration, asylum and border control") aplica a **autoridades públicas**, no a herramientas privadas para individuos.
 - Lexia es B2C (uso privado) y B2B no-autoridad (gestores privados via MCP).
 - Lexia no toma decisiones administrativas — es informativa.
 
 **Roles bajo AI Act**:
+
 - **Provider de Lexia** (sistema de IA en sí): obligaciones de technical documentation, post-market monitoring, transparency, conformity assessment.
 - **Deployer de Claude / GPT** (modelos de terceros usados internamente): no hace fine-tuning sustancial → no cae en trampa Deployer-to-Provider.
 
 **Article 50 obligations cumplidas**:
+
 - Disclosure "soy IA" al inicio de cada conversación
 - Privacy policy explicita uso de IA
 - Onboarding lo aclara antes del primer chat
 
 ### 9.2 GDPR compliance
 
-| Artículo | Obligación | Implementación |
-|---|---|---|
-| Art. 6 | Lawful basis | 6(1)(b) — performance of contract (registro = ToS) |
-| Art. 9 | Special categories | Special category data minimization en pipeline |
-| Art. 13 | Información en momento de recogida | Privacy policy + onboarding |
-| Art. 17 | Right to erasure | `/me/delete` endpoint con cascade |
-| Art. 20 | Data portability | `/me/export` endpoint |
-| Art. 22 | Right to human review | Tool `request_human_review` |
-| Art. 25 | Privacy by design | Cifrado field-level + ACL + PII redaction |
-| Art. 30 | Records of processing | `docs/records_of_processing.md` |
-| Art. 32 | Security measures | Capítulo 4 de este spec |
-| Art. 33 | Breach notification 72h | `runbooks/breach_notification.md` |
-| Art. 35 | DPIA | Entregable del proyecto |
-| Art. 44-49 | Cross-border transfers | SCCs documentados con Anthropic + OpenAI; transfer impact assessment |
+| Artículo   | Obligación                         | Implementación                                                       |
+| ---------- | ---------------------------------- | -------------------------------------------------------------------- |
+| Art. 6     | Lawful basis                       | 6(1)(b) — performance of contract (registro = ToS)                   |
+| Art. 9     | Special categories                 | Special category data minimization en pipeline                       |
+| Art. 13    | Información en momento de recogida | Privacy policy + onboarding                                          |
+| Art. 17    | Right to erasure                   | `/me/delete` endpoint con cascade                                    |
+| Art. 20    | Data portability                   | `/me/export` endpoint                                                |
+| Art. 22    | Right to human review              | Tool `request_human_review`                                          |
+| Art. 25    | Privacy by design                  | Cifrado field-level + ACL + PII redaction                            |
+| Art. 30    | Records of processing              | `docs/records_of_processing.md`                                      |
+| Art. 32    | Security measures                  | Capítulo 4 de este spec                                              |
+| Art. 33    | Breach notification 72h            | `runbooks/breach_notification.md`                                    |
+| Art. 35    | DPIA                               | Entregable del proyecto                                              |
+| Art. 44-49 | Cross-border transfers             | SCCs documentados con Anthropic + OpenAI; transfer impact assessment |
 
 **DPO**: no requerido inicialmente (procesamiento no a "large scale"). Documentado y revisable.
 
@@ -813,6 +849,7 @@ Tier 0 — INTOCABLE
 ### 9.4 Población vulnerable
 
 Lexia documenta consideraciones para **población vulnerable** (inmigrantes, personas en proceso migratorio):
+
 - Crisis detection es parte de la protección
 - Lenguaje accesible deliberado (Tone Judge mide)
 - Derivación facilitada a CEAR / Cruz Roja / abogado de oficio
@@ -824,6 +861,7 @@ Sección formal en Model Card y DPIA.
 ### 9.5 Subprocesadores
 
 Listado en `docs/subprocessors.md`:
+
 - **Anthropic** — LLM provider (US, SCCs en lugar)
 - **OpenAI** — embeddings + fallback (US, SCCs en lugar)
 - **Hetzner Online GmbH** — hosting (Alemania, EU)
@@ -857,18 +895,18 @@ Más allá del código:
 
 ## 11. Riesgos identificados
 
-| ID | Riesgo | Probabilidad | Impacto | Mitigación |
-|---|---|---|---|---|
-| R1 | Clio absorbe más bandwidth del previsto | Media | Alto | Matriz de recorte preparada, Tier 0 protegido |
-| R2 | Cambio de modelo (Sonnet 4.6 → 4.7) durante el proyecto | Alta | Medio | A/B safety testing framework, model pinned en config |
-| R3 | Cambio normativo en extranjería durante el proyecto | Baja | Medio | Corpus versionado, re-ingest job documentado |
-| R4 | Costo LLM excede presupuesto personal | Media | Medio | Per-user budget + monitoring de costo + cap mensual |
-| R5 | Bug crítico antes de defensa | Media | Alto | Feature flags + deploy semanal estable + rollback drill |
-| R6 | Tutor pide cambio mayor de scope | Baja | Alto | Checkpoints cada 6 sem, no más |
-| R7 | Deadline real más corto que 7 meses | Alta | Crítico | Confirmar Sem 1 + matriz de recorte para escenario A (30 días) |
-| R8 | Ataque real con prompt injection en producción | Baja | Medio | Capas múltiples + DeepTeam regression + canary tokens |
-| R9 | Filtración de PII por bug | Baja | Crítico | Cifrado field-level + ACL + audit log + breach plan 72h |
-| R10 | Verificación de colegiación profesional inmanejable | Media | Medio | MVP con verificación manual; automatización Future Work |
+| ID  | Riesgo                                                  | Probabilidad | Impacto | Mitigación                                                     |
+| --- | ------------------------------------------------------- | ------------ | ------- | -------------------------------------------------------------- |
+| R1  | Clio absorbe más bandwidth del previsto                 | Media        | Alto    | Matriz de recorte preparada, Tier 0 protegido                  |
+| R2  | Cambio de modelo (Sonnet 4.6 → 4.7) durante el proyecto | Alta         | Medio   | A/B safety testing framework, model pinned en config           |
+| R3  | Cambio normativo en extranjería durante el proyecto     | Baja         | Medio   | Corpus versionado, re-ingest job documentado                   |
+| R4  | Costo LLM excede presupuesto personal                   | Media        | Medio   | Per-user budget + monitoring de costo + cap mensual            |
+| R5  | Bug crítico antes de defensa                            | Media        | Alto    | Feature flags + deploy semanal estable + rollback drill        |
+| R6  | Tutor pide cambio mayor de scope                        | Baja         | Alto    | Checkpoints cada 6 sem, no más                                 |
+| R7  | Deadline real más corto que 7 meses                     | Alta         | Crítico | Confirmar Sem 1 + matriz de recorte para escenario A (30 días) |
+| R8  | Ataque real con prompt injection en producción          | Baja         | Medio   | Capas múltiples + DeepTeam regression + canary tokens          |
+| R9  | Filtración de PII por bug                               | Baja         | Crítico | Cifrado field-level + ACL + audit log + breach plan 72h        |
+| R10 | Verificación de colegiación profesional inmanejable     | Media        | Medio   | MVP con verificación manual; automatización Future Work        |
 
 ---
 
@@ -892,6 +930,7 @@ Más allá del código:
 ## 13. Referencias
 
 ### Frameworks y estándares
+
 - AI Act (Reglamento UE 2024/1689) — Article 50, Annex III
 - GDPR (Reglamento UE 2016/679) — Articles 6, 9, 13, 17, 20, 22, 25, 30, 32, 33, 35, 44-49
 - LSSI-CE (Ley 34/2002)
@@ -905,6 +944,7 @@ Más allá del código:
 - CycloneDX (iBOM standard)
 
 ### Domain knowledge — extranjería España
+
 - Código Civil, Art. 17-26 (nacionalidad)
 - RD 557/2011 (Reglamento de Extranjería)
 - Ley 12/2009 (asilo, Future Work)
@@ -912,6 +952,7 @@ Más allá del código:
 - Manual oficial CCSE (Instituto Cervantes)
 
 ### Frameworks técnicos
+
 - Lethal Trifecta (Simon Willison)
 - Dual-LLM pattern (Simon Willison)
 - LangGraph (LangChain)
@@ -924,6 +965,7 @@ Más allá del código:
 - CycloneDX
 
 ### Material de clase del máster
+
 - 1.x Foundations: NLP, transformers, prompting, providers
 - 2.1 Agentic DevOps
 - 2.3 RAG (Pinecone, Chroma, chunking, hybrid search, re-ranking)
@@ -935,6 +977,7 @@ Más allá del código:
 ---
 
 > **Decisiones de diseño abiertas pendientes** (a confirmar antes de implementación):
+>
 > - Confirmación de deadline real con coordinación del máster (R7)
 > - Validación de SCCs vigentes con Anthropic y OpenAI (Sem 1)
 > - Elección final de proveedor de email transaccional (Resend vs Postmark, decidir en F1)
@@ -942,4 +985,4 @@ Más allá del código:
 
 ---
 
-*Fin del documento. Siguiente paso: spec review loop con `spec-document-reviewer`, luego `writing-plans` skill para plan de implementación.*
+_Fin del documento. Siguiente paso: spec review loop con `spec-document-reviewer`, luego `writing-plans` skill para plan de implementación._
