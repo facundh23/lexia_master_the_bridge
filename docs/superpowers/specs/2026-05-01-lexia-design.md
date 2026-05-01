@@ -301,6 +301,8 @@ Cada llamada al LLM lleva la identity como metadata en Langfuse trace + audit_lo
 
 ### 4.5 Add-ons de seguridad aprobados
 
+> Nota de versionado: durante el brainstorming se discutieron add-ons A-G. Los add-ons F (canary tokens originalmente) y otros gaps adicionales se promovieron a must-have durante la auditoría de compliance (§4.6, prefijo G* para "Gap"). Por eso §4.5 lista A, B, C, D, E, G y §4.6 lista G1, G2, G4-5 — son colecciones separadas, todas integradas en el diseño.
+
 #### A. iBOM con CycloneDX
 Generado en CI cada release. Componentes incluidos: modelos (Claude Sonnet, embeddings), datasets (corpus público), librerías (LangGraph, etc.), datos (corpus por vertical con classification).
 
@@ -609,7 +611,7 @@ URL real para defensa: `lexia.tudominio.es`.
 | Sem 21-27 | ~12h | Push features finales |
 | Sem 28-30 | ~20h | Sprint final + defensa |
 
-**Total: ~340h** sobre 30 semanas.
+**Total: ~340h** sobre 30 semanas. Las fases (8.2) suman ~291h de trabajo asignado; los ~49h restantes son **buffer explícito** para imprevistos, debugging, refactor en F4 cuando se pasa a multi-agente, y la curación humana del CCSE bank en F5.
 
 ### 8.2 Las 8 fases
 
