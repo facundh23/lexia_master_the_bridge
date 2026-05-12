@@ -1,0 +1,96 @@
+bomFormat: CycloneDX
+specVersion: '1.6'
+serialNumber: urn:uuid:00000000-0000-0000-0000-000000000000
+version: 1
+metadata:
+  timestamp: '2026-05-01T00:00:00Z'
+  tools:
+    - vendor: lexia
+      name: manual-skeleton
+      version: '0.0.1'
+  authors:
+    - name: Facundo Herrera
+  component:
+    type: application
+    'bom-ref': lexia@0.0.0
+    name: lexia
+    version: '0.0.0'
+    description: Asistente informativo de extranjería
+components:
+  # === Models (LLM providers) ===
+  - type: machine-learning-model
+    'bom-ref': model:claude-sonnet-4-6
+    name: claude-sonnet-4-6
+    version: '4.6'
+    supplier:
+      name: Anthropic
+    description: Primary LLM for Planner and Specialist agents
+    properties:
+      - name: lexia:role
+        value: primary
+      - name: lexia:hosting
+        value: external-saas
+  - type: machine-learning-model
+    'bom-ref': model:claude-haiku-4-5
+    name: claude-haiku-4-5
+    version: '4.5'
+    supplier:
+      name: Anthropic
+    description: Judge LLM for guardrails and eval
+    properties:
+      - name: lexia:role
+        value: judge
+  - type: machine-learning-model
+    'bom-ref': model:gpt-fallback
+    name: gpt-4o-or-equivalent
+    version: tbd
+    supplier:
+      name: OpenAI
+    description: Fallback LLM and embedding model
+    properties:
+      - name: lexia:role
+        value: fallback-and-embeddings
+
+  # === Datasets (corpus) ===
+  - type: data
+    'bom-ref': data:corpus-nacionalidad-residencia
+    name: lexia-corpus-nacionalidad-residencia
+    version: 'v1-skeleton'
+    description: Corpus público RAG (BOE, Código Civil, instrucciones DGRN, manual CCSE)
+    properties:
+      - name: lexia:classification
+        value: public
+      - name: lexia:vertical
+        value: nacionalidad_residencia
+      - name: lexia:status
+        value: skeleton-fase0
+
+  # === Libraries (top-level, populated by CI in Fase 7) ===
+  - type: library
+    'bom-ref': lib:fastify
+    name: fastify
+    purl: pkg:npm/fastify@4.28.1
+  - type: library
+    'bom-ref': lib:next
+    name: next
+    purl: pkg:npm/next@15.0.3
+  - type: library
+    'bom-ref': lib:drizzle-orm
+    name: drizzle-orm
+    purl: pkg:npm/drizzle-orm@0.36.4
+  - type: library
+    'bom-ref': lib:better-auth
+    name: better-auth
+    purl: pkg:npm/better-auth@1.1.7
+
+dependencies:
+  - ref: lexia@0.0.0
+    dependsOn:
+      - model:claude-sonnet-4-6
+      - model:claude-haiku-4-5
+      - model:gpt-fallback
+      - data:corpus-nacionalidad-residencia
+      - lib:fastify
+      - lib:next
+      - lib:drizzle-orm
+      - lib:better-auth
