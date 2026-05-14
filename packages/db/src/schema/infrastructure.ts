@@ -1,5 +1,5 @@
 import { boolean, index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
-import { users } from './auth';
+import { users } from './auth.js';
 
 export const verticals = pgTable('verticals', {
   slug: text('slug').primaryKey(),

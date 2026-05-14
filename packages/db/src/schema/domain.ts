@@ -8,7 +8,7 @@ import {
   timestamp,
   uuid,
 } from 'drizzle-orm/pg-core';
-import { users } from './auth';
+import { users } from './auth.js';
 
 export const cases = pgTable('cases', {
   id: uuid('id').primaryKey().defaultRandom(),
