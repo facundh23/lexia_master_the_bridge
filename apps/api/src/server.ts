@@ -13,7 +13,13 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
 
   await app.register(helmet);
-  await app.register(cors, { origin: true, credentials: true });
+  await app.register(cors, {
+    origin: process.env.CORS_ORIGIN?.split(',') ?? [
+      'http://localhost:3000',
+      'http://localhost:4000',
+    ],
+    credentials: true,
+  });
   await app.register(sensible);
 
   app.route({
