@@ -6,6 +6,7 @@ import sensible from '@fastify/sensible';
 import rateLimit from '@fastify/rate-limit';
 import { healthRoute } from './routes/health.js';
 import { meRoute } from './routes/me.js';
+import { casesRoute } from './routes/cases.js';
 import { auth } from './auth.js';
 import { hibpPasswordCheck } from './middleware/hibpCheck.js';
 
@@ -65,6 +66,7 @@ export async function buildServer(): Promise<FastifyInstance> {
 
   await app.register(healthRoute);
   await app.register(meRoute);
+  await app.register(casesRoute);
 
   return app;
 }
