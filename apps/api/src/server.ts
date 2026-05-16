@@ -9,7 +9,9 @@ import { meRoute } from './routes/me.js';
 import { casesRoute } from './routes/cases.js';
 import { conversationsRoute } from './routes/conversations.js';
 import { messagesRoute } from './routes/messages.js';
+import { documentsRoute } from './routes/documents.js';
 import { auth } from './auth.js';
+import multipart from '@fastify/multipart';
 import { hibpPasswordCheck } from './middleware/hibpCheck.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -46,6 +48,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   });
   await app.register(sensible);
   await app.register(rateLimit, { global: false });
+  await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } }); // 10 MB
 
   // Auth routes con rate limits específicos y HIBP check en sign-up
   app.post('/api/auth/sign-up/email', {
@@ -71,6 +74,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(casesRoute);
   await app.register(conversationsRoute);
   await app.register(messagesRoute);
+  await app.register(documentsRoute);
 
   return app;
 }
