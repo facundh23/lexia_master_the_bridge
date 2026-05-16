@@ -36,3 +36,13 @@ describe('registry', () => {
     expect(list.every((v) => v.enabled)).toBe(true);
   });
 });
+
+import { runPreflight } from '../src/vertical/preflight.js';
+
+describe('runPreflight', () => {
+  it('passes with the default registry', () => {
+    const result = runPreflight();
+    expect(result.ok).toBe(true);
+    expect(result.checks.every((c) => c.passed)).toBe(true);
+  });
+});

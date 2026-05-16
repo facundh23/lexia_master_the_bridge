@@ -10,6 +10,7 @@ import { casesRoute } from './routes/cases.js';
 import { conversationsRoute } from './routes/conversations.js';
 import { messagesRoute } from './routes/messages.js';
 import { documentsRoute } from './routes/documents.js';
+import { deepHealthRoute } from './routes/deepHealth.js';
 import { auth } from './auth.js';
 import multipart from '@fastify/multipart';
 import { hibpPasswordCheck } from './middleware/hibpCheck.js';
@@ -75,6 +76,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(conversationsRoute);
   await app.register(messagesRoute);
   await app.register(documentsRoute);
+  await app.register(deepHealthRoute);
 
   return app;
 }
