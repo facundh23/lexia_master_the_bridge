@@ -17,16 +17,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [session, isPending, router]);
 
-  if (isPending) return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
+  if (isPending)
+    return <div className="min-h-screen flex items-center justify-center">Cargando...</div>;
   if (!session) return null;
 
   return (
     <div className="min-h-screen flex flex-col">
       <header className="border-b px-4 py-3 flex items-center justify-between">
-        <Link href="/chat" className="font-semibold text-lg">Lexia</Link>
+        <Link href="/chat" className="font-semibold text-lg">
+          Lexia
+        </Link>
         <div className="flex items-center gap-3">
           <span className="text-sm text-gray-600">{session.user.email}</span>
-          <Button variant="outline" size="sm" onClick={() => signOut().then(() => router.push('/login'))}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => signOut().then(() => router.push('/login'))}
+          >
             Salir
           </Button>
         </div>

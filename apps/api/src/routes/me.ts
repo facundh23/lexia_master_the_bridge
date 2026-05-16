@@ -24,10 +24,7 @@ export const meRoute: FastifyPluginAsync = async (app) => {
   });
 
   app.get('/api/me/export', { preHandler: [requireAuth] }, async (request) => {
-    const [user] = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.id, request.userId));
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.id, request.userId));
 
     const userCases = await db
       .select()

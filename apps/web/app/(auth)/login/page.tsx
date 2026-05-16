@@ -87,7 +87,9 @@ export default function LoginPage() {
               className="text-sm text-gray-500 underline"
               onClick={() => setMode(mode === 'signin' ? 'signup' : 'signin')}
             >
-              {mode === 'signin' ? '¿No tenés cuenta? Registrate' : '¿Ya tenés cuenta? Iniciá sesión'}
+              {mode === 'signin'
+                ? '¿No tenés cuenta? Registrate'
+                : '¿Ya tenés cuenta? Iniciá sesión'}
             </button>
           </form>
         </CardContent>

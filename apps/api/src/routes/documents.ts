@@ -10,38 +10,34 @@ const minio = createMinioClient();
 const BUCKET = process.env.MINIO_BUCKET ?? 'lexia-uploads';
 
 export const documentsRoute: FastifyPluginAsync = async (app) => {
-  app.post(
-    '/api/documents/upload',
-    { preHandler: [requireAuth] },
-    async (request, reply) => {
-      const data = await request.file();
-      if (!data) return reply.status(400).send({ error: 'NO_FILE' });
+  app.post('/api/documents/upload', { preHandler: [requireAuth] }, async (request, reply) => {
+    const data = await request.file();
+    if (!data) return reply.status(400).send({ error: 'NO_FILE' });
 
-      const ext = data.filename.split('.').pop() ?? 'bin';
-      const minioKey = `${request.userId}/${randomUUID()}.${ext}`;
-      const chunks: Buffer[] = [];
-      for await (const chunk of data.file) chunks.push(chunk);
-      const buffer = Buffer.concat(chunks);
+    const ext = data.filename.split('.').pop() ?? 'bin';
+    const minioKey = `${request.userId}/${randomUUID()}.${ext}`;
+    const chunks: Buffer[] = [];
+    for await (const chunk of data.file) chunks.push(chunk);
+    const buffer = Buffer.concat(chunks);
 
-      await minio.putObject(BUCKET, minioKey, buffer, buffer.length, {
-        'Content-Type': data.mimetype,
-      });
+    await minio.putObject(BUCKET, minioKey, buffer, buffer.length, {
+      'Content-Type': data.mimetype,
+    });
 
-      const [doc] = await db
-        .insert(schema.documents)
-        .values({
-          userId: request.userId,
-          filename: data.filename,
-          minioKey,
-          status: 'pending',
-          sizeBytes: buffer.length,
-          mimeType: data.mimetype,
-        })
-        .returning();
+    const [doc] = await db
+      .insert(schema.documents)
+      .values({
+        userId: request.userId,
+        filename: data.filename,
+        minioKey,
+        status: 'pending',
+        sizeBytes: buffer.length,
+        mimeType: data.mimetype,
+      })
+      .returning();
 
-      return reply.status(201).send(doc);
-    },
-  );
+    return reply.status(201).send(doc);
+  });
 
   app.get('/api/documents', { preHandler: [requireAuth] }, async (request) => {
     return db

@@ -19,7 +19,9 @@ import { hibpPasswordCheck } from './middleware/hibpCheck.js';
 async function handleAuthRequest(request: any, reply: any) {
   const url = new URL(request.url, `http://${request.headers.host}`);
   const headers = new Headers();
-  for (const [key, value] of Object.entries(request.headers as Record<string, string | string[] | undefined>)) {
+  for (const [key, value] of Object.entries(
+    request.headers as Record<string, string | string[] | undefined>,
+  )) {
     if (Array.isArray(value)) headers.set(key, value.join(', '));
     else if (value !== undefined) headers.set(key, value);
   }

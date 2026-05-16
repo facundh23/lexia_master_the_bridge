@@ -17,11 +17,13 @@ Proporciona información basada en fuentes oficiales (BOE, Código Civil, instru
 ## 3. Uso permitido
 
 Podés usar Lexia para:
+
 - Informarte sobre procedimientos de extranjería.
 - Simular el examen CCSE.
 - Consultar requisitos y plazos documentales.
 
 Queda prohibido:
+
 - Usar el servicio para actividades ilegales.
 - Intentar eludir los controles de seguridad (prompt injection, jailbreak).
 - Usar el servicio de forma automatizada o masiva sin consentimiento escrito.

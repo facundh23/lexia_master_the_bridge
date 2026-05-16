@@ -1,12 +1,12 @@
 # Aviso Legal — Lexia
 
-| Campo              | Valor                                              |
-| ------------------ | -------------------------------------------------- |
-| Titular            | Facundo Herrera (Capstone Máster IA Generativa)    |
-| Email de contacto  | facundhfed@gmail.com                               |
-| Domicilio          | España                                             |
-| Actividad          | Asistente informativo de extranjería (proyecto académico) |
-| Marco legal        | LSSI-CE (Ley 34/2002), RGPD (UE 2016/679)         |
+| Campo             | Valor                                                     |
+| ----------------- | --------------------------------------------------------- |
+| Titular           | Facundo Herrera (Capstone Máster IA Generativa)           |
+| Email de contacto | facundhfed@gmail.com                                      |
+| Domicilio         | España                                                    |
+| Actividad         | Asistente informativo de extranjería (proyecto académico) |
+| Marco legal       | LSSI-CE (Ley 34/2002), RGPD (UE 2016/679)                 |
 
 ## 1. Condiciones de uso
 
@@ -19,6 +19,7 @@ proporcionada tiene carácter meramente informativo y no constituye consejo jur�
 ## 2. Limitación de responsabilidad
 
 El titular no se hace responsable de:
+
 - Decisiones tomadas en base a la información proporcionada por Lexia.
 - Errores u omisiones en la información (la normativa de extranjería cambia con frecuencia).
 - Daños derivados del uso del servicio.

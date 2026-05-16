@@ -10,11 +10,9 @@ describe('requireAuth middleware', () => {
     app = await buildServer();
 
     // Registrar ruta de test que usa requireAuth
-    app.get(
-      '/api/test/protected',
-      { preHandler: [requireAuth] },
-      async (request) => ({ userId: request.userId }),
-    );
+    app.get('/api/test/protected', { preHandler: [requireAuth] }, async (request) => ({
+      userId: request.userId,
+    }));
 
     await app.ready();
   });

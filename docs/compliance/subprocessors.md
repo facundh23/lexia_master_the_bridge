@@ -6,13 +6,13 @@
 
 ## Lista de subprocesadores
 
-| Subprocesador | País / Región | Finalidad | Transferencia internacional | SCC / Mecanismo |
-|---|---|---|---|---|
-| **Anthropic, PBC** | EE.UU. | LLM primario (Claude Sonnet 4.6, Haiku 4.5) | Sí — EE.UU. → UE | SCCs vigentes (Anthropic Data Processing Agreement) |
-| **OpenAI, LLC** | EE.UU. | LLM fallback + embeddings | Sí — EE.UU. → UE | SCCs vigentes (OpenAI Data Processing Agreement) |
-| **Hetzner Online GmbH** | Alemania (EU) | Hosting VPS (Fase 8) | No (EU-only) | RGPD Art. 3 — sede en UE |
-| **Backblaze, Inc.** | EE.UU. (región EU B2) | Backups (Fase 8) | Sí (si región EU) | SCCs / EU region clause |
-| **Resend / Postmark** | TBD — decidir en F1 | Email transaccional | Posible | Verificar DPA del proveedor elegido |
+| Subprocesador           | País / Región         | Finalidad                                   | Transferencia internacional | SCC / Mecanismo                                     |
+| ----------------------- | --------------------- | ------------------------------------------- | --------------------------- | --------------------------------------------------- |
+| **Anthropic, PBC**      | EE.UU.                | LLM primario (Claude Sonnet 4.6, Haiku 4.5) | Sí — EE.UU. → UE            | SCCs vigentes (Anthropic Data Processing Agreement) |
+| **OpenAI, LLC**         | EE.UU.                | LLM fallback + embeddings                   | Sí — EE.UU. → UE            | SCCs vigentes (OpenAI Data Processing Agreement)    |
+| **Hetzner Online GmbH** | Alemania (EU)         | Hosting VPS (Fase 8)                        | No (EU-only)                | RGPD Art. 3 — sede en UE                            |
+| **Backblaze, Inc.**     | EE.UU. (región EU B2) | Backups (Fase 8)                            | Sí (si región EU)           | SCCs / EU region clause                             |
+| **Resend / Postmark**   | TBD — decidir en F1   | Email transaccional                         | Posible                     | Verificar DPA del proveedor elegido                 |
 
 ## Notas de cumplimiento
 

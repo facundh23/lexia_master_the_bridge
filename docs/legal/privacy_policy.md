@@ -10,13 +10,13 @@ Facundo Herrera — facundhfed@gmail.com (Capstone académico, no empresa regist
 
 ## 2. Datos que recopilamos
 
-| Categoría | Datos | Finalidad | Base legal (RGPD) |
-|---|---|---|---|
-| Cuenta | Email, nombre, contraseña (hash) | Autenticación | Art. 6(1)(b) — ejecución de contrato |
-| Caso | País de origen, fecha llegada, situación residencia | Personalización asistente | Art. 6(1)(b) |
-| Conversaciones | Mensajes de texto | Prestación del servicio | Art. 6(1)(b) |
-| Documentos | Archivos PDF/DOCX subidos | Indexación para RAG | Art. 6(1)(b) |
-| Registros técnicos | IP (hasheada), user-agent | Seguridad y auditoría | Art. 6(1)(f) — interés legítimo |
+| Categoría          | Datos                                               | Finalidad                 | Base legal (RGPD)                    |
+| ------------------ | --------------------------------------------------- | ------------------------- | ------------------------------------ |
+| Cuenta             | Email, nombre, contraseña (hash)                    | Autenticación             | Art. 6(1)(b) — ejecución de contrato |
+| Caso               | País de origen, fecha llegada, situación residencia | Personalización asistente | Art. 6(1)(b)                         |
+| Conversaciones     | Mensajes de texto                                   | Prestación del servicio   | Art. 6(1)(b)                         |
+| Documentos         | Archivos PDF/DOCX subidos                           | Indexación para RAG       | Art. 6(1)(b)                         |
+| Registros técnicos | IP (hasheada), user-agent                           | Seguridad y auditoría     | Art. 6(1)(f) — interés legítimo      |
 
 **Datos de categoría especial (Art. 9 RGPD):** Lexia puede recibir información sobre
 situaciones de vulnerabilidad. Se aplica minimización: no se persiste el contenido
@@ -32,6 +32,7 @@ Las transferencias internacionales están cubiertas por las SCCs de cada proveed
 ## 4. Derechos del usuario
 
 Bajo el RGPD tenés derecho a:
+
 - **Acceso** (Art. 17): endpoint `/api/me/export`
 - **Supresión** (Art. 17): endpoint `/api/me/account` (DELETE)
 - **Portabilidad** (Art. 20): endpoint `/api/me/export`
