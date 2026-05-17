@@ -5,6 +5,9 @@ import { eq, and } from 'drizzle-orm';
 
 const db = createDb(process.env.DATABASE_URL ?? '');
 
+const AI_DISCLOSURE =
+  'Hola, soy Lexia, un asistente de inteligencia artificial especializado en información sobre la nacionalidad española por residencia. Puedo ayudarte a entender el procedimiento, requisitos, plazos y documentación necesaria.\n\n⚠️ Soy un sistema de IA. La información que proporciono es orientativa y no sustituye el asesoramiento jurídico de un abogado o gestor habilitado.\n\n¿En qué puedo ayudarte hoy?';
+
 export const conversationsRoute: FastifyPluginAsync = async (app) => {
   app.post('/api/conversations', { preHandler: [requireAuth] }, async (request, reply) => {
     const body = request.body as { title?: string; caseId?: string };
@@ -17,6 +20,16 @@ export const conversationsRoute: FastifyPluginAsync = async (app) => {
         surface: 'web',
       })
       .returning();
+
+    if (!conv) return reply.status(500).send({ error: 'INTERNAL_ERROR' });
+
+    // AI Act Art. 50 — disclosure obligatorio al inicio de cada conversación
+    await db.insert(schema.messages).values({
+      conversationId: conv.id,
+      role: 'assistant',
+      content: AI_DISCLOSURE,
+      citations: [],
+    });
 
     return reply.status(201).send(conv);
   });

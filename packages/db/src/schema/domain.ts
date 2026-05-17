@@ -1,4 +1,4 @@
-import { boolean, date, index, integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import { boolean, date, index, integer, json, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { users } from './auth.js';
 
 export const cases = pgTable('cases', {
@@ -38,6 +38,7 @@ export const messages = pgTable(
       .references(() => conversations.id, { onDelete: 'cascade' }),
     role: text('role').notNull(), // user | assistant
     content: text('content').notNull(),
+    citations: json('citations').$type<string[]>().default([]),
     traceId: text('trace_id'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },

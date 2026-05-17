@@ -15,6 +15,13 @@
       "when": 1778786884864,
       "tag": "0001_deep_mulholland_black",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747440000000,
+      "tag": "0002_add_citations_to_messages",
+      "breakpoints": true
     }
   ]
 }
