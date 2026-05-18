@@ -1,5 +1,24 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+
+vi.mock('@langchain/langgraph/prebuilt', () => ({
+  createReactAgent: vi.fn().mockReturnValue({
+    invoke: vi.fn().mockResolvedValue({
+      messages: [
+        {
+          content:
+            'Según el Art. 22.1 del Código Civil, como ciudadano de Argentina necesitas 2 años de residencia legal. Llevas 3 años en España, por lo que ya puedes solicitar la nacionalidad.',
+        },
+      ],
+    }),
+  }),
+}));
+
+vi.mock('@langchain/anthropic', () => ({
+  ChatAnthropic: vi.fn().mockImplementation(() => ({})),
+}));
+
 import { computeEligibility } from '../../src/agents/eligibility/tool.js';
+import { runEligibilityAgent } from '../../src/agents/eligibility/agent.js';
 
 describe('computeEligibility', () => {
   it('aplica regla general: 10 años para países no iberoamericanos', () => {
@@ -54,5 +73,26 @@ describe('computeEligibility', () => {
     expect(r.yearsRequired).toBe(10);
     expect(r.yearsElapsed).toBeUndefined();
     expect(r.isEligible).toBeUndefined();
+  });
+});
+
+describe('runEligibilityAgent', () => {
+  it('retorna respuesta string con citaciones legales', async () => {
+    const result = await runEligibilityAgent({
+      content: '¿Ya puedo pedir la nacionalidad?',
+      caseData: { countryOrigin: 'Argentina', arrivalDate: '2021-01-01', residenceStatus: 'legal' },
+      conversationHistory: [],
+    });
+    expect(typeof result.response).toBe('string');
+    expect(result.response.length).toBeGreaterThan(0);
+    expect(result.citations).toContain('Art. 22.1 del Código Civil');
+  });
+
+  it('funciona sin caseData (caso sin perfil de usuario)', async () => {
+    const result = await runEligibilityAgent({
+      content: '¿Cuántos años necesito si soy de México?',
+      conversationHistory: [],
+    });
+    expect(typeof result.response).toBe('string');
   });
 });
