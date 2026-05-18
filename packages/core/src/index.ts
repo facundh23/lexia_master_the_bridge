@@ -7,3 +7,4 @@ export * from './guardrails/output/index.js';
 export * from './agents/index.js';
 export { runLexiaCore } from './lexiaCore.js';
 export type { LexiaCoreInput, LexiaCoreResult } from './lexiaCore.js';
+export { encryptField, decryptField, isEncrypted } from './crypto/fieldEncryption.js';
