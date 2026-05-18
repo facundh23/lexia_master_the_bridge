@@ -100,3 +100,28 @@ jobs:
           severity: 'HIGH,CRITICAL'
           exit-code: '1'
           ignore-unfixed: true
+
+  preflight:
+    name: Preflight verticals
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Run preflight check
+        run: |
+          node --input-type=module << 'EOF'
+          import { runPreflight } from './packages/core/src/vertical/preflight.js';
+          const result = runPreflight();
+          if (!result.ok) {
+            console.error('Preflight FAILED:', JSON.stringify(result.checks, null, 2));
+            process.exit(1);
+          }
+          console.log('Preflight OK:', result.checks.length, 'checks passed');
+          EOF

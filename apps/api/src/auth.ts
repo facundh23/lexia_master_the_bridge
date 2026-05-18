@@ -1,18 +1,17 @@
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { createDb, schema } from '@lexia/db';
+import { mailer } from './mailer.js';
 
 const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) {
-  throw new Error('DATABASE_URL is required');
-}
+if (!databaseUrl) throw new Error('DATABASE_URL is required');
 
 const secret = process.env.BETTER_AUTH_SECRET;
-if (!secret) {
-  throw new Error('BETTER_AUTH_SECRET is required');
-}
+if (!secret) throw new Error('BETTER_AUTH_SECRET is required');
 
 const db = createDb(databaseUrl);
+
+const requireEmailVerification = process.env.NODE_ENV !== 'test';
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
@@ -30,7 +29,26 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 12,
-    requireEmailVerification: false,
+    requireEmailVerification,
   },
-  trustedOrigins: ['http://localhost:3000', 'http://localhost:4000'],
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }: any) => {
+      await mailer.sendMail({
+        from: process.env.SMTP_FROM ?? 'noreply@lexia.local',
+        to: user.email,
+        subject: 'Verificá tu email en Lexia',
+        html: `<p>Hola ${user.name ?? user.email},</p>
+               <p>Para verificar tu cuenta hacé clic aquí:</p>
+               <p><a href="${url}">Verificar email</a></p>
+               <p>El enlace expira en 24 horas.</p>
+               <p><small>Si no creaste una cuenta en Lexia, ignorá este mensaje.</small></p>`,
+      });
+    },
+    autoSignInAfterVerification: true,
+  },
+  trustedOrigins: [
+    'http://localhost:3000',
+    'http://localhost:4000',
+    ...(process.env.TRUSTED_ORIGINS?.split(',') ?? []),
+  ],
 });
