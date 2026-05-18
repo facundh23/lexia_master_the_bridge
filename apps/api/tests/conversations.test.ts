@@ -10,6 +10,8 @@ vi.mock('@lexia/core', async (importOriginal) => {
         'Según el Art. 22 del Código Civil, necesitas 10 años de residencia legal en España.',
       blocked: false,
       citations: ['Art. 22 del Código Civil'],
+      route: 'normativa',
+      traceId: 'test-trace-id-123',
     }),
   };
 });
