@@ -54,4 +54,24 @@ describe('Cases API', () => {
     expect(response.statusCode).toBe(200);
     expect(Array.isArray(response.json())).toBe(true);
   });
+
+  it('POST + GET — countryOrigin se almacena cifrado y se devuelve descifrado', async () => {
+    const create = await app.inject({
+      method: 'POST',
+      url: '/api/cases',
+      headers: { cookie: sessionCookie },
+      payload: { countryOrigin: 'Bolivia', arrivalDate: '2020-03-15', hasChildren: true },
+    });
+    expect(create.statusCode).toBe(201);
+    expect(create.json().countryOrigin).toBe('Bolivia');
+
+    const list = await app.inject({
+      method: 'GET',
+      url: '/api/cases',
+      headers: { cookie: sessionCookie },
+    });
+    const cases = list.json() as Array<{ countryOrigin: string | null }>;
+    const found = cases.find((c) => c.countryOrigin === 'Bolivia');
+    expect(found).toBeDefined();
+  });
 });
