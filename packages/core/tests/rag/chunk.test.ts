@@ -9,7 +9,9 @@ describe('splitIntoChunks', () => {
   });
 
   it('splits long text at paragraph boundaries', () => {
-    const longText = Array.from({ length: 10 }, (_, i) => `Párrafo ${i + 1} con contenido.`).join('\n\n');
+    const longText = Array.from({ length: 10 }, (_, i) => `Párrafo ${i + 1} con contenido.`).join(
+      '\n\n',
+    );
     const chunks = splitIntoChunks(longText, 100, 20);
     expect(chunks.length).toBeGreaterThan(1);
     for (const c of chunks) {
@@ -18,7 +20,8 @@ describe('splitIntoChunks', () => {
   });
 
   it('all content is preserved across chunks (no content lost)', () => {
-    const source = 'Artículo 22.\n\nEl tiempo de residencia es de 10 años.\n\nSe reduce a 5 años para refugiados.';
+    const source =
+      'Artículo 22.\n\nEl tiempo de residencia es de 10 años.\n\nSe reduce a 5 años para refugiados.';
     const chunks = splitIntoChunks(source, 60, 10);
     const joined = chunks.join(' ');
     expect(joined).toContain('Artículo 22');

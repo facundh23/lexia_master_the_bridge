@@ -1,11 +1,10 @@
 import { createHash } from 'crypto';
 
-export function splitIntoChunks(
-  text: string,
-  chunkSize = 500,
-  overlap = 50,
-): string[] {
-  const paragraphs = text.split(/\n{2,}/).map((p) => p.trim()).filter(Boolean);
+export function splitIntoChunks(text: string, chunkSize = 500, overlap = 50): string[] {
+  const paragraphs = text
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
   const chunks: string[] = [];
   let current = '';
 

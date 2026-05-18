@@ -7,16 +7,10 @@ export function createEmbeddingClient(): OpenAIEmbeddings {
   });
 }
 
-export async function embedTexts(
-  client: OpenAIEmbeddings,
-  texts: string[],
-): Promise<number[][]> {
+export async function embedTexts(client: OpenAIEmbeddings, texts: string[]): Promise<number[][]> {
   return client.embedDocuments(texts);
 }
 
-export async function embedQuery(
-  client: OpenAIEmbeddings,
-  text: string,
-): Promise<number[]> {
+export async function embedQuery(client: OpenAIEmbeddings, text: string): Promise<number[]> {
   return client.embedQuery(text);
 }

@@ -2,7 +2,7 @@
   "version": "1.0",
   "vertical": "nacionalidad_residencia",
   "createdAt": "2026-05-17",
-  "minPassScore": 0.70,
+  "minPassScore": 0.7,
   "cases": [
     {
       "id": "fs-001",

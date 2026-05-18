@@ -1,4 +1,14 @@
-import { boolean, date, index, integer, json, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
+import {
+  boolean,
+  date,
+  index,
+  integer,
+  json,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from 'drizzle-orm/pg-core';
 import { users } from './auth.js';
 
 export const cases = pgTable('cases', {

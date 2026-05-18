@@ -1,5 +1,19 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
+
+vi.mock('@lexia/core', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@lexia/core')>();
+  return {
+    ...actual,
+    runLexiaCore: vi.fn().mockResolvedValue({
+      response:
+        'Según el Art. 22 del Código Civil, necesitas 10 años de residencia legal en España.',
+      blocked: false,
+      citations: ['Art. 22 del Código Civil'],
+    }),
+  };
+});
+
 import { buildServer } from '../src/server.js';
 import { createDb, schema } from '@lexia/db';
 import { eq } from 'drizzle-orm';
@@ -43,7 +57,7 @@ describe('Conversations + Messages API', () => {
     conversationId = response.json().id as string;
   });
 
-  it('POST /api/conversations/:id/messages — returns echo response', async () => {
+  it('POST /api/conversations/:id/messages — returns LexiaCore response', async () => {
     const response = await app.inject({
       method: 'POST',
       url: `/api/conversations/${conversationId}/messages`,
@@ -54,7 +68,7 @@ describe('Conversations + Messages API', () => {
     const body = response.json();
     expect(body.userMessage.role).toBe('user');
     expect(body.assistantMessage.role).toBe('assistant');
-    expect(body.assistantMessage.content).toContain('[eco]');
+    expect(body.assistantMessage.content).toContain('Art. 22');
   });
 
   it('GET /api/conversations — lists conversations', async () => {

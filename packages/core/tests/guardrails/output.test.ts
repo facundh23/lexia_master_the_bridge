@@ -5,11 +5,15 @@ import { runOutputPipeline } from '../../src/guardrails/output/index.js';
 
 describe('checkForCitations', () => {
   it('detects BOE citation', () => {
-    expect(checkForCitations('Según el [BOE 30/04/2011] el plazo es 10 años').hasCitations).toBe(true);
+    expect(checkForCitations('Según el [BOE 30/04/2011] el plazo es 10 años').hasCitations).toBe(
+      true,
+    );
   });
 
   it('detects Código Civil citation', () => {
-    expect(checkForCitations('El Art. 22 del Código Civil establece que...').hasCitations).toBe(true);
+    expect(checkForCitations('El Art. 22 del Código Civil establece que...').hasCitations).toBe(
+      true,
+    );
   });
 
   it('detects RD citation', () => {
@@ -17,7 +21,9 @@ describe('checkForCitations', () => {
   });
 
   it('detects Artículo keyword', () => {
-    expect(checkForCitations('Artículo 22 establece un período de 10 años.').hasCitations).toBe(true);
+    expect(checkForCitations('Artículo 22 establece un período de 10 años.').hasCitations).toBe(
+      true,
+    );
   });
 
   it('returns false when no citations', () => {

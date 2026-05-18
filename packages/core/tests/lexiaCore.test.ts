@@ -44,7 +44,10 @@ describe('runLexiaCore', () => {
   it('retries once when agent response has no citations', async () => {
     vi.mocked(runNormativaAgent)
       .mockResolvedValueOnce({ response: 'Necesitas 10 años sin ninguna cita.', citations: [] })
-      .mockResolvedValueOnce({ response: 'Según Art. 22 CC necesitas 10 años.', citations: ['Art. 22 CC'] });
+      .mockResolvedValueOnce({
+        response: 'Según Art. 22 CC necesitas 10 años.',
+        citations: ['Art. 22 CC'],
+      });
 
     const result = await runLexiaCore(baseInput);
 

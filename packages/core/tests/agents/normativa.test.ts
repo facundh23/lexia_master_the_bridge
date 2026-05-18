@@ -25,7 +25,17 @@ vi.mock('chromadb', () => ({
         ids: [['c1']],
         documents: [['El Art. 22 CC establece 10 años.']],
         distances: [[0.1]],
-        metadatas: [[{ vertical: 'nacionalidad_residencia', visibility: 'public', sourceType: 'codigo_civil', chunkIdx: 0, chunkHash: 'abc' }]],
+        metadatas: [
+          [
+            {
+              vertical: 'nacionalidad_residencia',
+              visibility: 'public',
+              sourceType: 'codigo_civil',
+              chunkIdx: 0,
+              chunkHash: 'abc',
+            },
+          ],
+        ],
       }),
     }),
   })),

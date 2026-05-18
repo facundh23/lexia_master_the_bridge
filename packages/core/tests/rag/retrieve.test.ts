@@ -50,18 +50,19 @@ describe('retrieveWithACL', () => {
 
     expect(mockCollection.query).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({ vertical: 'nacionalidad_residencia', visibility: 'public' }),
+        where: expect.objectContaining({
+          vertical: 'nacionalidad_residencia',
+          visibility: 'public',
+        }),
       }),
     );
   });
 
   it('returns RetrievedChunk array sorted by distance', async () => {
-    const results = await retrieveWithACL(
-      mockChroma,
-      mockEmbedding,
-      'cuántos años',
-      { userId: 'user-1', vertical: 'nacionalidad_residencia' },
-    );
+    const results = await retrieveWithACL(mockChroma, mockEmbedding, 'cuántos años', {
+      userId: 'user-1',
+      vertical: 'nacionalidad_residencia',
+    });
 
     expect(results).toHaveLength(2);
     expect(results[0].distance).toBeLessThanOrEqual(results[1].distance);
@@ -74,10 +75,12 @@ describe('retrieveWithACL', () => {
       ids: [['c1', 'c2']],
       documents: [[null, 'Texto válido']],
       distances: [[0.1, 0.2]],
-      metadatas: [[
-        { vertical: 'n', visibility: 'public', sourceType: 'BOE', chunkIdx: 0, chunkHash: 'x' },
-        { vertical: 'n', visibility: 'public', sourceType: 'BOE', chunkIdx: 1, chunkHash: 'y' },
-      ]],
+      metadatas: [
+        [
+          { vertical: 'n', visibility: 'public', sourceType: 'BOE', chunkIdx: 0, chunkHash: 'x' },
+          { vertical: 'n', visibility: 'public', sourceType: 'BOE', chunkIdx: 1, chunkHash: 'y' },
+        ],
+      ],
     });
 
     const results = await retrieveWithACL(mockChroma, mockEmbedding, 'query', {
