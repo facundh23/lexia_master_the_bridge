@@ -1,6 +1,7 @@
 import { runInputPipeline } from './guardrails/input/index.js';
 import { runOutputPipeline } from './guardrails/output/index.js';
 import { runOrchestrator } from './agents/orchestrator/index.js';
+import { startTrace } from './observability/langfuse.js';
 import type { BlockReason } from './guardrails/input/index.js';
 import type { CaseData, Route } from './agents/orchestrator/state.js';
 
@@ -29,17 +30,29 @@ export interface LexiaCoreResult {
 }
 
 export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResult> {
+  const trace = await startTrace({
+    userId: input.userId,
+    content: input.content,
+    vertical: input.vertical,
+  });
+
+  const guardSpan = trace.span('input_guardrails');
   const inputResult = runInputPipeline(input.content);
+  guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
 
   if (inputResult.blocked) {
-    return {
+    const result = {
       response: CANNED_RESPONSES[inputResult.reason!],
       blocked: true,
       blockReason: inputResult.reason,
       citations: [],
+      traceId: trace.traceId,
     };
+    trace.end({ response: 'blocked', route: 'blocked', citations: [] });
+    return result;
   }
 
+  const orchSpan = trace.span('orchestrator');
   const orchestratorResult = await runOrchestrator({
     content: inputResult.sanitized,
     conversationHistory: input.conversationHistory,
@@ -47,15 +60,26 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
     vertical: input.vertical,
     caseData: input.caseData,
   });
+  orchSpan.end({ route: orchestratorResult.route, citationsCount: orchestratorResult.citations.length });
 
   const outputResult = runOutputPipeline(orchestratorResult.response);
 
-  return {
+  const finalResult: LexiaCoreResult = {
     response: outputResult.text,
     blocked: false,
-    citations: outputResult.citations.length > 0
-      ? outputResult.citations
-      : orchestratorResult.citations,
+    citations:
+      outputResult.citations.length > 0
+        ? outputResult.citations
+        : orchestratorResult.citations,
     route: orchestratorResult.route,
+    traceId: trace.traceId,
   };
+
+  trace.end({
+    response: finalResult.response,
+    route: finalResult.route ?? 'unknown',
+    citations: finalResult.citations,
+  });
+
+  return finalResult;
 }
