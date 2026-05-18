@@ -1,7 +1,8 @@
 import { runInputPipeline } from './guardrails/input/index.js';
 import { runOutputPipeline } from './guardrails/output/index.js';
-import { runNormativaAgent } from './agents/normativa/agent.js';
+import { runOrchestrator } from './agents/orchestrator/index.js';
 import type { BlockReason } from './guardrails/input/index.js';
+import type { CaseData, Route } from './agents/orchestrator/state.js';
 
 const CANNED_RESPONSES: Record<BlockReason, string> = {
   jailbreak_attempt:
@@ -15,6 +16,7 @@ export interface LexiaCoreInput {
   conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
   userId: string;
   vertical: string;
+  caseData?: CaseData;
 }
 
 export interface LexiaCoreResult {
@@ -22,10 +24,11 @@ export interface LexiaCoreResult {
   blocked: boolean;
   blockReason?: BlockReason;
   citations: string[];
+  route?: Route;
+  traceId?: string;
 }
 
 export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResult> {
-  // 1. Input guardrails
   const inputResult = runInputPipeline(input.content);
 
   if (inputResult.blocked) {
@@ -37,28 +40,22 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
     };
   }
 
-  const agentInput = {
+  const orchestratorResult = await runOrchestrator({
     content: inputResult.sanitized,
     conversationHistory: input.conversationHistory,
     userId: input.userId,
     vertical: input.vertical,
-  };
+    caseData: input.caseData,
+  });
 
-  // 2. Run agent
-  let agentResult = await runNormativaAgent(agentInput);
-
-  // 3. Citation check — retry once if no citations found
-  if (agentResult.citations.length === 0) {
-    const retry = await runNormativaAgent({ ...agentInput, forceRetryWithCitationReminder: true });
-    agentResult = retry;
-  }
-
-  // 4. Output pipeline (disclaimer injection)
-  const outputResult = runOutputPipeline(agentResult.response);
+  const outputResult = runOutputPipeline(orchestratorResult.response);
 
   return {
     response: outputResult.text,
     blocked: false,
-    citations: outputResult.citations,
+    citations: outputResult.citations.length > 0
+      ? outputResult.citations
+      : orchestratorResult.citations,
+    route: orchestratorResult.route,
   };
 }
