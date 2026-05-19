@@ -54,7 +54,7 @@ export function isEncrypted(value: string): boolean {
   const parts = value.split(':');
   return (
     parts.length === 3 &&
-    parts[0].length === IV_BYTES * 2 &&
-    parts[1].length === TAG_BYTES * 2
+    (parts[0]?.length ?? 0) === IV_BYTES * 2 &&
+    (parts[1]?.length ?? 0) === TAG_BYTES * 2
   );
 }
