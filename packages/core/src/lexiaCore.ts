@@ -10,6 +10,10 @@ const CANNED_RESPONSES: Record<BlockReason, string> = {
     'Lo siento, no puedo procesar esa solicitud. Estoy diseñado para ayudarte con información sobre la nacionalidad española por residencia. ¿Tienes alguna pregunta sobre ese tema?\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*',
   pii_detected:
     'He detectado información personal sensible en tu mensaje. He eliminado esos datos antes de procesarlo. Por favor, evita incluir documentos de identidad, números de cuenta u otra información personal en tus consultas.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*',
+  special_category_detected:
+    'He detectado información de categoría especial en tu consulta. Por protección de tus datos, no persisto esta información. Por favor, reformula tu pregunta sin incluir datos sensibles de identidad personal.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*',
+  budget_exceeded:
+    'Has alcanzado el límite gratuito de consultas para este mes (50.000 tokens). Tu cuota se restablecerá el primer día del próximo mes.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*',
 };
 
 export interface LexiaCoreInput {
@@ -37,7 +41,7 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
   });
 
   const guardSpan = trace.span('input_guardrails');
-  const inputResult = runInputPipeline(input.content);
+  const inputResult = await runInputPipeline(input.content);
   guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
 
   if (inputResult.blocked) {
