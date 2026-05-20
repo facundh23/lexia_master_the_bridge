@@ -72,4 +72,11 @@ describe('runOutputPipeline', () => {
     const result = runOutputPipeline('Según Art. 22 CC el plazo es 10 años.');
     expect(result.hasCitations).toBe(true);
   });
+
+  it('replaces legal advice response with canned response', () => {
+    const result = runOutputPipeline('Te recomiendo que presentes el formulario urgentemente.');
+    expect(result.hadLegalAdvice).toBe(true);
+    expect(result.text).toContain('abogado');
+    expect(result.text).toContain('CEAR');
+  });
 });
