@@ -2,6 +2,8 @@ import { runInputPipeline } from './guardrails/input/index.js';
 import { runOutputPipeline } from './guardrails/output/index.js';
 import { runOrchestrator } from './agents/orchestrator/index.js';
 import { startTrace } from './observability/langfuse.js';
+import { detectCrisis, CRISIS_RESOURCES_BLOCK } from './guardrails/input/crisisDetector.js';
+import { logAgentAction } from './nhi/auditLogger.js';
 import type { BlockReason } from './guardrails/input/index.js';
 import type { CaseData, Route } from './agents/orchestrator/state.js';
 
@@ -39,6 +41,9 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
     content: input.content,
     vertical: input.vertical,
   });
+
+  // Detect crisis in original input (before PII redaction for better pattern matching)
+  const crisisResult = detectCrisis(input.content);
 
   const guardSpan = trace.span('input_guardrails');
   const inputResult = await runInputPipeline(input.content);
@@ -79,6 +84,19 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
     route: orchestratorResult.route,
     traceId: trace.traceId,
   };
+
+  // Inject crisis resources if detected
+  if (crisisResult.hasCrisis) {
+    finalResult.response = CRISIS_RESOURCES_BLOCK + finalResult.response;
+    await logAgentAction({
+      agentId: 'system:crisis_detector:v1',
+      action: 'escalation_risk',
+      userId: input.userId,
+      traceId: trace.traceId,
+      scopeUsed: 'read:input',
+      details: { crisisType: crisisResult.crisisType },
+    });
+  }
 
   trace.end({
     response: finalResult.response,

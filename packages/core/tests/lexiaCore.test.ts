@@ -47,4 +47,14 @@ describe('runLexiaCore', () => {
     expect(vi.mocked(runOrchestrator).mock.calls[0][0].content).not.toContain('12345678Z');
     expect(vi.mocked(runOrchestrator).mock.calls[0][0].content).toContain('[DNI]');
   });
+
+  it('inyecta recursos CEAR cuando detecta crisis en el input', async () => {
+    const result = await runLexiaCore({
+      ...baseInput,
+      content: 'Me van a deportar en 3 días ¿qué hago?',
+    });
+    expect(result.blocked).toBe(false);
+    expect(result.response).toContain('CEAR');
+    expect(result.response).toContain('016');
+  });
 });
