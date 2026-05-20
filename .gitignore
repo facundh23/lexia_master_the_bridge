@@ -39,3 +39,6 @@ packages/db/drizzle/
 
 # Docker volumes (locales)
 .docker-data/
+
+# Claude Code internal
+.claude/

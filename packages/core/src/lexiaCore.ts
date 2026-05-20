@@ -1,7 +1,9 @@
 import { runInputPipeline } from './guardrails/input/index.js';
 import { runOutputPipeline } from './guardrails/output/index.js';
-import { runNormativaAgent } from './agents/normativa/agent.js';
+import { runOrchestrator } from './agents/orchestrator/index.js';
+import { startTrace } from './observability/langfuse.js';
 import type { BlockReason } from './guardrails/input/index.js';
+import type { CaseData, Route } from './agents/orchestrator/state.js';
 
 const CANNED_RESPONSES: Record<BlockReason, string> = {
   jailbreak_attempt:
@@ -15,6 +17,7 @@ export interface LexiaCoreInput {
   conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
   userId: string;
   vertical: string;
+  caseData?: CaseData;
 }
 
 export interface LexiaCoreResult {
@@ -22,43 +25,62 @@ export interface LexiaCoreResult {
   blocked: boolean;
   blockReason?: BlockReason;
   citations: string[];
+  route?: Route;
+  traceId?: string;
 }
 
 export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResult> {
-  // 1. Input guardrails
+  const trace = await startTrace({
+    userId: input.userId,
+    content: input.content,
+    vertical: input.vertical,
+  });
+
+  const guardSpan = trace.span('input_guardrails');
   const inputResult = runInputPipeline(input.content);
+  guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
 
   if (inputResult.blocked) {
-    return {
+    const result = {
       response: CANNED_RESPONSES[inputResult.reason!],
       blocked: true,
       blockReason: inputResult.reason,
       citations: [],
+      traceId: trace.traceId,
     };
+    trace.end({ response: 'blocked', route: 'blocked', citations: [] });
+    return result;
   }
 
-  const agentInput = {
+  const orchSpan = trace.span('orchestrator');
+  const orchestratorResult = await runOrchestrator({
     content: inputResult.sanitized,
     conversationHistory: input.conversationHistory,
     userId: input.userId,
     vertical: input.vertical,
-  };
+    caseData: input.caseData,
+  });
+  orchSpan.end({
+    route: orchestratorResult.route,
+    citationsCount: orchestratorResult.citations.length,
+  });
 
-  // 2. Run agent
-  let agentResult = await runNormativaAgent(agentInput);
+  const outputResult = runOutputPipeline(orchestratorResult.response);
 
-  // 3. Citation check — retry once if no citations found
-  if (agentResult.citations.length === 0) {
-    const retry = await runNormativaAgent({ ...agentInput, forceRetryWithCitationReminder: true });
-    agentResult = retry;
-  }
-
-  // 4. Output pipeline (disclaimer injection)
-  const outputResult = runOutputPipeline(agentResult.response);
-
-  return {
+  const finalResult: LexiaCoreResult = {
     response: outputResult.text,
     blocked: false,
-    citations: outputResult.citations,
+    citations:
+      outputResult.citations.length > 0 ? outputResult.citations : orchestratorResult.citations,
+    route: orchestratorResult.route,
+    traceId: trace.traceId,
   };
+
+  trace.end({
+    response: finalResult.response,
+    route: finalResult.route ?? 'unknown',
+    citations: finalResult.citations,
+  });
+
+  return finalResult;
 }

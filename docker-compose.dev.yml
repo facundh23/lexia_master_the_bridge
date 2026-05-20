@@ -59,7 +59,45 @@ services:
       - '1025:1025'
       - '8025:8025'
 
+  langfuse-db:
+    image: postgres:16-alpine
+    container_name: lexia-langfuse-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: langfuse
+      POSTGRES_PASSWORD: langfuse_dev_password
+      POSTGRES_DB: langfuse
+    volumes:
+      - langfuse_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U langfuse']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  langfuse:
+    image: langfuse/langfuse:3
+    container_name: lexia-langfuse
+    restart: unless-stopped
+    depends_on:
+      langfuse-db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://langfuse:langfuse_dev_password@langfuse-db:5432/langfuse
+      NEXTAUTH_URL: http://localhost:3001
+      NEXTAUTH_SECRET: langfuse_nextauth_secret_replace_in_prod
+      SALT: langfuse_salt_replace_in_prod_32chars_
+      LANGFUSE_INIT_ORG_ID: lexia-org
+      LANGFUSE_INIT_ORG_NAME: Lexia
+      LANGFUSE_INIT_PROJECT_ID: lexia-core
+      LANGFUSE_INIT_PROJECT_NAME: lexia-core
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: dev_pk_lexia_replace_in_prod
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: dev_sk_lexia_replace_in_prod
+    ports:
+      - '3001:3000'
+
 volumes:
   postgres_data:
   chroma_data:
   minio_data:
+  langfuse_db_data:
