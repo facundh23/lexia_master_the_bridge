@@ -177,6 +177,9 @@ importers:
       '@langchain/openai':
         specifier: ^0.3.0
         version: 0.3.17(@langchain/core@0.3.80(openai@4.104.0(zod@3.25.76)))
+      '@lexia/db':
+        specifier: workspace:*
+        version: link:../db
       chromadb:
         specifier: ^3.4.3
         version: 3.4.3
