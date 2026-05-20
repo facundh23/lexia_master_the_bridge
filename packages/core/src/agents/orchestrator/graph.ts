@@ -23,6 +23,7 @@ export async function runOrchestrator(input: OrchestratorInput): Promise<Orchest
     case 'eligibility': {
       const result = await runEligibilityAgent({
         content: triage.subQuery,
+        userId: input.userId,
         caseData: input.caseData,
         conversationHistory: input.conversationHistory,
       });

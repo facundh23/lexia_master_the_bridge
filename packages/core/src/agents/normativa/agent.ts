@@ -6,6 +6,8 @@ import { createEmbeddingClient } from '../../rag/embed.js';
 import { createSearchCorpusTool } from './tools.js';
 import { NORMATIVA_SYSTEM_PROMPT } from './prompt.js';
 import { checkForCitations } from '../../guardrails/output/citationEnforcer.js';
+import { logAgentAction } from '../../nhi/auditLogger.js';
+import { AGENT_IDENTITIES } from '../../nhi/agentIdentities.js';
 
 export interface AgentRunInput {
   content: string;
@@ -60,6 +62,14 @@ export async function runNormativaAgent(input: AgentRunInput): Promise<AgentRunR
         : JSON.stringify(lastMessage.content);
 
   const { citations } = checkForCitations(response);
+
+  await logAgentAction({
+    agentId: AGENT_IDENTITIES.normativa.id,
+    action: 'normativa_response',
+    userId: input.userId,
+    scopeUsed: 'read:rag_chunks',
+    details: { citationsCount: citations.length },
+  });
 
   return { response, citations };
 }

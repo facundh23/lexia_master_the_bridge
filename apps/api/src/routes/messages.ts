@@ -96,6 +96,22 @@ export const messagesRoute: FastifyPluginAsync = async (app) => {
         caseData,
       });
 
+      if (lexiaResult.blocked) {
+        await db.insert(schema.auditLog).values({
+          actorType: 'user',
+          actorId: request.userId,
+          surface: 'web',
+          action: 'input_blocked',
+          targetType: 'conversation',
+          targetId: conversationId,
+          details: {
+            reason: lexiaResult.blockReason,
+            query: '[REDACTED]',
+          },
+          traceId: lexiaResult.traceId ?? null,
+        });
+      }
+
       const [assistantMessage] = await db
         .insert(schema.messages)
         .values({
