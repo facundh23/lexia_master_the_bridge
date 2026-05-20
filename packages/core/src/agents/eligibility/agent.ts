@@ -1,10 +1,6 @@
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { ChatAnthropic } from '@langchain/anthropic';
-import {
-  HumanMessage,
-  AIMessage,
-  SystemMessage,
-} from '@langchain/core/messages';
+import { HumanMessage, AIMessage, SystemMessage } from '@langchain/core/messages';
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { computeEligibility } from './tool.js';
@@ -44,10 +40,7 @@ const eligibilityTool = tool(
     description:
       'Calcula si el usuario cumple el requisito de tiempo de residencia para la nacionalidad española y cuánto tiempo le falta. Devuelve años requeridos, transcurridos, restantes y base legal.',
     schema: z.object({
-      countryOrigin: z
-        .string()
-        .optional()
-        .describe('País de origen del usuario'),
+      countryOrigin: z.string().optional().describe('País de origen del usuario'),
       arrivalDate: z
         .string()
         .optional()

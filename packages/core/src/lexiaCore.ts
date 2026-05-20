@@ -60,7 +60,10 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
     vertical: input.vertical,
     caseData: input.caseData,
   });
-  orchSpan.end({ route: orchestratorResult.route, citationsCount: orchestratorResult.citations.length });
+  orchSpan.end({
+    route: orchestratorResult.route,
+    citationsCount: orchestratorResult.citations.length,
+  });
 
   const outputResult = runOutputPipeline(orchestratorResult.response);
 
@@ -68,9 +71,7 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
     response: outputResult.text,
     blocked: false,
     citations:
-      outputResult.citations.length > 0
-        ? outputResult.citations
-        : orchestratorResult.citations,
+      outputResult.citations.length > 0 ? outputResult.citations : orchestratorResult.citations,
     route: orchestratorResult.route,
     traceId: trace.traceId,
   };

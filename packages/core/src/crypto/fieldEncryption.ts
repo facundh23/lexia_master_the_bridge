@@ -1,9 +1,4 @@
-import {
-  createCipheriv,
-  createDecipheriv,
-  randomBytes,
-  scryptSync,
-} from 'node:crypto';
+import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:crypto';
 
 const ALGORITHM = 'aes-256-gcm';
 const IV_BYTES = 12;
@@ -19,17 +14,10 @@ export function encryptField(plaintext: string, passphrase: string): string {
   const iv = randomBytes(IV_BYTES);
   const cipher = createCipheriv(ALGORITHM, key, iv);
 
-  const encrypted = Buffer.concat([
-    cipher.update(plaintext, 'utf8'),
-    cipher.final(),
-  ]);
+  const encrypted = Buffer.concat([cipher.update(plaintext, 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
 
-  return [
-    iv.toString('hex'),
-    tag.toString('hex'),
-    encrypted.toString('hex'),
-  ].join(':');
+  return [iv.toString('hex'), tag.toString('hex'), encrypted.toString('hex')].join(':');
 }
 
 export function decryptField(ciphertext: string, passphrase: string): string {
@@ -45,9 +33,7 @@ export function decryptField(ciphertext: string, passphrase: string): string {
   const decipher = createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(tag);
 
-  return (
-    decipher.update(enc).toString('utf8') + decipher.final('utf8')
-  );
+  return decipher.update(enc).toString('utf8') + decipher.final('utf8');
 }
 
 export function isEncrypted(value: string): boolean {

@@ -48,13 +48,7 @@ const TWO_YEAR_COUNTRIES = new Set([
   'puerto rico',
 ]);
 
-const FIVE_YEAR_STATUSES = new Set([
-  'refugiado',
-  'refugee',
-  'apatridia',
-  'apatrida',
-  'stateless',
-]);
+const FIVE_YEAR_STATUSES = new Set(['refugiado', 'refugee', 'apatridia', 'apatrida', 'stateless']);
 
 const MS_PER_YEAR = 1000 * 60 * 60 * 24 * 365.25;
 

@@ -1,9 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  encryptField,
-  decryptField,
-  isEncrypted,
-} from '../../src/crypto/fieldEncryption.js';
+import { encryptField, decryptField, isEncrypted } from '../../src/crypto/fieldEncryption.js';
 
 const PASS = 'test-passphrase-32-chars-minimum!!';
 

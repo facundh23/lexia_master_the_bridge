@@ -6,9 +6,7 @@ import type { OrchestratorInput, OrchestratorOutput } from './state.js';
 const OUT_OF_SCOPE_RESPONSE =
   'Lo siento, tu pregunta está fuera del ámbito de información de Lexia. Estoy especializado en la obtención de la nacionalidad española por residencia. Para otras consultas migratorias te recomiendo contactar con CEAR (cear.es), Cruz Roja o un abogado especializado en extranjería.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*';
 
-export async function runOrchestrator(
-  input: OrchestratorInput,
-): Promise<OrchestratorOutput> {
+export async function runOrchestrator(input: OrchestratorInput): Promise<OrchestratorOutput> {
   const triage = await triageQuery(input);
 
   switch (triage.route) {

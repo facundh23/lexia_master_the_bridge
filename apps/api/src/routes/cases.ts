@@ -35,9 +35,7 @@ function decryptCase<T extends Record<string, unknown>>(row: T): T {
   const result = { ...row };
   for (const field of PII_FIELDS) {
     if (field in result) {
-      (result as Record<string, unknown>)[field] = decryptPII(
-        result[field] as string | null,
-      );
+      (result as Record<string, unknown>)[field] = decryptPII(result[field] as string | null);
     }
   }
   return result;
@@ -101,8 +99,7 @@ export const casesRoute: FastifyPluginAsync = async (app) => {
     }>;
 
     const patch: Record<string, unknown> = { ...body, updatedAt: new Date() };
-    if ('countryOrigin' in body)
-      patch.countryOrigin = encryptPII(body.countryOrigin);
+    if ('countryOrigin' in body) patch.countryOrigin = encryptPII(body.countryOrigin);
     if ('notes' in body) patch.notes = encryptPII(body.notes);
 
     const [updated] = await db

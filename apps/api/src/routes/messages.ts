@@ -59,12 +59,7 @@ export const messagesRoute: FastifyPluginAsync = async (app) => {
             hasChildren: schema.cases.hasChildren,
           })
           .from(schema.cases)
-          .where(
-            and(
-              eq(schema.cases.id, conv.caseId),
-              eq(schema.cases.userId, request.userId),
-            ),
-          );
+          .where(and(eq(schema.cases.id, conv.caseId), eq(schema.cases.userId, request.userId)));
 
         if (userCase) {
           caseData = {

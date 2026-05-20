@@ -19,7 +19,11 @@ async function detectCanaryTokens(): Promise<void> {
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
   const rows = await db
-    .select({ id: schema.auditLog.id, details: schema.auditLog.details, traceId: schema.auditLog.traceId })
+    .select({
+      id: schema.auditLog.id,
+      details: schema.auditLog.details,
+      traceId: schema.auditLog.traceId,
+    })
     .from(schema.auditLog)
     .where(gte(schema.auditLog.createdAt, since));
 
@@ -27,7 +31,9 @@ async function detectCanaryTokens(): Promise<void> {
     const detailsStr = JSON.stringify(row.details ?? '');
     for (const canary of CANARY_TOKENS) {
       if (detailsStr.includes(canary)) {
-        console.error(`[ALERT] Canary token "${canary}" found in audit_log row ${row.id} (trace: ${row.traceId})`);
+        console.error(
+          `[ALERT] Canary token "${canary}" found in audit_log row ${row.id} (trace: ${row.traceId})`,
+        );
         await db.insert(schema.auditLog).values({
           actorType: 'detector_worker',
           actorId: 'detector-v1',
