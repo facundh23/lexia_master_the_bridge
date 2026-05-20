@@ -1,6 +1,7 @@
 import { redactPII } from './regexPIIRedactor.js';
 import { checkKeywordBlocklist } from './keywordBlocklist.js';
 import { llmJudgeJailbreak } from './llmJudgeJailbreak.js';
+import { minimizeSpecialCategories } from './specialCategoryMinimizer.js';
 
 export type BlockReason = 'jailbreak_attempt' | 'pii_detected' | 'special_category_detected' | 'budget_exceeded';
 
@@ -28,5 +29,8 @@ export async function runInputPipeline(text: string): Promise<InputPipelineResul
     return { sanitized: sanitized1, blocked: true, reason: 'jailbreak_attempt', hadPII, hadSpecialCategory: false };
   }
 
-  return { sanitized: sanitized1, blocked: false, hadPII, hadSpecialCategory: false };
+  // Step 4: Special category minimization (GDPR Art. 9) — minimizes, does not block
+  const { sanitized: sanitized2, hadSpecialCategory } = minimizeSpecialCategories(sanitized1);
+
+  return { sanitized: sanitized2, blocked: false, hadPII, hadSpecialCategory };
 }
