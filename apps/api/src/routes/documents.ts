@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { createDb, schema } from '@lexia/db';
-import { createMinioClient } from '@lexia/core/storage';
+import { createMinioClient, sanitizePdf, MAX_PDF_SIZE_BYTES } from '@lexia/core/storage';
 import { eq } from 'drizzle-orm';
 import { randomUUID } from 'node:crypto';
 
@@ -19,6 +19,34 @@ export const documentsRoute: FastifyPluginAsync = async (app) => {
     const chunks: Buffer[] = [];
     for await (const chunk of data.file) chunks.push(chunk);
     const buffer = Buffer.concat(chunks);
+
+    // Tamaño máximo
+    if (buffer.length > MAX_PDF_SIZE_BYTES) {
+      return reply.status(413).send({ error: 'FILE_TOO_LARGE', maxBytes: MAX_PDF_SIZE_BYTES });
+    }
+
+    // PDF sanitization
+    const isPdf =
+      data.mimetype === 'application/pdf' || data.filename.toLowerCase().endsWith('.pdf');
+    if (isPdf) {
+      const sanitization = sanitizePdf(buffer);
+      if (!sanitization.safe) {
+        const [rejectedDoc] = await db
+          .insert(schema.documents)
+          .values({
+            userId: request.userId,
+            filename: data.filename,
+            minioKey: null,
+            status: 'rejected',
+            sizeBytes: buffer.length,
+            mimeType: data.mimetype,
+          })
+          .returning();
+        return reply
+          .status(400)
+          .send({ error: 'PDF_SANITIZATION_FAILED', reason: sanitization.reason, doc: rejectedDoc });
+      }
+    }
 
     await minio.putObject(BUCKET, minioKey, buffer, buffer.length, {
       'Content-Type': data.mimetype,

@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { createDb, schema } from '@lexia/db';
-import { eq } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
 const db = createDb(process.env.DATABASE_URL ?? '');
 
@@ -42,5 +42,32 @@ export const meRoute: FastifyPluginAsync = async (app) => {
   app.delete('/api/me/account', { preHandler: [requireAuth] }, async (request, reply) => {
     await db.delete(schema.users).where(eq(schema.users.id, request.userId));
     return reply.status(204).send();
+  });
+
+  app.get('/api/me/usage', { preHandler: [requireAuth] }, async (request) => {
+    const now = new Date();
+    const period = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+    const rows = await db
+      .select({
+        tokensUsed: schema.tokenUsage.tokensUsed,
+        periodMonth: schema.tokenUsage.periodMonth,
+      })
+      .from(schema.tokenUsage)
+      .where(
+        and(
+          eq(schema.tokenUsage.userId, request.userId),
+          eq(schema.tokenUsage.periodMonth, period),
+        ),
+      );
+
+    const tokensUsed = rows[0]?.tokensUsed ?? 0;
+    return {
+      period,
+      tokensUsed,
+      limit: 50_000,
+      remaining: Math.max(0, 50_000 - tokensUsed),
+      percentUsed: Math.round((tokensUsed / 50_000) * 100),
+    };
   });
 };

@@ -177,9 +177,15 @@ importers:
       '@langchain/openai':
         specifier: ^0.3.0
         version: 0.3.17(@langchain/core@0.3.80(openai@4.104.0(zod@3.25.76)))
+      '@lexia/db':
+        specifier: workspace:*
+        version: link:../db
       chromadb:
         specifier: ^3.4.3
         version: 3.4.3
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(kysely@0.28.17)(postgres@3.4.9)
       langfuse:
         specifier: ^3.0.0
         version: 3.38.20

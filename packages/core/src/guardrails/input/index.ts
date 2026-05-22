@@ -1,22 +1,36 @@
 import { redactPII } from './regexPIIRedactor.js';
 import { checkKeywordBlocklist } from './keywordBlocklist.js';
+import { llmJudgeJailbreak } from './llmJudgeJailbreak.js';
+import { minimizeSpecialCategories } from './specialCategoryMinimizer.js';
 
-export type BlockReason = 'jailbreak_attempt' | 'pii_detected';
+export type BlockReason = 'jailbreak_attempt' | 'pii_detected' | 'special_category_detected' | 'budget_exceeded';
 
 export interface InputPipelineResult {
   sanitized: string;
   blocked: boolean;
   reason?: BlockReason;
   hadPII: boolean;
+  hadSpecialCategory: boolean;
 }
 
-export function runInputPipeline(text: string): InputPipelineResult {
-  if (checkKeywordBlocklist(text)) {
-    return { sanitized: text, blocked: true, reason: 'jailbreak_attempt', hadPII: false };
+export async function runInputPipeline(text: string): Promise<InputPipelineResult> {
+  // Step 1: Regex PII redaction
+  const sanitized1 = redactPII(text);
+  const hadPII = sanitized1 !== text;
+
+  // Step 2: Keyword blocklist (sync, fast)
+  if (checkKeywordBlocklist(sanitized1)) {
+    return { sanitized: sanitized1, blocked: true, reason: 'jailbreak_attempt', hadPII, hadSpecialCategory: false };
   }
 
-  const sanitized = redactPII(text);
-  const hadPII = sanitized !== text;
+  // Step 3: LLM-judge jailbreak (async, Haiku)
+  const isLlmJailbreak = await llmJudgeJailbreak(sanitized1);
+  if (isLlmJailbreak) {
+    return { sanitized: sanitized1, blocked: true, reason: 'jailbreak_attempt', hadPII, hadSpecialCategory: false };
+  }
 
-  return { sanitized, blocked: false, hadPII };
+  // Step 4: Special category minimization (GDPR Art. 9) — minimizes, does not block
+  const { sanitized: sanitized2, hadSpecialCategory } = minimizeSpecialCategories(sanitized1);
+
+  return { sanitized: sanitized2, blocked: false, hadPII, hadSpecialCategory };
 }

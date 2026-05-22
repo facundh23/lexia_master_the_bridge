@@ -5,9 +5,12 @@ import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import { computeEligibility } from './tool.js';
 import { ELIGIBILITY_SYSTEM_PROMPT } from './prompt.js';
+import { logAgentAction } from '../../nhi/auditLogger.js';
+import { AGENT_IDENTITIES } from '../../nhi/agentIdentities.js';
 
 export interface EligibilityAgentInput {
   content: string;
+  userId?: string;
   caseData?: {
     countryOrigin?: string;
     arrivalDate?: string;
@@ -88,6 +91,14 @@ export async function runEligibilityAgent(
       : typeof lastMessage.content === 'string'
         ? lastMessage.content
         : JSON.stringify(lastMessage.content);
+
+  await logAgentAction({
+    agentId: AGENT_IDENTITIES.eligibility.id,
+    action: 'eligibility_response',
+    userId: input.userId ?? 'anonymous',
+    scopeUsed: 'read:user_case',
+    details: {},
+  });
 
   return {
     response,

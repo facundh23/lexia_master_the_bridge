@@ -32,6 +32,10 @@ vi.mock('../../src/agents/eligibility/agent.js', () => ({
   }),
 }));
 
+vi.mock('../../src/agents/validator/index.js', () => ({
+  runValidatorAgent: vi.fn().mockResolvedValue({ valid: true, reason: 'mocked' }),
+}));
+
 import { triageQuery } from '../../src/agents/orchestrator/triage.js';
 import { runNormativaAgent } from '../../src/agents/normativa/agent.js';
 import { runEligibilityAgent } from '../../src/agents/eligibility/agent.js';

@@ -11,6 +11,7 @@ const CANARY_TOKENS = [
   'LEXIA_CANARY_ALPHA_7291',
   'LEXIA_CANARY_BETA_4853',
   'LEXIA_CANARY_GAMMA_9127',
+  ...(process.env.LEXIA_CANARY_TOKEN ? [process.env.LEXIA_CANARY_TOKEN] : []),
 ];
 
 async function detectCanaryTokens(): Promise<void> {

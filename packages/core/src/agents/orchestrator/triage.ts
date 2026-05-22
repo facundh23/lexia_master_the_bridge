@@ -2,6 +2,8 @@ import { ChatAnthropic } from '@langchain/anthropic';
 import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import { z } from 'zod';
 import type { OrchestratorInput } from './state.js';
+import { logAgentAction } from '../../nhi/auditLogger.js';
+import { AGENT_IDENTITIES } from '../../nhi/agentIdentities.js';
 
 const TriageSchema = z.object({
   route: z
@@ -42,8 +44,18 @@ export async function triageQuery(input: OrchestratorInput): Promise<TriageOutpu
           .join(' | ')}`
       : '';
 
-  return model.invoke([
+  const triage = await model.invoke([
     new SystemMessage(TRIAGE_SYSTEM_PROMPT),
     new HumanMessage(input.content + recentHistory),
   ]);
+
+  await logAgentAction({
+    agentId: AGENT_IDENTITIES.planner.id,
+    action: 'triage_query',
+    userId: input.userId,
+    scopeUsed: 'read:user_context,read:conversation_history',
+    details: { route: triage.route },
+  });
+
+  return triage;
 }

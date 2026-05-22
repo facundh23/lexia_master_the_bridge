@@ -2,14 +2,28 @@ import { runInputPipeline } from './guardrails/input/index.js';
 import { runOutputPipeline } from './guardrails/output/index.js';
 import { runOrchestrator } from './agents/orchestrator/index.js';
 import { startTrace } from './observability/langfuse.js';
+import { detectCrisis, CRISIS_RESOURCES_BLOCK } from './guardrails/input/crisisDetector.js';
+import { logAgentAction } from './nhi/auditLogger.js';
 import type { BlockReason } from './guardrails/input/index.js';
 import type { CaseData, Route } from './agents/orchestrator/state.js';
+import { createDb } from '@lexia/db';
+import { checkBudget, recordUsage } from './budget/tokenBudget.js';
+
+let _coreDb: ReturnType<typeof createDb> | null = null;
+function getCoreDb() {
+  if (!_coreDb && process.env.DATABASE_URL) _coreDb = createDb(process.env.DATABASE_URL);
+  return _coreDb;
+}
 
 const CANNED_RESPONSES: Record<BlockReason, string> = {
   jailbreak_attempt:
     'Lo siento, no puedo procesar esa solicitud. Estoy diseñado para ayudarte con información sobre la nacionalidad española por residencia. ¿Tienes alguna pregunta sobre ese tema?\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*',
   pii_detected:
     'He detectado información personal sensible en tu mensaje. He eliminado esos datos antes de procesarlo. Por favor, evita incluir documentos de identidad, números de cuenta u otra información personal en tus consultas.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*',
+  special_category_detected:
+    'He detectado información de categoría especial en tu consulta. Por protección de tus datos, no persisto esta información. Por favor, reformula tu pregunta sin incluir datos sensibles de identidad personal.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*',
+  budget_exceeded:
+    'Has alcanzado el límite gratuito de consultas para este mes (50.000 tokens). Tu cuota se restablecerá el primer día del próximo mes.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*',
 };
 
 export interface LexiaCoreInput {
@@ -36,8 +50,27 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
     vertical: input.vertical,
   });
 
+  // Budget check — antes de cualquier procesamiento
+  const coreDb = getCoreDb();
+  if (coreDb) {
+    const budget = await checkBudget(input.userId, coreDb);
+    if (!budget.allowed) {
+      trace.end({ response: 'budget_exceeded', route: 'blocked', citations: [] });
+      return {
+        response: CANNED_RESPONSES.budget_exceeded,
+        blocked: true,
+        blockReason: 'budget_exceeded',
+        citations: [],
+        traceId: trace.traceId,
+      };
+    }
+  }
+
+  // Detect crisis in original input (before PII redaction for better pattern matching)
+  const crisisResult = detectCrisis(input.content);
+
   const guardSpan = trace.span('input_guardrails');
-  const inputResult = runInputPipeline(input.content);
+  const inputResult = await runInputPipeline(input.content);
   guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
 
   if (inputResult.blocked) {
@@ -75,6 +108,25 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
     route: orchestratorResult.route,
     traceId: trace.traceId,
   };
+
+  // Inject crisis resources if detected
+  if (crisisResult.hasCrisis) {
+    finalResult.response = CRISIS_RESOURCES_BLOCK + finalResult.response;
+    await logAgentAction({
+      agentId: 'system:crisis_detector:v1',
+      action: 'escalation_risk',
+      userId: input.userId,
+      traceId: trace.traceId,
+      scopeUsed: 'read:input',
+      details: { crisisType: crisisResult.crisisType },
+    });
+  }
+
+  // Record token usage (approx: chars / 4 ≈ tokens)
+  if (coreDb) {
+    const estimatedTokens = Math.ceil((input.content.length + finalResult.response.length) / 4);
+    await recordUsage(input.userId, estimatedTokens, coreDb).catch(() => {});
+  }
 
   trace.end({
     response: finalResult.response,
