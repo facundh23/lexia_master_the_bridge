@@ -22,6 +22,7 @@
     "@langchain/openai": "^0.3.0",
     "@lexia/db": "workspace:*",
     "chromadb": "^3.4.3",
+    "drizzle-orm": "^0.45.2",
     "langfuse": "^3.0.0",
     "minio": "^8.0.2",
     "zod": "^3.23.8"

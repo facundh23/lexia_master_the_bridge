@@ -183,6 +183,9 @@ importers:
       chromadb:
         specifier: ^3.4.3
         version: 3.4.3
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(kysely@0.28.17)(postgres@3.4.9)
       langfuse:
         specifier: ^3.0.0
         version: 3.38.20

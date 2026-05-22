@@ -13,3 +13,4 @@ export { encryptField, decryptField, isEncrypted } from './crypto/fieldEncryptio
 export * from './nhi/agentIdentities.js';
 export * from './guardrails/input/crisisDetector.js';
 export * from './agents/validator/index.js';
+export * from './budget/tokenBudget.js';
