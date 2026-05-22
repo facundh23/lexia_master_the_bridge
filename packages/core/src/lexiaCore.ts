@@ -6,6 +6,14 @@ import { detectCrisis, CRISIS_RESOURCES_BLOCK } from './guardrails/input/crisisD
 import { logAgentAction } from './nhi/auditLogger.js';
 import type { BlockReason } from './guardrails/input/index.js';
 import type { CaseData, Route } from './agents/orchestrator/state.js';
+import { createDb } from '@lexia/db';
+import { checkBudget, recordUsage } from './budget/tokenBudget.js';
+
+let _coreDb: ReturnType<typeof createDb> | null = null;
+function getCoreDb() {
+  if (!_coreDb && process.env.DATABASE_URL) _coreDb = createDb(process.env.DATABASE_URL);
+  return _coreDb;
+}
 
 const CANNED_RESPONSES: Record<BlockReason, string> = {
   jailbreak_attempt:
@@ -41,6 +49,22 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
     content: input.content,
     vertical: input.vertical,
   });
+
+  // Budget check — antes de cualquier procesamiento
+  const coreDb = getCoreDb();
+  if (coreDb) {
+    const budget = await checkBudget(input.userId, coreDb);
+    if (!budget.allowed) {
+      trace.end({ response: 'budget_exceeded', route: 'blocked', citations: [] });
+      return {
+        response: CANNED_RESPONSES.budget_exceeded,
+        blocked: true,
+        blockReason: 'budget_exceeded',
+        citations: [],
+        traceId: trace.traceId,
+      };
+    }
+  }
 
   // Detect crisis in original input (before PII redaction for better pattern matching)
   const crisisResult = detectCrisis(input.content);
@@ -96,6 +120,12 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
       scopeUsed: 'read:input',
       details: { crisisType: crisisResult.crisisType },
     });
+  }
+
+  // Record token usage (approx: chars / 4 ≈ tokens)
+  if (coreDb) {
+    const estimatedTokens = Math.ceil((input.content.length + finalResult.response.length) / 4);
+    await recordUsage(input.userId, estimatedTokens, coreDb).catch(() => {});
   }
 
   trace.end({
