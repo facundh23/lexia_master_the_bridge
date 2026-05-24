@@ -17,7 +17,9 @@
     "detector": "tsx scripts/detector-worker.ts",
     "eval": "tsx scripts/eval-runner.ts",
     "eval:smoke": "tsx scripts/eval-runner.ts --smoke",
-    "eval:persist": "tsx scripts/eval-runner.ts --persist"
+    "eval:persist": "tsx scripts/eval-runner.ts --persist",
+    "red-team": "tsx scripts/red-team.ts",
+    "ab-safety": "tsx scripts/ab-safety.ts"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
