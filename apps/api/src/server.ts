@@ -15,6 +15,7 @@ import { ccseRoute } from './routes/ccse.js';
 import { remindersRoute } from './routes/reminders.js';
 import { adminRoute } from './routes/admin.js';
 import { patRoute } from './routes/pat.js';
+import { professionalVerificationRoute } from './routes/professionalVerification.js';
 import { auth } from './auth.js';
 import multipart from '@fastify/multipart';
 import { hibpPasswordCheck } from './middleware/hibpCheck.js';
@@ -88,6 +89,7 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(ccseRoute);
   await app.register(remindersRoute);
   await app.register(adminRoute);
+  await app.register(professionalVerificationRoute);
 
   return app;
 }
