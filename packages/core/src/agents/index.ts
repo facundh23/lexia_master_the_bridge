@@ -11,3 +11,6 @@ export type {
   CaseData,
   Route,
 } from './orchestrator/index.js';
+export { generateCcseQuiz, evaluateCcseAnswers } from './ccse/agent.js';
+export type { CCSEQuizResult, CCSEQuizQuestion, CCSEAnswer, CCSEEvalResult } from './ccse/agent.js';
+export { createGenerateCcseQuizTool, createEvaluateCcseAnswerTool } from './ccse/tools.js';

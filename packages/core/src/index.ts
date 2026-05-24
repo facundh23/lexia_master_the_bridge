@@ -14,3 +14,5 @@ export * from './nhi/agentIdentities.js';
 export * from './guardrails/input/crisisDetector.js';
 export * from './agents/validator/index.js';
 export * from './budget/tokenBudget.js';
+export { requestHumanReview } from './tools/requestHumanReview.js';
+export type { HumanReviewInput, HumanReviewResult } from './tools/requestHumanReview.js';
