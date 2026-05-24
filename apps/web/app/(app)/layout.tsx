@@ -38,6 +38,14 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
       </header>
+      <nav className="border-b border-gray-100 bg-white px-4 py-2 flex gap-4 text-sm">
+        <Link href="/chat" className="text-gray-600 hover:text-gray-900">
+          Chat
+        </Link>
+        <Link href="/quiz" className="text-gray-600 hover:text-gray-900">
+          Simulacro CCSE
+        </Link>
+      </nav>
       <main className="flex-1">{children}</main>
     </div>
   );

@@ -30,4 +30,10 @@ export const AGENT_IDENTITIES = {
     scopes: ['read:agent_output'],
     version: 'v1',
   },
+  ccse: {
+    id: 'agent:ccse:v1',
+    name: 'ccse',
+    scopes: ['read:ccse_bank', 'write:ccse_attempts'],
+    version: 'v1',
+  },
 } as const satisfies Record<string, AgentIdentity>;

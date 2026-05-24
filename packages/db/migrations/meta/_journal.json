@@ -29,6 +29,13 @@
       "when": 1747958400000,
       "tag": "0003_token_usage_unique_index",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1748217600000,
+      "tag": "0004_ccse_reminders",
+      "breakpoints": true
     }
   ]
 }
