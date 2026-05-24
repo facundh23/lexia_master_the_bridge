@@ -1,7 +1,7 @@
 # DPIA — Data Protection Impact Assessment
 **Proyecto:** Lexia — Asistente informativo de extranjería  
-**Versión:** 0.1 (borrador)  
-**Fecha:** 2026-05-20  
+**Versión:** 1.0 (final)  
+**Fecha:** 2026-05-24  
 **Responsable:** Facundo Herrera  
 **Base legal aplicable:** GDPR Art. 35, LOPDGDD
 
@@ -20,6 +20,8 @@
 | Destinatarios | Ninguno (no se comparten datos con terceros, excepto procesadores: Anthropic API, Langfuse self-hosted) |
 | Transferencias internacionales | Anthropic API (USA) — cubierto por SCCs y Transfer Impact Assessment. Langfuse self-hosted en EU (Hetzner Alemania). OpenAI API (fallback, USA) — SCCs. |
 | Período de retención | Conversaciones: 2 años desde último acceso. Documentos: 1 año. Audit log: 3 años. |
+| Tratamiento adicional (Fase 6) | Verificación de colegiación profesional. Base: consentimiento explícito del gestor al solicitar acceso profesional. Datos: número de colegiación, cuerpo colegiado. No se comparte con terceros. |
+| Tratamiento adicional (Fase 7) | Eval pipeline: almacena métricas de calidad del sistema en `eval_runs`. No contiene datos de usuarios reales — solo casos sintéticos del golden set. |
 
 ---
 
@@ -52,7 +54,7 @@
 
 ## 4. Medidas técnicas y organizativas implementadas
 
-### Técnicas (implementadas en Fases 0–4)
+### Técnicas (implementadas en Fases 0–7)
 
 - **Cifrado en tránsito**: TLS 1.3 (Caddy reverse proxy)
 - **Cifrado en reposo**: Field-level AES-256-GCM para `cases.country_origin`, `cases.notes`, `documents.filename`
@@ -69,6 +71,8 @@
 - **Right to erasure**: DELETE /api/me/account elimina todos los datos en cascada
 - **Data portability**: GET /api/me/export exporta todos los datos del usuario
 - **EU-only hosting**: Hetzner Alemania (objetivo producción)
+- **MCP Professional Auth** (Fase 6): PAT con SHA-256 hash, verificación de colegiación manual, `surface='mcp'` en audit log, revocación instantánea por DB lookup
+- **Eval pipeline audit** (Fase 7): Resultados de eval en `eval_runs` no contienen PII — solo inputs sintéticos del golden set
 
 ### Organizativas
 
@@ -89,8 +93,6 @@ Al ser un proyecto educativo en fase de desarrollo, la consulta formal no se ha 
 
 El tratamiento presenta **riesgo residual bajo** tras la aplicación de las medidas técnicas y organizativas descritas. No se identifica riesgo alto residual que requiera consulta previa a la autoridad de control (AEPD) conforme al Art. 36 GDPR.
 
-**Próxima revisión:** antes de cualquier lanzamiento en producción real.
+**Versión 1.0 (2026-05-24):** DPIA finalizado para defensa del capstone. Todas las fases (0–8) implementadas. Riesgo residual bajo confirmado.
 
----
-
-*Este DPIA es un borrador para el proyecto de capstone del Máster de IA Generativa.*
+**Próxima revisión:** ante cualquier cambio sustancial de tratamiento (nuevo vertical, nuevos procesadores, cambio de hosting).
