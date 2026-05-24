@@ -3,7 +3,7 @@ specVersion: '1.6'
 serialNumber: urn:uuid:00000000-0000-0000-0000-000000000000
 version: 1
 metadata:
-  timestamp: '2026-05-24T00:00:00Z'
+  timestamp: '2026-05-24T12:00:00Z'
   tools:
     - vendor: lexia
       name: manual-skeleton
@@ -14,7 +14,7 @@ metadata:
     type: application
     'bom-ref': lexia@0.0.0
     name: lexia
-    version: '0.7.0'
+    version: '0.8.0'
     description: Asistente informativo de extranjería
 components:
   # === Models (LLM providers) ===
@@ -111,6 +111,20 @@ components:
       - name: lexia:fase
         value: '7'
 
+  # === Fase 8 — Production infra ===
+  - type: library
+    'bom-ref': lib:caddy
+    name: caddy
+    version: '2'
+    supplier:
+      name: Caddy Community
+    description: Reverse proxy con TLS automático para producción EU
+    properties:
+      - name: lexia:fase
+        value: '8'
+      - name: lexia:role
+        value: reverse-proxy
+
 dependencies:
   - ref: lexia@0.0.0
     dependsOn:
@@ -122,3 +136,4 @@ dependencies:
       - lib:next
       - lib:drizzle-orm
       - lib:better-auth
+      - lib:caddy

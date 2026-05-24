@@ -56,7 +56,17 @@ export async function buildServer(): Promise<FastifyInstance> {
     credentials: true,
   });
   await app.register(sensible);
-  await app.register(rateLimit, { global: false });
+  await app.register(rateLimit, {
+    global: true,
+    max: 100,
+    timeWindow: '1 minute',
+    keyGenerator: (request) => request.ip,
+    errorResponseBuilder: (_request, context) => ({
+      statusCode: 429,
+      error: 'Too Many Requests',
+      message: `Rate limit exceeded. Retry after ${context.after}.`,
+    }),
+  });
   await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } }); // 10 MB
 
   await app.register(patRoute);
