@@ -14,7 +14,10 @@
     "test": "pnpm -r test",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\"",
-    "detector": "tsx scripts/detector-worker.ts"
+    "detector": "tsx scripts/detector-worker.ts",
+    "eval": "tsx scripts/eval-runner.ts",
+    "eval:smoke": "tsx scripts/eval-runner.ts --smoke",
+    "eval:persist": "tsx scripts/eval-runner.ts --persist"
   },
   "devDependencies": {
     "@types/node": "^20.14.0",
