@@ -125,3 +125,54 @@ jobs:
           }
           console.log('Preflight OK:', result.checks.length, 'checks passed');
           EOF
+
+  eval-smoke:
+    name: Eval smoke (5 cases)
+    runs-on: ubuntu-latest
+    if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
+    needs: [test]
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: lexia
+          POSTGRES_PASSWORD: lexia_ci_password
+          POSTGRES_DB: lexia
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://lexia:lexia_ci_password@localhost:5432/lexia
+      BETTER_AUTH_SECRET: ci_secret_replace_in_real_envs_with_64_random_chars_xx
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      EVAL_JUDGE_MODEL: claude-haiku-4-5-20251001
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - name: Enable pgcrypto + run migrations
+        run: |
+          PGPASSWORD=lexia_ci_password psql -h localhost -U lexia -d lexia \
+            -c "CREATE EXTENSION IF NOT EXISTS pgcrypto; CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
+          pnpm --filter @lexia/db db:migrate
+      - name: Run eval smoke
+        run: pnpm eval:smoke --output=eval-report.json
+      - name: Check thresholds
+        run: tsx scripts/eval-check-thresholds.ts --from-file=eval-report.json
+      - name: Upload eval report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: eval-report.json
