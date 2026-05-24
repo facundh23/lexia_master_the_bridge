@@ -11,6 +11,9 @@ import { conversationsRoute } from './routes/conversations.js';
 import { messagesRoute } from './routes/messages.js';
 import { documentsRoute } from './routes/documents.js';
 import { deepHealthRoute } from './routes/deepHealth.js';
+import { ccseRoute } from './routes/ccse.js';
+import { remindersRoute } from './routes/reminders.js';
+import { adminRoute } from './routes/admin.js';
 import { auth } from './auth.js';
 import multipart from '@fastify/multipart';
 import { hibpPasswordCheck } from './middleware/hibpCheck.js';
@@ -79,6 +82,9 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(messagesRoute);
   await app.register(documentsRoute);
   await app.register(deepHealthRoute);
+  await app.register(ccseRoute);
+  await app.register(remindersRoute);
+  await app.register(adminRoute);
 
   return app;
 }

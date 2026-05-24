@@ -70,4 +70,25 @@ export const meRoute: FastifyPluginAsync = async (app) => {
       percentUsed: Math.round((tokensUsed / 50_000) * 100),
     };
   });
+
+  app.post(
+    '/api/me/request-review',
+    { preHandler: [requireAuth] },
+    async (request, reply) => {
+      const body = request.body as { reason?: string; conversationId?: string } | null;
+
+      if (!body?.reason || body.reason.trim().length === 0) {
+        return reply.status(400).send({ error: 'BAD_REQUEST', message: 'reason es requerido' });
+      }
+
+      const { requestHumanReview } = await import('@lexia/core');
+      const result = await requestHumanReview({
+        userId: request.userId,
+        reason: body.reason.trim(),
+        conversationId: body.conversationId,
+      });
+
+      return reply.status(201).send(result);
+    },
+  );
 };
