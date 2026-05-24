@@ -8,6 +8,7 @@ export const users = pgTable('users', {
   image: text('image'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  role: text('role').notNull().default('user'),
 });
 
 export const sessions = pgTable('sessions', {

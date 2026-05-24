@@ -14,6 +14,9 @@ import { deepHealthRoute } from './routes/deepHealth.js';
 import { ccseRoute } from './routes/ccse.js';
 import { remindersRoute } from './routes/reminders.js';
 import { adminRoute } from './routes/admin.js';
+import { patRoute } from './routes/pat.js';
+import { professionalVerificationRoute } from './routes/professionalVerification.js';
+import { mcpRoute } from './routes/mcp.js';
 import { auth } from './auth.js';
 import multipart from '@fastify/multipart';
 import { hibpPasswordCheck } from './middleware/hibpCheck.js';
@@ -56,6 +59,8 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(rateLimit, { global: false });
   await app.register(multipart, { limits: { fileSize: 10 * 1024 * 1024 } }); // 10 MB
 
+  await app.register(patRoute);
+
   // Auth routes con rate limits específicos y HIBP check en sign-up
   app.post('/api/auth/sign-up/email', {
     config: { rateLimit: { max: 10, timeWindow: '1 hour' } },
@@ -85,6 +90,8 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(ccseRoute);
   await app.register(remindersRoute);
   await app.register(adminRoute);
+  await app.register(professionalVerificationRoute);
+  await app.register(mcpRoute);
 
   return app;
 }

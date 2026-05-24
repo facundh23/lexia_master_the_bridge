@@ -16,3 +16,6 @@ export * from './agents/validator/index.js';
 export * from './budget/tokenBudget.js';
 export { requestHumanReview } from './tools/requestHumanReview.js';
 export type { HumanReviewInput, HumanReviewResult } from './tools/requestHumanReview.js';
+
+// Fase 6 — vertical manifests
+export { nacionalidadResidencia } from './verticals/nacionalidad_residencia/manifest.js';
