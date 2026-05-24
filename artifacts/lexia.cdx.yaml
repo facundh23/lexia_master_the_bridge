@@ -3,7 +3,7 @@ specVersion: '1.6'
 serialNumber: urn:uuid:00000000-0000-0000-0000-000000000000
 version: 1
 metadata:
-  timestamp: '2026-05-01T00:00:00Z'
+  timestamp: '2026-05-24T00:00:00Z'
   tools:
     - vendor: lexia
       name: manual-skeleton
@@ -14,7 +14,7 @@ metadata:
     type: application
     'bom-ref': lexia@0.0.0
     name: lexia
-    version: '0.0.0'
+    version: '0.7.0'
     description: Asistente informativo de extranjería
 components:
   # === Models (LLM providers) ===
@@ -82,6 +82,34 @@ components:
     'bom-ref': lib:better-auth
     name: better-auth
     purl: pkg:npm/better-auth@1.1.7
+
+  # === Fase 6 — MCP Server ===
+  - type: library
+    'bom-ref': lib:modelcontextprotocol-sdk
+    name: '@modelcontextprotocol/sdk'
+    version: '1.29.0'
+    supplier:
+      name: Anthropic
+    description: MCP server SDK for professional tools surface
+    properties:
+      - name: lexia:fase
+        value: '6'
+      - name: lexia:role
+        value: mcp-transport
+
+  # === Fase 7 — Eval pipeline ===
+  - type: machine-learning-model
+    'bom-ref': model:claude-haiku-4-5-judge
+    name: claude-haiku-4-5-20251001
+    version: '4.5'
+    supplier:
+      name: Anthropic
+    description: LLM judge for eval pipeline (factuality, safety, tone)
+    properties:
+      - name: lexia:role
+        value: eval-judge
+      - name: lexia:fase
+        value: '7'
 
 dependencies:
   - ref: lexia@0.0.0
