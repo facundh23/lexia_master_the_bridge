@@ -1,7 +1,7 @@
 {
-  "version": "1.0",
+  "version": "1.1",
   "vertical": "nacionalidad_residencia",
-  "createdAt": "2026-05-22",
+  "createdAt": "2026-05-24",
   "minPassScore": 0.7,
   "cases": [
     {
@@ -468,6 +468,166 @@
       "mustContain": ["fuera de mi área", "España"],
       "mustNotContain": ["Canadá", "visa canadiense"],
       "mustHaveCitation": false
+    },
+    {
+      "id": "fs-021",
+      "category": "factual_simple",
+      "input": "¿Qué pasa si salgo de España durante el período de residencia?",
+      "mustContain": ["6 meses", "continuidad"],
+      "mustNotContain": ["te recomiendo"],
+      "mustHaveCitation": true
+    },
+    {
+      "id": "fs-022",
+      "category": "factual_simple",
+      "input": "¿Puedo solicitar la nacionalidad si tengo antecedentes penales?",
+      "mustContain": ["buena conducta", "antecedentes"],
+      "mustNotContain": ["deberías", "tienes que"],
+      "mustHaveCitation": true
+    },
+    {
+      "id": "fs-023",
+      "category": "factual_simple",
+      "input": "¿Qué es la prueba DELE y es necesaria para la nacionalidad?",
+      "mustContain": ["DELE", "idioma"],
+      "mustNotContain": [],
+      "mustHaveCitation": false
+    },
+    {
+      "id": "fs-024",
+      "category": "factual_simple",
+      "input": "¿Cuánto tiempo tarda en resolverse la solicitud de nacionalidad?",
+      "mustContain": ["plazo", "resolución"],
+      "mustNotContain": ["garantizo", "te aseguro"],
+      "mustHaveCitation": false
+    },
+    {
+      "id": "fs-025",
+      "category": "factual_simple",
+      "input": "¿Los menores de edad necesitan hacer el CCSE?",
+      "mustContain": ["menores", "14 años"],
+      "mustNotContain": [],
+      "mustHaveCitation": false
+    },
+    {
+      "id": "fs-026",
+      "category": "factual_simple",
+      "input": "¿La doble nacionalidad está permitida para todos los países?",
+      "mustContain": ["iberoamericanos", "tratado"],
+      "mustNotContain": [],
+      "mustHaveCitation": true
+    },
+    {
+      "id": "fs-027",
+      "category": "factual_simple",
+      "input": "¿Qué es el certificado de integración y cómo se obtiene?",
+      "mustContain": ["integración", "Comunidad Autónoma"],
+      "mustNotContain": [],
+      "mustHaveCitation": false
+    },
+    {
+      "id": "fs-028",
+      "category": "factual_simple",
+      "input": "¿Puedo solicitar la nacionalidad siendo trabajador temporal?",
+      "mustContain": ["residencia legal", "continuada"],
+      "mustNotContain": ["sí puedes", "no puedes"],
+      "mustHaveCitation": true
+    },
+    {
+      "id": "fs-029",
+      "category": "factual_simple",
+      "input": "¿Qué documentos del país de origen necesito apostillar?",
+      "mustContain": ["apostilla", "nacimiento"],
+      "mustNotContain": [],
+      "mustHaveCitation": false
+    },
+    {
+      "id": "fs-030",
+      "category": "factual_simple",
+      "input": "¿Qué pasa si repruebo el CCSE?",
+      "mustContain": ["repetir", "convocatoria"],
+      "mustNotContain": [],
+      "mustHaveCitation": false
+    },
+    {
+      "id": "fs-031",
+      "category": "factual_simple",
+      "input": "¿Se puede solicitar la nacionalidad estando en situación irregular?",
+      "mustContain": ["legal", "irregular"],
+      "mustNotContain": ["sí puedes sin papeles", "no te preocupes por los papeles"],
+      "mustHaveCitation": true
+    },
+    {
+      "id": "fs-032",
+      "category": "factual_simple",
+      "input": "¿Qué prueba de nivel de español se acepta además del DELE?",
+      "mustContain": ["Cervantes", "Instituto"],
+      "mustNotContain": [],
+      "mustHaveCitation": false
+    },
+    {
+      "id": "fs-033",
+      "category": "factual_simple",
+      "input": "¿Puedo solicitar la nacionalidad si mi cónyuge es español?",
+      "mustContain": ["1 año", "cónyuge"],
+      "mustNotContain": ["10 años"],
+      "mustHaveCitation": true
+    },
+    {
+      "id": "fs-034",
+      "category": "factual_simple",
+      "input": "¿Qué significa residencia 'continuada' para el cómputo de años?",
+      "mustContain": ["continuidad", "ausencias"],
+      "mustNotContain": [],
+      "mustHaveCitation": true
+    },
+    {
+      "id": "fs-035",
+      "category": "factual_simple",
+      "input": "¿El padrón municipal es suficiente para acreditar la residencia?",
+      "mustContain": ["empadronamiento", "padrón"],
+      "mustNotContain": [],
+      "mustHaveCitation": false
+    },
+    {
+      "id": "fc-016",
+      "category": "factual_complex",
+      "input": "Soy colombiana con 3 años en España como estudiante, ¿ya cumplo el requisito de residencia?",
+      "mustContain": ["2 años", "Colombia", "legal"],
+      "mustNotContain": ["deberías presentar"],
+      "mustHaveCitation": true
+    },
+    {
+      "id": "fc-017",
+      "category": "factual_complex",
+      "input": "Mi TIE expira en 2 meses mientras espero la resolución de la solicitud de nacionalidad, ¿qué hago?",
+      "mustContain": ["renovar", "prórroga"],
+      "mustNotContain": ["no te preocupes", "garantizo"],
+      "mustHaveCitation": false
+    },
+    {
+      "id": "fc-018",
+      "category": "factual_complex",
+      "input": "Soy refugiado sirio reconocido en España, ¿qué plazo me aplica para la nacionalidad?",
+      "mustContain": ["5 años", "refugiado"],
+      "mustNotContain": ["10 años"],
+      "mustHaveCitation": true
+    },
+    {
+      "id": "fc-019",
+      "category": "factual_complex",
+      "input": "Tengo una condena en España de 2016 ya cumplida, ¿afecta a mi solicitud de nacionalidad?",
+      "mustContain": ["buena conducta", "antecedentes"],
+      "mustNotContain": ["no te afecta", "sí te afecta"],
+      "mustHaveCitation": true
+    },
+    {
+      "id": "fc-020",
+      "category": "factual_complex",
+      "input": "Mi madre es española pero yo nací fuera. ¿Puedo acceder a la nacionalidad de otra forma?",
+      "mustContain": ["filiación", "origen", "Art. 17"],
+      "mustNotContain": ["residencia"],
+      "mustHaveCitation": true
     }
   ]
 }
