@@ -3,7 +3,20 @@ import { createCipheriv, createDecipheriv, randomBytes, scryptSync } from 'node:
 const ALGORITHM = 'aes-256-gcm';
 const IV_BYTES = 12;
 const TAG_BYTES = 16;
-const SCRYPT_SALT = 'lexia-pii-v1';
+
+// FIELD_ENCRYPTION_SALT debe setearse en .env como string aleatorio de ≥32 chars.
+// Si no está, se usa el valor legacy para no romper datos ya cifrados,
+// pero se emite un warning porque el salt estático debilita la derivación de clave.
+const SCRYPT_SALT = (() => {
+  const envSalt = process.env.FIELD_ENCRYPTION_SALT;
+  if (!envSalt && process.env.NODE_ENV === 'production') {
+    throw new Error('FIELD_ENCRYPTION_SALT debe setearse en producción (≥32 chars aleatorios)');
+  }
+  if (!envSalt) {
+    console.warn('[crypto] FIELD_ENCRYPTION_SALT no seteado — usando salt legacy. Setear en producción.');
+  }
+  return envSalt ?? 'lexia-pii-v1';
+})();
 
 function deriveKey(passphrase: string): Buffer {
   return scryptSync(passphrase, SCRYPT_SALT, 32);
