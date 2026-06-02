@@ -5,6 +5,7 @@ import { createChromaClient } from '../../storage/chroma.js';
 import { createEmbeddingClient } from '../../rag/embed.js';
 import { createSearchCorpusTool } from './tools.js';
 import { NORMATIVA_SYSTEM_PROMPT } from './prompt.js';
+import { sanitizeHistory } from '../../guardrails/input/sanitizeHistory.js';
 import { checkForCitations } from '../../guardrails/output/citationEnforcer.js';
 import { logAgentAction } from '../../nhi/auditLogger.js';
 import { AGENT_IDENTITIES } from '../../nhi/agentIdentities.js';
@@ -43,9 +44,10 @@ export async function runNormativaAgent(input: AgentRunInput): Promise<AgentRunR
     ? `${input.content}\n\n[Por favor, incluye al menos una cita legal específica como "Art. X del Código Civil" o "Art. Y del RD 557/2011" en tu respuesta]`
     : input.content;
 
+  const safeHistory = sanitizeHistory(input.conversationHistory);
   const messages = [
     new SystemMessage(NORMATIVA_SYSTEM_PROMPT),
-    ...input.conversationHistory.map((m) =>
+    ...safeHistory.map((m) =>
       m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content),
     ),
     new HumanMessage(userContent),
