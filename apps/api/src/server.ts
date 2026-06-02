@@ -42,7 +42,21 @@ async function handleAuthRequest(request: any, reply: any) {
   return reply.send(await response.text());
 }
 
+function validateEnv(): void {
+  if (process.env.NODE_ENV !== 'production') return;
+  const required = ['DATABASE_URL', 'BETTER_AUTH_SECRET', 'PII_ENCRYPTION_KEY'] as const;
+  const missing = required.filter((k) => !process.env[k]);
+  if (missing.length > 0) {
+    throw new Error(`Variables de entorno requeridas en producción no seteadas: ${missing.join(', ')}`);
+  }
+  if (!process.env.ADMIN_EMAILS?.trim()) {
+    throw new Error('ADMIN_EMAILS debe estar configurado en producción');
+  }
+}
+
 export async function buildServer(): Promise<FastifyInstance> {
+  validateEnv();
+
   const app = Fastify({
     logger: { level: process.env.NODE_ENV === 'test' ? 'silent' : 'info' },
   });
@@ -102,6 +116,23 @@ export async function buildServer(): Promise<FastifyInstance> {
   await app.register(adminRoute);
   await app.register(professionalVerificationRoute);
   await app.register(mcpRoute);
+
+  app.setErrorHandler((error: { statusCode?: number; name?: string; message?: string }, _request, reply) => {
+    app.log.error(error);
+    const statusCode = error.statusCode ?? 500;
+    if (statusCode >= 500) {
+      return reply.status(500).send({
+        statusCode: 500,
+        error: 'Internal Server Error',
+        message: 'Ha ocurrido un error. Intentá nuevamente.',
+      });
+    }
+    return reply.status(statusCode).send({
+      statusCode,
+      error: error.name ?? 'Error',
+      message: error.message ?? 'Error inesperado',
+    });
+  });
 
   return app;
 }

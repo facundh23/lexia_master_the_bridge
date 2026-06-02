@@ -26,7 +26,9 @@ export async function llmJudgeJailbreak(text: string): Promise<boolean> {
     ]);
 
     return result.isJailbreak && result.confidence >= 0.7;
-  } catch {
-    return false;
+  } catch (err) {
+    // Fail-secure: ante error de red/timeout/rate-limit, bloquear en lugar de dejar pasar
+    console.error('[guardrail:llmJudge] error — fail-secure block applied:', String(err));
+    return true;
   }
 }

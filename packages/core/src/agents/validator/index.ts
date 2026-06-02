@@ -37,7 +37,9 @@ export async function runValidatorAgent(
     return await model.invoke([
       { role: 'user', content: `${VALIDATOR_PROMPT}\n\nResponse to validate:\n${response}` },
     ]);
-  } catch {
-    return { valid: true, reason: 'validator_error_fail_open' };
+  } catch (err) {
+    // Fail-secure: ante error del validator (timeout, rate-limit), rechazar la respuesta
+    console.error('[validator] error — fail-secure reject applied:', String(err));
+    return { valid: false, reason: 'validator_error_fail_secure' };
   }
 }
