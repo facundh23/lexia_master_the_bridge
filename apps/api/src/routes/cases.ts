@@ -89,18 +89,22 @@ export const casesRoute: FastifyPluginAsync = async (app) => {
 
   app.patch('/api/cases/:id', { preHandler: [requireAuth] }, async (request, reply) => {
     const { id } = request.params as { id: string };
-    const body = request.body as Partial<{
-      countryOrigin: string;
-      arrivalDate: string;
-      residenceStatus: string;
-      hasChildren: boolean;
-      notes: string;
-      status: string;
-    }>;
+    const body = request.body as Record<string, unknown>;
 
-    const patch: Record<string, unknown> = { ...body, updatedAt: new Date() };
-    if ('countryOrigin' in body) patch.countryOrigin = encryptPII(body.countryOrigin);
-    if ('notes' in body) patch.notes = encryptPII(body.notes);
+    const VALID_STATUSES = ['active', 'closed', 'archived'] as const;
+    const patch: Record<string, unknown> = { updatedAt: new Date() };
+
+    if ('countryOrigin' in body) patch.countryOrigin = encryptPII(body.countryOrigin as string | undefined);
+    if ('arrivalDate' in body) patch.arrivalDate = body.arrivalDate ?? null;
+    if ('residenceStatus' in body) patch.residenceStatus = body.residenceStatus ?? null;
+    if ('hasChildren' in body) patch.hasChildren = Boolean(body.hasChildren);
+    if ('notes' in body) patch.notes = encryptPII(body.notes as string | undefined);
+    if ('status' in body) {
+      if (!VALID_STATUSES.includes(body.status as (typeof VALID_STATUSES)[number])) {
+        return reply.status(400).send({ error: 'BAD_REQUEST', message: 'status inválido' });
+      }
+      patch.status = body.status;
+    }
 
     const [updated] = await db
       .update(schema.cases)
