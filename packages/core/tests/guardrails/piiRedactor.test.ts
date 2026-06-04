@@ -17,13 +17,10 @@ describe('redactPII — DNI español', () => {
     expect(result).toContain('[DNI]');
   });
 
-  // GAP: DNI con letra minúscula — el regex actual solo cubre [A-Z], por lo que
-  // `12345678a` NO se redacta. Este test documenta el comportamiento actual.
-  it('GAP — DNI con letra minúscula NO se redacta (regex actual solo cubre mayúsculas)', () => {
+  it('redacts DNI with lowercase letter (e.g. 12345678a)', () => {
     const result = redactPII('mi DNI es 12345678a');
-    // Documenta el gap: la letra minúscula no activa el patrón
-    expect(result).toContain('12345678a'); // comportamiento actual: no redactado
-    // Para corregir este gap, el regex debería ser /\b[0-9]{8}[A-Za-z]\b/gi
+    expect(result).not.toContain('12345678a');
+    expect(result).toContain('[DNI]');
   });
 });
 
@@ -49,13 +46,10 @@ describe('redactPII — NIE español', () => {
     expect(result).toContain('[NIE]');
   });
 
-  // GAP: NIE con guiones — el regex actual NO incluye guiones en el patrón NIE.
-  // Formato real con guiones: X-1234567-A
-  it('GAP — NIE con guiones NO se redacta (regex actual no contempla guiones en NIE)', () => {
+  it('redacts NIE with hyphens (e.g. X-1234567-A)', () => {
     const result = redactPII('mi NIE es X-1234567-A');
-    // Documenta el gap: el formato con guiones no activa el patrón
-    expect(result).toContain('X-1234567-A'); // comportamiento actual: no redactado
-    // Para corregir, el regex debería ser /\b[XYZ][\s\-]?[0-9]{7}[\s\-]?[A-Z]\b/g
+    expect(result).not.toContain('X-1234567-A');
+    expect(result).toContain('[NIE]');
   });
 });
 
@@ -158,42 +152,37 @@ describe('redactPII — texto limpio no modificado', () => {
 });
 
 // ---------------------------------------------------------------------------
-// GAP: Pasaporte español
-// AAA123456 — 3 letras + 6 dígitos; no cubierto por ningún patrón actual
+// Pasaporte español — AAA123456 (3 letras + 6 dígitos)
 // ---------------------------------------------------------------------------
-describe('redactPII — GAP: Pasaporte español (no implementado)', () => {
-  it('GAP — pasaporte AAA123456 NO se redacta (patrón no implementado)', () => {
+describe('redactPII — pasaporte español', () => {
+  it('redacts pasaporte AAA123456', () => {
     const result = redactPII('mi pasaporte es AAA123456');
-    // Documenta el gap: el pasaporte español no está en los patrones actuales
-    expect(result).toContain('AAA123456'); // comportamiento actual: no redactado
-    // Para corregir: añadir /\b[A-Z]{3}[0-9]{6}\b/g → '[PASAPORTE]'
+    expect(result).not.toContain('AAA123456');
+    expect(result).toContain('[PASAPORTE]');
   });
 
-  it('GAP — detectPII no detecta pasaporte español', () => {
-    // Documenta que detectPII tampoco cubre pasaportes
-    expect(detectPII('mi pasaporte es AAA123456')).toBe(false);
+  it('detectPII detects pasaporte español', () => {
+    expect(detectPII('mi pasaporte es AAA123456')).toBe(true);
   });
 });
 
 // ---------------------------------------------------------------------------
-// GAP: Tarjeta de crédito (no implementado)
+// Tarjeta de crédito
 // ---------------------------------------------------------------------------
-describe('redactPII — GAP: Tarjeta de crédito (no implementado)', () => {
-  it('GAP — tarjeta Visa 4532123456789012 NO se redacta (patrón no implementado)', () => {
+describe('redactPII — tarjeta de crédito', () => {
+  it('redacts tarjeta Visa 4532123456789012', () => {
     const result = redactPII('mi tarjeta es 4532123456789012');
-    // Documenta el gap: número de tarjeta de crédito no está en los patrones actuales
-    expect(result).toContain('4532123456789012'); // comportamiento actual: no redactado
-    // Para corregir: añadir patrón Luhn-16 → '[TARJETA]'
+    expect(result).not.toContain('4532123456789012');
+    expect(result).toContain('[TARJETA]');
   });
 
-  it('GAP — tarjeta con espacios "4532 1234 5678 9012" NO se redacta', () => {
+  it('redacts tarjeta con espacios "4532 1234 5678 9012"', () => {
     const result = redactPII('mi tarjeta es 4532 1234 5678 9012');
-    // El IBAN_RE podría colisionar, pero este número no tiene prefijo de país
-    expect(result).toContain('4532'); // comportamiento actual: no redactado como tarjeta
-    // Para corregir: añadir patrón /\b(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14})\b/
+    expect(result).not.toContain('4532 1234 5678 9012');
+    expect(result).toContain('[TARJETA]');
   });
 
-  it('GAP — detectPII no detecta tarjeta de crédito', () => {
-    expect(detectPII('tarjeta 4532123456789012')).toBe(false);
+  it('detectPII detects tarjeta de crédito', () => {
+    expect(detectPII('tarjeta 4532123456789012')).toBe(true);
   });
 });
