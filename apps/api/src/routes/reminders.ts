@@ -1,7 +1,7 @@
 import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../middleware/requireAuth.js';
 import { createDb, schema } from '@lexia/db';
-import { eq, desc } from 'drizzle-orm';
+import { eq, and, desc } from 'drizzle-orm';
 
 const db = createDb(process.env.DATABASE_URL ?? '');
 
@@ -32,6 +32,17 @@ export const remindersRoute: FastifyPluginAsync = async (app) => {
       const scheduledDate = new Date(body.scheduledFor);
       if (isNaN(scheduledDate.getTime())) {
         return reply.status(400).send({ error: 'BAD_REQUEST', message: 'scheduledFor debe ser una fecha ISO válida' });
+      }
+
+      if (body.caseId) {
+        const [existingCase] = await db
+          .select({ id: schema.cases.id })
+          .from(schema.cases)
+          .where(and(eq(schema.cases.id, body.caseId), eq(schema.cases.userId, request.userId)))
+          .limit(1);
+        if (!existingCase) {
+          return reply.status(404).send({ error: 'NOT_FOUND', message: 'Case not found' });
+        }
       }
 
       const [reminder] = await db

@@ -49,44 +49,27 @@ describe('detectLegalAdvice — casos detectados', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Casos de cobertura parcial — documentar comportamiento actual
-// Los patrones actuales no cubren estas variantes coloquiales comunes.
+// Variantes coloquiales de consejo personalizado
 // ---------------------------------------------------------------------------
-describe('detectLegalAdvice — GAP: variantes no cubiertas por patrones actuales', () => {
-  // "podrías" — el patrón actual no incluye "podrías + infinitivo"
-  it('GAP — "podrías presentar la solicitud ahora" no se detecta actualmente', () => {
-    const detected = detectLegalAdvice('podrías presentar la solicitud ahora');
-    // Documenta el comportamiento actual: false (no detectado)
-    // Para cubrir este gap, añadir: /\bpodrías\s+(presentar|solicitar|contratar|iniciar)\b/i
-    expect(detected).toBe(false);
+describe('detectLegalAdvice — variantes coloquiales detectadas', () => {
+  it('detects "podrías presentar la solicitud ahora"', () => {
+    expect(detectLegalAdvice('podrías presentar la solicitud ahora')).toBe(true);
   });
 
-  // "le conviene" — no está en ningún patrón
-  it('GAP — "le conviene solicitar la cita" no se detecta actualmente', () => {
-    const detected = detectLegalAdvice('le conviene solicitar la cita antes del plazo');
-    // Documenta el gap: recomendación indirecta no cubierta
-    expect(detected).toBe(false);
+  it('detects "le conviene solicitar la cita"', () => {
+    expect(detectLegalAdvice('le conviene solicitar la cita antes del plazo')).toBe(true);
   });
 
-  // "la mejor opción es que" — no está en los patrones
-  it('GAP — "la mejor opción es que presentes" no se detecta actualmente', () => {
-    const detected = detectLegalAdvice('la mejor opción es que presentes la documentación ya');
-    // Documenta el gap
-    expect(detected).toBe(false);
+  it('detects "la mejor opción es que presentes"', () => {
+    expect(detectLegalAdvice('la mejor opción es que presentes la documentación ya')).toBe(true);
   });
 
-  // "en tu lugar yo presentaría" — no está cubierto
-  it('GAP — "en tu lugar yo presentaría" no se detecta actualmente', () => {
-    const detected = detectLegalAdvice('en tu lugar yo presentaría la solicitud esta semana');
-    // Documenta el gap: asesoramiento personalizado no cubierto
-    expect(detected).toBe(false);
+  it('detects "en tu lugar yo presentaría"', () => {
+    expect(detectLegalAdvice('en tu lugar yo presentaría la solicitud esta semana')).toBe(true);
   });
 
-  // "si fuera tú solicitaría" — no está cubierto
-  it('GAP — "si fuera tú solicitaría" no se detecta actualmente', () => {
-    const detected = detectLegalAdvice('si fuera tú solicitaría la prórroga cuanto antes');
-    // Documenta el gap
-    expect(detected).toBe(false);
+  it('detects "si fuera tú solicitaría"', () => {
+    expect(detectLegalAdvice('si fuera tú solicitaría la prórroga cuanto antes')).toBe(true);
   });
 });
 
