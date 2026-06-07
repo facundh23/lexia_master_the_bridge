@@ -24,20 +24,22 @@ export interface AgentRunResult {
 }
 
 export async function runNormativaAgent(input: AgentRunInput): Promise<AgentRunResult> {
-  const chroma = createChromaClient();
-  const embeddings = createEmbeddingClient();
-
   const model = new ChatAnthropic({
     model: process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5-20251001',
     apiKey: process.env.ANTHROPIC_API_KEY,
     temperature: 0,
   });
 
-  const searchTool = createSearchCorpusTool(chroma, embeddings, input.userId, input.vertical);
+  const tools = [];
+  if (process.env.OPENAI_API_KEY) {
+    const chroma = createChromaClient();
+    const embeddings = createEmbeddingClient();
+    tools.push(createSearchCorpusTool(chroma, embeddings, input.userId, input.vertical));
+  }
 
   const agent = createReactAgent({
     llm: model as any,
-    tools: [searchTool],
+    tools,
   });
 
   const userContent = input.forceRetryWithCitationReminder

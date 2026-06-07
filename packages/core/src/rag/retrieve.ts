@@ -1,4 +1,5 @@
 import type { ChromaClient } from 'chromadb';
+import { getCollection } from '../storage/chroma.js';
 import type { OpenAIEmbeddings } from '@langchain/openai';
 import { embedQuery } from './embed.js';
 import type { CorpusChunk, RetrieveOptions, RetrievedChunk, SourceType } from './types.js';
@@ -12,12 +13,12 @@ export async function retrieveWithACL(
   const { userId, vertical, nResults = 6, includePrivate = false } = options;
 
   const queryVector = await embedQuery(embeddings, query);
-  const collection = await chroma.getOrCreateCollection({ name: 'lexia_corpus' });
+  const collection = await getCollection(chroma);
 
   const publicResult = await collection.query({
     queryEmbeddings: [queryVector],
     nResults,
-    where: { vertical, visibility: 'public' } as any,
+    where: { $and: [{ vertical: { $eq: vertical } }, { visibility: { $eq: 'public' } }] } as any,
     include: ['documents', 'distances', 'metadatas'] as any,
   });
 
@@ -27,7 +28,7 @@ export async function retrieveWithACL(
     const privateResult = await collection.query({
       queryEmbeddings: [queryVector],
       nResults,
-      where: { vertical, visibility: 'private', userId } as any,
+      where: { $and: [{ vertical: { $eq: vertical } }, { visibility: { $eq: 'private' } }, { userId: { $eq: userId } }] } as any,
       include: ['documents', 'distances', 'metadatas'] as any,
     });
     results.push(...buildResults(privateResult as any));

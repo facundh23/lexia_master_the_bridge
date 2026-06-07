@@ -1,4 +1,5 @@
 import type { ChromaClient } from 'chromadb';
+import { getCollection } from '../storage/chroma.js';
 import type { OpenAIEmbeddings } from '@langchain/openai';
 import { embedTexts } from './embed.js';
 import type { CorpusChunk } from './types.js';
@@ -11,7 +12,7 @@ export async function ingestChunks(
 ): Promise<void> {
   if (chunks.length === 0) return;
 
-  const collection = await chroma.getOrCreateCollection({ name: collectionName });
+  const collection = await getCollection(chroma, collectionName);
   const texts = chunks.map((c) => c.text);
   const vectors = await embedTexts(embeddings, texts);
 

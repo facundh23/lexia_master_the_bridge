@@ -11,9 +11,15 @@ const VALIDATOR_REJECTION_RESPONSE =
   'No puedo proporcionar esa información de forma adecuada en este momento. Para consultas sobre la nacionalidad española por residencia, te recomiendo revisar el portal del Ministerio de Justicia (mjusticia.gob.es) o consultar con un abogado especializado en extranjería.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*';
 
 export async function runOrchestrator(input: OrchestratorInput): Promise<OrchestratorOutput> {
-  const triage = await triageQuery(input);
+  let triage: Awaited<ReturnType<typeof triageQuery>>;
+  try {
+    triage = await triageQuery(input);
+  } catch (err) {
+    console.error('[orchestrator] triage error:', String(err));
+    return { response: VALIDATOR_REJECTION_RESPONSE, citations: [], route: 'normativa' };
+  }
 
-  switch (triage.route) {
+  switch (triage!.route) {
     case 'normativa': {
       const result = await runNormativaAgent({
         content: triage.subQuery,
@@ -21,9 +27,24 @@ export async function runOrchestrator(input: OrchestratorInput): Promise<Orchest
         userId: input.userId,
         vertical: input.vertical,
       });
+      console.log('[orchestrator:normativa] response:', result.response.slice(0, 200));
       const validation = await runValidatorAgent(result.response, 'normativa');
+      console.log('[orchestrator:normativa] validation result:', validation.valid, '—', validation.reason);
       if (!validation.valid) {
-        return { response: VALIDATOR_REJECTION_RESPONSE, citations: [], route: 'normativa' };
+        console.log('[orchestrator:normativa] retrying with citation reminder...');
+        const retry = await runNormativaAgent({
+          content: triage.subQuery,
+          conversationHistory: input.conversationHistory,
+          userId: input.userId,
+          vertical: input.vertical,
+          forceRetryWithCitationReminder: true,
+        });
+        const validation2 = await runValidatorAgent(retry.response, 'normativa');
+        if (!validation2.valid) {
+          console.log('[orchestrator:normativa] retry also failed:', validation2.reason);
+          return { response: VALIDATOR_REJECTION_RESPONSE, citations: [], route: 'normativa' };
+        }
+        return { response: retry.response, citations: retry.citations, route: 'normativa' };
       }
       return { response: result.response, citations: result.citations, route: 'normativa' };
     }
