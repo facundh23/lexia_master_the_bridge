@@ -18,7 +18,7 @@ En la Fase 5 se añadió el simulador CCSE y recordatorios. En la Fase 6 se aña
 
 **Decisión:** Usar `createHash('sha256')` para almacenar el hash del Personal Access Token.
 
-**Razón:** Los PATs son tokens de 32 bytes de entropía criptográfica (256 bits). bcrypt está diseñado para contraseñas de baja entropía (añade un cost factor para hacer el hashing lento). Con tokens de alta entropía, SHA-256 es suficiente y más eficiente (O(1) vs O(2^cost)). OWASP ASVS v4 Section 2.10.3 confirma que tokens de alta entropía no requieren hashing lento.
+**Razón:** Los PATs tienen 32 bytes de entropía criptográfica (256 bits). bcrypt está diseñado para contraseñas de baja entropía (añade un cost factor para hacer el hashing lento). Con tokens de alta entropía, SHA-256 es suficiente y más eficiente (O(1) vs O(2^cost)). OWASP ASVS v4 Section 2.10.3 confirma que tokens de alta entropía no requieren hashing lento.
 
 **Alternativa rechazada:** bcrypt — overhead innecesario para tokens de alta entropía.
 

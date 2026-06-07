@@ -1,7 +1,7 @@
 # DPIA — Data Protection Impact Assessment
 **Proyecto:** Lexia — Asistente informativo de extranjería  
 **Versión:** 1.0 (final)  
-**Fecha:** 2026-05-24  
+**Fecha:** 2026-06-07  
 **Responsable:** Facundo Herrera  
 **Base legal aplicable:** GDPR Art. 35, LOPDGDD
 
@@ -93,6 +93,6 @@ Al ser un proyecto educativo en fase de desarrollo, la consulta formal no se ha 
 
 El tratamiento presenta **riesgo residual bajo** tras la aplicación de las medidas técnicas y organizativas descritas. No se identifica riesgo alto residual que requiera consulta previa a la autoridad de control (AEPD) conforme al Art. 36 GDPR.
 
-**Versión 1.0 (2026-05-24):** DPIA finalizado para defensa del capstone. Todas las fases (0–8) implementadas. Riesgo residual bajo confirmado.
+**Versión 1.0 (2026-06-07):** DPIA finalizado para defensa del capstone. Todas las fases (0–8) implementadas. Riesgo residual bajo confirmado.
 
 **Próxima revisión:** ante cualquier cambio sustancial de tratamiento (nuevo vertical, nuevos procesadores, cambio de hosting).

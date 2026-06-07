@@ -6,6 +6,7 @@ Schema de base de datos Lexia (Drizzle ORM + PostgreSQL 16).
 
 ```typescript
 import { createDb, schema } from '@lexia/db';
+import { eq } from 'drizzle-orm';
 
 const db = createDb(process.env.DATABASE_URL!);
 

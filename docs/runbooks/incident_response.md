@@ -18,6 +18,7 @@
 ## P0 — Servicio completamente caído
 
 ### 1. Verificar estado de contenedores
+
 ```bash
 docker compose -f docker-compose.prod.yml ps
 docker compose -f docker-compose.prod.yml logs api --tail=100
@@ -25,32 +26,32 @@ docker compose -f docker-compose.prod.yml logs postgres --tail=50
 ```
 
 ### 2. Reiniciar servicios en orden
+
 ```bash
-# Solo API (sin reiniciar DB)
 docker compose -f docker-compose.prod.yml restart api
 
-# Si falla el restart, full restart con dependencias
 docker compose -f docker-compose.prod.yml up -d --force-recreate api
 ```
 
 ### 3. Verificar health
+
 ```bash
 curl https://$DOMAIN/health
 curl https://$DOMAIN/api/health/deep
 ```
 
-### 4. Rollback a versión anterior (si el restart no resuelve)
+### 4. Rollback a versión anterior
+
 ```bash
-# Ver últimas imágenes disponibles
 docker images lexia-api --format "table {{.Tag}}\t{{.CreatedAt}}"
 
-# Rollback
 docker compose -f docker-compose.prod.yml stop api
 docker tag lexia-api:previous lexia-api:latest
 docker compose -f docker-compose.prod.yml up -d api
 ```
 
 ### 5. Escalar si hay sobrecarga
+
 ```bash
 docker compose -f docker-compose.prod.yml up -d --scale api=2
 ```
@@ -63,22 +64,23 @@ Ver runbook `breach_notification.md` inmediatamente.
 
 ### Acciones técnicas paralelas:
 
-1. **Revocar sesiones activas** (si la auth fue comprometida):
+1. **Revocar sesiones activas:**
+
 ```bash
-# Conectar a DB y borrar sesiones
 docker exec -it lexia-postgres psql -U lexia -d lexia \
   -c "DELETE FROM session WHERE created_at < NOW() - INTERVAL '1 hour';"
 ```
 
-2. **Revocar todos los PATs** (si se sospecha compromiso de tokens):
+2. **Revocar todos los PATs:**
+
 ```bash
 docker exec -it lexia-postgres psql -U lexia -d lexia \
   -c "DELETE FROM personal_access_tokens;"
 ```
 
-3. **Activar modo mantenimiento** en Caddy (opcional):
-```caddyfile
-# Agregar temporalmente en Caddyfile:
+3. **Activar modo mantenimiento** en Caddy (editar Caddyfile temporalmente):
+
+```
 respond "Servicio en mantenimiento. Vuelve pronto." 503
 ```
 
@@ -90,10 +92,11 @@ Si el job `eval-smoke` falla en CI:
 
 1. Ver el artefacto `eval-report` en GitHub Actions.
 2. Comparar con baseline:
+
 ```bash
-# Descargar eval-report.json del artefacto
 tsx scripts/ab-safety.ts --baseline=artifacts/eval-baseline.json --candidate=eval-report.json
 ```
+
 3. Si hay regresión, no mergear el PR. Investigar qué cambio causó la degradación.
 
 ---

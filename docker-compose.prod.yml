@@ -40,7 +40,7 @@ services:
       retries: 10
 
   chroma:
-    image: chromadb/chroma:0.5.20
+    image: chromadb/chroma:0.6.3
     container_name: lexia-chroma
     restart: unless-stopped
     volumes:
@@ -82,7 +82,7 @@ services:
       retries: 10
 
   langfuse:
-    image: langfuse/langfuse:3
+    image: langfuse/langfuse:2
     container_name: lexia-langfuse
     restart: unless-stopped
     depends_on:

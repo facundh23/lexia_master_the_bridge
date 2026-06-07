@@ -1,25 +1,17 @@
-# infra/caddy/Caddyfile
-# DOMAIN env var se inyecta desde .env.production
-# TLS automático via Let's Encrypt (ACME)
-
 {$DOMAIN} {
-    # API — /api/* → Fastify en puerto 4000
     handle /api/* {
         reverse_proxy api:4000
     }
 
-    # Langfuse observabilidad — /langfuse/* → Langfuse en puerto 3000
     handle /langfuse/* {
         uri strip_prefix /langfuse
         reverse_proxy langfuse:3000
     }
 
-    # Web app — todo lo demás → Next.js en puerto 3000
     handle {
         reverse_proxy web:3000
     }
 
-    # Security headers (complementan los de Fastify/Helmet)
     header {
         Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         X-Content-Type-Options "nosniff"
@@ -28,7 +20,6 @@
         -Server
     }
 
-    # Logs
     log {
         output file /var/log/caddy/access.log {
             roll_size 100mb

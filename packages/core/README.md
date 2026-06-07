@@ -33,17 +33,6 @@ console.log(result.blocked);   // false (o true si fue bloqueado)
 3. PII output redactor
 4. Disclaimer injector
 
-## Eval pipeline
-
-```typescript
-import { runEval } from '@lexia/core';
-import type { GoldenSet } from '@lexia/core';
-
-const goldenSet: GoldenSet = JSON.parse(fs.readFileSync('tests/eval/golden_set.v1.json', 'utf8'));
-const result = await runEval(goldenSet, { concurrency: 3 });
-console.log(result.metrics.factualityScoreAvg); // 0.85
-```
-
 ## Variables de entorno
 
 - `ANTHROPIC_API_KEY`: Clave API de Anthropic (requerida en producción)

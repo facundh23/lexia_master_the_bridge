@@ -9,19 +9,20 @@
 
 Según GDPR Art. 33, una brecha es notificable si es "probable que entrañe un riesgo para los derechos y libertades de las personas físicas". En Lexia, esto incluye:
 
-- ✅ Exposición de datos de usuarios (email, historial de conversación, datos de caso)
-- ✅ Acceso no autorizado a la base de datos
-- ✅ Exposición de datos de categoría especial (Art. 9 — origen racial/étnico implícito en consultas)
-- ❌ No notificable: incidente interno sin exposición de datos de usuarios
+- Exposición de datos de usuarios (email, historial de conversación, datos de caso)
+- Acceso no autorizado a la base de datos
+- Exposición de datos de categoría especial (Art. 9 — origen racial/étnico implícito en consultas)
+- No notificable: incidente interno sin exposición de datos de usuarios
 
 ---
 
 ## Timeline obligatorio (72h desde detección)
 
-| T+0h | Detección del incidente |
+| Hito | Acción |
 |---|---|
-| T+1h | Contener la brecha (ver acciones técnicas en incident_response.md) |
-| T+2h | Evaluar alcance: ¿qué datos? ¿cuántos afectados? ¿desde cuándo? |
+| T+0h | Detección del incidente |
+| T+1h | Contener la brecha (ver incident_response.md) |
+| T+2h | Evaluar alcance: qué datos, cuántos afectados, desde cuándo |
 | T+24h | Preparar borrador de notificación |
 | T+48h | Revisar y aprobar borrador |
 | T+72h | **Notificar a AEPD** (obligatorio si hay riesgo) |
@@ -32,6 +33,7 @@ Según GDPR Art. 33, una brecha es notificable si es "probable que entrañe un r
 ## Evaluación del alcance
 
 ### Consultar audit_log
+
 ```bash
 docker exec -it lexia-postgres psql -U lexia -d lexia -c "
   SELECT actor_id, action, created_at, ip_address
@@ -43,6 +45,7 @@ docker exec -it lexia-postgres psql -U lexia -d lexia -c "
 ```
 
 ### Estimar afectados
+
 ```bash
 docker exec -it lexia-postgres psql -U lexia -d lexia -c "
   SELECT COUNT(DISTINCT actor_id) as usuarios_afectados
@@ -55,7 +58,7 @@ docker exec -it lexia-postgres psql -U lexia -d lexia -c "
 
 ## Notificación a la AEPD
 
-**Canal:** https://sedeagpd.gob.es/sede-electronica-web/vistas/formNDP/notificacionDP.jsf
+**Canal:** https://sedeagpd.gob.es/sede-electronica-web/
 
 **Información requerida (Art. 33.3):**
 

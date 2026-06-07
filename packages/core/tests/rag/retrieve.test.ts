@@ -3,6 +3,9 @@ import type { ChromaClient } from 'chromadb';
 import type { OpenAIEmbeddings } from '@langchain/openai';
 import { retrieveWithACL } from '../../src/rag/retrieve.js';
 
+// Mock global fetch used by ensureCollection (raw HTTP call to Chroma)
+vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: true, status: 200 }));
+
 const mockQueryResult = {
   ids: [['chunk-1', 'chunk-2']],
   documents: [['Texto del chunk 1', 'Texto del chunk 2']],
@@ -32,7 +35,7 @@ const mockCollection = {
 };
 
 const mockChroma = {
-  getOrCreateCollection: vi.fn().mockResolvedValue(mockCollection),
+  getCollection: vi.fn().mockResolvedValue(mockCollection),
 } as unknown as ChromaClient;
 
 const mockEmbedding = {
@@ -42,7 +45,7 @@ const mockEmbedding = {
 describe('retrieveWithACL', () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it('queries Chroma with vertical + visibility filter', async () => {
+  it('queries Chroma with $and filter for vertical + visibility', async () => {
     await retrieveWithACL(mockChroma, mockEmbedding, 'cuántos años de residencia', {
       userId: 'user-1',
       vertical: 'nacionalidad_residencia',
@@ -50,10 +53,12 @@ describe('retrieveWithACL', () => {
 
     expect(mockCollection.query).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.objectContaining({
-          vertical: 'nacionalidad_residencia',
-          visibility: 'public',
-        }),
+        where: {
+          $and: [
+            { vertical: { $eq: 'nacionalidad_residencia' } },
+            { visibility: { $eq: 'public' } },
+          ],
+        },
       }),
     );
   });
