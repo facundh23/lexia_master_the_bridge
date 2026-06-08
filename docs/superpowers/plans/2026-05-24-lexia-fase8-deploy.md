@@ -501,7 +501,7 @@ ADMIN_EMAILS=tu@email.com
 SMTP_HOST=smtp.resend.com
 SMTP_PORT=465
 SMTP_USER=resend
-SMTP_PASS=re_REPLACE
+SMTP_PASS=TU_RESEND_API_KEY_AQUI
 SMTP_FROM=noreply@tudominio.es
 ```
 
