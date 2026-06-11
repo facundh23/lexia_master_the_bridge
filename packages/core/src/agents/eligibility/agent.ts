@@ -9,6 +9,18 @@ import { sanitizeHistory } from '../../guardrails/input/sanitizeHistory.js';
 import { logAgentAction } from '../../nhi/auditLogger.js';
 import { AGENT_IDENTITIES } from '../../nhi/agentIdentities.js';
 
+function extractTextContent(content: unknown): string {
+  if (!content) return '';
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .filter((b: any) => b?.type === 'text')
+      .map((b: any) => b.text ?? '')
+      .join('');
+  }
+  return String(content);
+}
+
 export interface EligibilityAgentInput {
   content: string;
   userId?: string;
@@ -57,6 +69,69 @@ const eligibilityTool = tool(
   },
 );
 
+export async function runEligibilityAgentStream(
+  input: EligibilityAgentInput,
+  onToken: (token: string) => void,
+): Promise<EligibilityAgentResult> {
+  // eligibility always has one tool call → stream only after tool returns
+  let isStreamingFinalResponse = false;
+
+  const model = new ChatAnthropic({
+    model: process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5-20251001',
+    apiKey: process.env.ANTHROPIC_API_KEY,
+    temperature: 0,
+    streaming: true,
+    clientOptions: {
+      defaultHeaders: { 'anthropic-beta': 'prompt-caching-2024-07-31' },
+    },
+    callbacks: [
+      {
+        handleToolEnd() {
+          isStreamingFinalResponse = true;
+        },
+        handleLLMNewToken(token: string) {
+          if (isStreamingFinalResponse) onToken(token);
+        },
+      },
+    ],
+  });
+
+  const agent = createReactAgent({ llm: model as any, tools: [eligibilityTool] });
+
+  const caseContext = input.caseData
+    ? `\n\nDatos del expediente del usuario: país de origen: ${input.caseData.countryOrigin ?? 'no especificado'}, fecha de llegada a España: ${input.caseData.arrivalDate ?? 'no especificada'}, estado de residencia: ${input.caseData.residenceStatus ?? 'no especificado'}${input.caseData.hasChildren ? ', tiene hijos menores de edad.' : '.'}`
+    : '';
+
+  const safeHistory = sanitizeHistory(input.conversationHistory);
+  const systemContent: any[] = [
+    { type: 'text', text: ELIGIBILITY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+  ];
+  if (caseContext) systemContent.push({ type: 'text', text: caseContext });
+
+  const messages = [
+    new SystemMessage({ content: systemContent }),
+    ...safeHistory.map((m) =>
+      m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content),
+    ),
+    new HumanMessage(input.content),
+  ];
+
+  const result = await agent.invoke({ messages });
+
+  const lastMessage = result.messages[result.messages.length - 1];
+  const response = extractTextContent(lastMessage?.content);
+
+  await logAgentAction({
+    agentId: AGENT_IDENTITIES.eligibility.id,
+    action: 'eligibility_response',
+    userId: input.userId ?? 'anonymous',
+    scopeUsed: 'read:user_case',
+    details: {},
+  });
+
+  return { response, citations: ['Art. 22.1 del Código Civil'] };
+}
+
 export async function runEligibilityAgent(
   input: EligibilityAgentInput,
 ): Promise<EligibilityAgentResult> {
@@ -64,6 +139,9 @@ export async function runEligibilityAgent(
     model: process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5-20251001',
     apiKey: process.env.ANTHROPIC_API_KEY,
     temperature: 0,
+    clientOptions: {
+      defaultHeaders: { 'anthropic-beta': 'prompt-caching-2024-07-31' },
+    },
   });
 
   const agent = createReactAgent({
@@ -76,8 +154,13 @@ export async function runEligibilityAgent(
     : '';
 
   const safeHistory = sanitizeHistory(input.conversationHistory);
+  const systemContent: any[] = [
+    { type: 'text', text: ELIGIBILITY_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } },
+  ];
+  if (caseContext) systemContent.push({ type: 'text', text: caseContext });
+
   const messages = [
-    new SystemMessage(ELIGIBILITY_SYSTEM_PROMPT + caseContext),
+    new SystemMessage({ content: systemContent }),
     ...safeHistory.map((m) =>
       m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content),
     ),
@@ -87,12 +170,7 @@ export async function runEligibilityAgent(
   const result = await agent.invoke({ messages });
 
   const lastMessage = result.messages[result.messages.length - 1];
-  const response =
-    lastMessage == null
-      ? ''
-      : typeof lastMessage.content === 'string'
-        ? lastMessage.content
-        : JSON.stringify(lastMessage.content);
+  const response = extractTextContent(lastMessage?.content);
 
   await logAgentAction({
     agentId: AGENT_IDENTITIES.eligibility.id,
