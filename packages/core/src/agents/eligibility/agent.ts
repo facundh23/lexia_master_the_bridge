@@ -132,13 +132,26 @@ export async function runEligibilityAgentStream(
   return { response, citations: ['Art. 22.1 del Código Civil'] };
 }
 
+function getThinkingBudget(caseData?: EligibilityAgentInput['caseData']): number {
+  // Complex case (has specific data to reason about) → more tokens
+  // General query → lighter budget
+  const hasComplexData =
+    caseData &&
+    (caseData.countryOrigin || caseData.arrivalDate || caseData.residenceStatus);
+  return hasComplexData ? 8000 : 3000;
+}
+
 export async function runEligibilityAgent(
   input: EligibilityAgentInput,
 ): Promise<EligibilityAgentResult> {
+  const thinkingBudget = getThinkingBudget(input.caseData);
   const model = new ChatAnthropic({
-    model: process.env.ANTHROPIC_MODEL ?? 'claude-haiku-4-5-20251001',
+    model: process.env.ANTHROPIC_THINKING_MODEL ?? process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
     apiKey: process.env.ANTHROPIC_API_KEY,
-    temperature: 0,
+    // temperature must be 1 when extended thinking is enabled
+    temperature: 1,
+    maxTokens: thinkingBudget + 4096,
+    thinking: { type: 'enabled', budget_tokens: thinkingBudget } as any,
     clientOptions: {
       defaultHeaders: { 'anthropic-beta': 'prompt-caching-2024-07-31' },
     },
@@ -177,7 +190,7 @@ export async function runEligibilityAgent(
     action: 'eligibility_response',
     userId: input.userId ?? 'anonymous',
     scopeUsed: 'read:user_case',
-    details: {},
+    details: { thinkingBudget },
   });
 
   return {
