@@ -1,6 +1,6 @@
 import { runInputPipeline } from './guardrails/input/index.js';
 import { runOutputPipeline } from './guardrails/output/index.js';
-import { runOrchestrator } from './agents/orchestrator/index.js';
+import { runOrchestrator, runOrchestratorStream } from './agents/orchestrator/index.js';
 import { startTrace } from './observability/langfuse.js';
 import { detectCrisis, CRISIS_RESOURCES_BLOCK } from './guardrails/input/crisisDetector.js';
 import { logAgentAction } from './nhi/auditLogger.js';
@@ -41,6 +41,104 @@ export interface LexiaCoreResult {
   citations: string[];
   route?: Route;
   traceId?: string;
+}
+
+export async function runLexiaCoreStream(
+  input: LexiaCoreInput,
+  onToken: (token: string) => void,
+): Promise<LexiaCoreResult> {
+  const trace = await startTrace({
+    userId: input.userId,
+    content: input.content,
+    vertical: input.vertical,
+  });
+
+  const coreDb = getCoreDb();
+  if (coreDb) {
+    const budget = await checkBudget(input.userId, coreDb);
+    if (!budget.allowed) {
+      onToken(CANNED_RESPONSES.budget_exceeded);
+      trace.end({ response: 'budget_exceeded', route: 'blocked', citations: [] });
+      return {
+        response: CANNED_RESPONSES.budget_exceeded,
+        blocked: true,
+        blockReason: 'budget_exceeded',
+        citations: [],
+        traceId: trace.traceId,
+      };
+    }
+  }
+
+  const crisisResult = detectCrisis(input.content);
+
+  const guardSpan = trace.span('input_guardrails');
+  const inputResult = await runInputPipeline(input.content);
+  guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
+
+  if (inputResult.blocked) {
+    const cannedResponse = CANNED_RESPONSES[inputResult.reason!];
+    onToken(cannedResponse);
+    trace.end({ response: 'blocked', route: 'blocked', citations: [] });
+    return {
+      response: cannedResponse,
+      blocked: true,
+      blockReason: inputResult.reason,
+      citations: [],
+      traceId: trace.traceId,
+    };
+  }
+
+  const orchSpan = trace.span('orchestrator');
+  const orchestratorResult = await runOrchestratorStream(
+    {
+      content: inputResult.sanitized,
+      conversationHistory: input.conversationHistory,
+      userId: input.userId,
+      vertical: input.vertical,
+      caseData: input.caseData,
+    },
+    onToken,
+  );
+  orchSpan.end({
+    route: orchestratorResult.route,
+    citationsCount: orchestratorResult.citations.length,
+  });
+
+  const outputResult = runOutputPipeline(orchestratorResult.response);
+
+  const finalResult: LexiaCoreResult = {
+    response: outputResult.text,
+    blocked: false,
+    citations:
+      outputResult.citations.length > 0 ? outputResult.citations : orchestratorResult.citations,
+    route: orchestratorResult.route,
+    traceId: trace.traceId,
+  };
+
+  if (crisisResult.hasCrisis) {
+    finalResult.response = CRISIS_RESOURCES_BLOCK + finalResult.response;
+    await logAgentAction({
+      agentId: 'system:crisis_detector:v1',
+      action: 'escalation_risk',
+      userId: input.userId,
+      traceId: trace.traceId,
+      scopeUsed: 'read:input',
+      details: { crisisType: crisisResult.crisisType },
+    });
+  }
+
+  if (coreDb) {
+    const estimatedTokens = Math.ceil((input.content.length + finalResult.response.length) / 4);
+    await recordUsage(input.userId, estimatedTokens, coreDb).catch(() => {});
+  }
+
+  trace.end({
+    response: finalResult.response,
+    route: finalResult.route ?? 'unknown',
+    citations: finalResult.citations,
+  });
+
+  return finalResult;
 }
 
 export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResult> {

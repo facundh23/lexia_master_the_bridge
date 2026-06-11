@@ -11,6 +11,12 @@ interface Message {
   content: string;
 }
 
+type SseEvent =
+  | { type: 'token'; content: string }
+  | { type: 'replace'; content: string }
+  | { type: 'done'; userMessageId: string; assistantMessageId: string; citations: string[]; route: string }
+  | { type: 'error'; message: string };
+
 export default function ChatPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -32,42 +38,93 @@ export default function ChatPage() {
     if (!conversationId) return;
     setLoading(true);
 
-    const tempId = `temp-${Date.now()}`;
-    setMessages((prev) => [...prev, { id: tempId, role: 'user', content }]);
+    const tempUserId = `temp-user-${Date.now()}`;
+    const tempAssistantId = `temp-assistant-${Date.now()}`;
+
+    setMessages((prev) => [
+      ...prev,
+      { id: tempUserId, role: 'user', content },
+      { id: tempAssistantId, role: 'assistant', content: '' },
+    ]);
 
     try {
-      const res = await fetch(`/api/conversations/${conversationId}/messages`, {
+      const res = await fetch(`/api/conversations/${conversationId}/messages/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ content }),
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err as { message?: string }).message ?? `Error ${res.status}`);
+      if (!res.ok || !res.body) {
+        throw new Error(`Error ${res.status}`);
       }
 
-      const data = (await res.json()) as {
-        userMessage: Message;
-        assistantMessage: Message;
-      };
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
 
-      setMessages((prev) => [
-        ...prev.filter((m) => m.id !== tempId),
-        data.userMessage,
-        data.assistantMessage,
-      ]);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        // Accumulate chunks — a single read() may contain partial or multiple SSE events
+        buffer += decoder.decode(value, { stream: true });
+
+        const lines = buffer.split('\n');
+        // Keep the last (possibly incomplete) line in the buffer
+        buffer = lines.pop() ?? '';
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const raw = line.slice(6).trim();
+          if (!raw) continue;
+
+          let event: SseEvent;
+          try {
+            event = JSON.parse(raw) as SseEvent;
+          } catch {
+            continue;
+          }
+
+          if (event.type === 'token') {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === tempAssistantId ? { ...m, content: m.content + event.content } : m,
+              ),
+            );
+          } else if (event.type === 'replace') {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === tempAssistantId ? { ...m, content: event.content } : m,
+              ),
+            );
+          } else if (event.type === 'done') {
+            // Replace temp IDs with the real DB IDs
+            setMessages((prev) =>
+              prev.map((m) => {
+                if (m.id === tempUserId) return { ...m, id: event.userMessageId };
+                if (m.id === tempAssistantId) return { ...m, id: event.assistantMessageId };
+                return m;
+              }),
+            );
+          } else if (event.type === 'error') {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === tempAssistantId ? { ...m, content: event.message } : m,
+              ),
+            );
+          }
+        }
+      }
     } catch (err) {
       console.error(err);
-      setMessages((prev) => [
-        ...prev.filter((m) => m.id !== tempId),
-        {
-          id: `error-${Date.now()}`,
-          role: 'assistant' as const,
-          content: err instanceof Error ? err.message : 'Error al procesar tu consulta. Intentá de nuevo.',
-        },
-      ]);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === `temp-assistant-${Date.now()}` || m.role === 'assistant' && m.content === ''
+            ? { ...m, content: err instanceof Error ? err.message : 'Error al procesar tu consulta. Intentá de nuevo.' }
+            : m,
+        ),
+      );
     } finally {
       setLoading(false);
     }
