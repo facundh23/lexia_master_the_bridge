@@ -30,4 +30,5 @@ export interface RetrieveOptions {
 export interface RetrievedChunk {
   chunk: CorpusChunk;
   distance: number;
+  rerankScore?: number;
 }
