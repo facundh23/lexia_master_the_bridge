@@ -3,6 +3,8 @@ import { getCollection } from '../storage/chroma.js';
 import type { OpenAIEmbeddings } from '@langchain/openai';
 import { embedQuery } from './embed.js';
 import { candidatesCount, rerankChunks } from './rerank.js';
+import { extractKeyTerms, bm25Score } from './bm25.js';
+import { reciprocalRankFusion } from './hybridFusion.js';
 import type { CorpusChunk, RetrieveOptions, RetrievedChunk, SourceType } from './types.js';
 
 export async function retrieveWithACL(
@@ -13,35 +15,90 @@ export async function retrieveWithACL(
 ): Promise<RetrievedChunk[]> {
   const { userId, vertical, nResults = 6, includePrivate = false } = options;
 
-  // Fetch more candidates than needed so the re-ranker has signal to work with
   const fetchCount = candidatesCount(nResults);
-
   const queryVector = await embedQuery(embeddings, query);
   const collection = await getCollection(chroma);
 
-  const publicResult = await collection.query({
+  // --- Dense retrieval (semantic similarity via embeddings) ---
+  const publicDenseResult = await collection.query({
     queryEmbeddings: [queryVector],
     nResults: fetchCount,
     where: { $and: [{ vertical: { $eq: vertical } }, { visibility: { $eq: 'public' } }] } as any,
     include: ['documents', 'distances', 'metadatas'] as any,
   });
-
-  const candidates: RetrievedChunk[] = buildResults(publicResult as any);
+  const denseCandidates: RetrievedChunk[] = buildResults(publicDenseResult as any);
 
   if (includePrivate) {
-    const privateResult = await collection.query({
+    const privateDenseResult = await collection.query({
       queryEmbeddings: [queryVector],
       nResults: fetchCount,
-      where: { $and: [{ vertical: { $eq: vertical } }, { visibility: { $eq: 'private' } }, { userId: { $eq: userId } }] } as any,
+      where: {
+        $and: [
+          { vertical: { $eq: vertical } },
+          { visibility: { $eq: 'private' } },
+          { userId: { $eq: userId } },
+        ],
+      } as any,
       include: ['documents', 'distances', 'metadatas'] as any,
     });
-    candidates.push(...buildResults(privateResult as any));
+    denseCandidates.push(...buildResults(privateDenseResult as any));
   }
 
-  // Sort by distance before passing to re-ranker so the fallback path is consistent
-  const sorted = candidates.sort((a, b) => a.distance - b.distance);
+  // --- Sparse retrieval (keyword-filtered lexical candidates) ---
+  const sparseCandidates: RetrievedChunk[] = [];
+  const keyTerms = extractKeyTerms(query, 3);
 
-  return rerankChunks(query, sorted, nResults);
+  if (keyTerms.length > 0) {
+    const keywordFilter =
+      keyTerms.length === 1
+        ? { $contains: keyTerms[0] }
+        : { $or: keyTerms.map((t) => ({ $contains: t })) };
+
+    try {
+      const publicSparseResult = await collection.query({
+        queryEmbeddings: [queryVector],
+        nResults: nResults,
+        where: { $and: [{ vertical: { $eq: vertical } }, { visibility: { $eq: 'public' } }] } as any,
+        whereDocument: keywordFilter as any,
+        include: ['documents', 'distances', 'metadatas'] as any,
+      });
+      sparseCandidates.push(...buildResults(publicSparseResult as any));
+
+      if (includePrivate) {
+        const privateSparseResult = await collection.query({
+          queryEmbeddings: [queryVector],
+          nResults: nResults,
+          where: {
+            $and: [
+              { vertical: { $eq: vertical } },
+              { visibility: { $eq: 'private' } },
+              { userId: { $eq: userId } },
+            ],
+          } as any,
+          whereDocument: keywordFilter as any,
+          include: ['documents', 'distances', 'metadatas'] as any,
+        });
+        sparseCandidates.push(...buildResults(privateSparseResult as any));
+      }
+    } catch {
+      // where_document unsupported in this Chroma version — skip sparse path
+    }
+  }
+
+  // --- BM25 scoring to rank sparse candidates by term relevance ---
+  const sparseTexts = sparseCandidates.map((c) => c.chunk.text);
+  const sparseScores = bm25Score(query, sparseTexts);
+  const sparseSorted = sparseCandidates
+    .map((c, i) => ({ c, score: sparseScores[i] ?? 0 }))
+    .sort((a, b) => b.score - a.score)
+    .map(({ c }) => c);
+
+  // --- Reciprocal Rank Fusion: combines dense rank + BM25 rank ---
+  const denseSorted = denseCandidates.sort((a, b) => a.distance - b.distance);
+  const fused = reciprocalRankFusion(denseSorted, sparseSorted);
+
+  // --- Cohere rerank as final pass over the fused candidates ---
+  return rerankChunks(query, fused.slice(0, fetchCount), nResults);
 }
 
 function buildResults(queryResult: {
