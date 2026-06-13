@@ -36,8 +36,9 @@
 
 **Puntos clave a destacar:**
 - El disclaimer es inyectado arquitectónicamente, no es un simple texto en el prompt
-- La cita legal viene del RAG (Chroma + BOE/Código Civil)
+- La cita legal viene del RAG: búsqueda híbrida (densa + BM25 sparse) → RRF → Cohere rerank
 - El guardrail de input pasa por 4 etapas: regex → blocklist → LLM-judge → special category
+- La respuesta llega token a token vía SSE — TTFT visible en Langfuse como primera métrica de latencia
 
 ---
 
@@ -78,7 +79,7 @@ curl -X POST http://localhost:4000/api/auth/pat \
 - **Backend**: Fastify 5 + TypeScript + Drizzle ORM + PostgreSQL 16
 - **Frontend**: Next.js 15 App Router + Tailwind
 - **LLM**: Claude Sonnet 4.6 (primario) + Claude Haiku 4.5 (guardrails + eval)
-- **RAG**: ChromaDB + OpenAI embeddings
+- **RAG**: ChromaDB + OpenAI embeddings → BM25 sparse + RRF fusion → Cohere Rerank v3.5
 - **Auth**: Better Auth (email + HIBP password check)
 - **Observabilidad**: Langfuse self-hosted
 - **MCP**: @modelcontextprotocol/sdk + stdio transport
@@ -93,6 +94,13 @@ curl -X POST http://localhost:4000/api/auth/pat \
 6. **stdio transport para MCP** (cero puertos expuestos)
 7. **Field-level encryption** AES-256-GCM para datos sensibles de caso
 8. **GDPR Art. 22**: requestHumanReview tool documentado
+
+### Optimizaciones implementadas (módulos 2.3, 5.2)
+
+- **Búsqueda híbrida**: dense (Chroma embeddings) + sparse (BM25 sobre términos clave) fusionados con RRF (k=60), luego Cohere Rerank v3.5 como segunda pasada — cubre el pipeline completo del módulo 2.3
+- **Streaming SSE** (`runLexiaCoreStream`): tokens enviados a medida que se generan; TTFT medible en Langfuse
+- **Prompt caching** (`cache_control: ephemeral`): system prompts de >1024 tokens cacheados en Anthropic — reducción de costes en consultas repetidas
+- **Extended thinking**: EligibilityAgent usa Sonnet 4.6 con budget dinámico (3000–8000 tokens según complejidad del caso) — razonamiento legal paso a paso antes de responder
 
 ---
 
