@@ -4,6 +4,7 @@ import { runOrchestrator, runOrchestratorStream } from './agents/orchestrator/in
 import { startTrace } from './observability/langfuse.js';
 import { detectCrisis, CRISIS_RESOURCES_BLOCK } from './guardrails/input/crisisDetector.js';
 import { logAgentAction } from './nhi/auditLogger.js';
+import { AGENT_IDENTITIES } from './nhi/agentIdentities.js';
 import type { BlockReason } from './guardrails/input/index.js';
 import type { CaseData, Route } from './agents/orchestrator/state.js';
 import { createDb } from '@lexia/db';
@@ -118,7 +119,7 @@ export async function runLexiaCoreStream(
   if (crisisResult.hasCrisis) {
     finalResult.response = CRISIS_RESOURCES_BLOCK + finalResult.response;
     await logAgentAction({
-      agentId: 'system:crisis_detector:v1',
+      agentId: AGENT_IDENTITIES.crisisDetector.id,
       action: 'escalation_risk',
       userId: input.userId,
       traceId: trace.traceId,
@@ -211,7 +212,7 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
   if (crisisResult.hasCrisis) {
     finalResult.response = CRISIS_RESOURCES_BLOCK + finalResult.response;
     await logAgentAction({
-      agentId: 'system:crisis_detector:v1',
+      agentId: AGENT_IDENTITIES.crisisDetector.id,
       action: 'escalation_risk',
       userId: input.userId,
       traceId: trace.traceId,
