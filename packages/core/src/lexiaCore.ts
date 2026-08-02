@@ -49,7 +49,6 @@ export async function runLexiaCoreStream(
 ): Promise<LexiaCoreResult> {
   const trace = await startTrace({
     userId: input.userId,
-    content: input.content,
     vertical: input.vertical,
   });
 
@@ -74,6 +73,7 @@ export async function runLexiaCoreStream(
   const guardSpan = trace.span('input_guardrails');
   const inputResult = await runInputPipeline(input.content);
   guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
+  trace.setInput(inputResult.sanitized);
 
   if (inputResult.blocked) {
     const cannedResponse = CANNED_RESPONSES[inputResult.reason!];
@@ -144,7 +144,6 @@ export async function runLexiaCoreStream(
 export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResult> {
   const trace = await startTrace({
     userId: input.userId,
-    content: input.content,
     vertical: input.vertical,
   });
 
@@ -170,6 +169,7 @@ export async function runLexiaCore(input: LexiaCoreInput): Promise<LexiaCoreResu
   const guardSpan = trace.span('input_guardrails');
   const inputResult = await runInputPipeline(input.content);
   guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
+  trace.setInput(inputResult.sanitized);
 
   if (inputResult.blocked) {
     const result = {

@@ -5,6 +5,7 @@ type LangfuseClient = import('langfuse').Langfuse;
 export interface TraceHandle {
   traceId: string;
   span(name: string): SpanHandle;
+  setInput(content: string): void;
   end(output: { response: string; route: string; citations: string[] }): void;
 }
 
@@ -18,6 +19,7 @@ function noopTrace(traceId: string): TraceHandle {
   return {
     traceId,
     span: () => NOOP_SPAN,
+    setInput: () => {},
     end: () => {},
   };
 }
@@ -44,7 +46,6 @@ async function getLangfuse(): Promise<LangfuseClient | null> {
 
 export async function startTrace(input: {
   userId: string;
-  content: string;
   vertical: string;
 }): Promise<TraceHandle> {
   const traceId = randomUUID();
@@ -56,7 +57,6 @@ export async function startTrace(input: {
     id: traceId,
     name: 'lexia-core',
     userId: input.userId,
-    input: { content: input.content },
     metadata: { vertical: input.vertical },
   });
 
@@ -65,6 +65,9 @@ export async function startTrace(input: {
     span(name: string): SpanHandle {
       const span = trace.span({ name, input: { name } });
       return { end: (output: unknown) => span.end({ output }) };
+    },
+    setInput(content: string): void {
+      trace.update({ input: { content } });
     },
     end(output: { response: string; route: string; citations: string[] }) {
       trace.update({ output });
