@@ -150,13 +150,7 @@ export async function runNormativaAgent(input: AgentRunInput): Promise<AgentRunR
 
   const { citations } = checkForCitations(response);
 
-  await logAgentAction({
-    agentId: AGENT_IDENTITIES.normativa.id,
-    action: 'normativa_response',
-    userId: input.userId,
-    scopeUsed: 'read:rag_chunks',
-    details: { citationsCount: citations.length },
-  });
+ 
 
   return { response, citations };
 }

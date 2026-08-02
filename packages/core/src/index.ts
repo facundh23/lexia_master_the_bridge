@@ -20,6 +20,9 @@ export type { HumanReviewInput, HumanReviewResult } from './tools/requestHumanRe
 // Fase 6 — vertical manifests
 export { nacionalidadResidencia } from './verticals/nacionalidad_residencia/manifest.js';
 
+// Prompts (para eval)
+export { NORMATIVA_SYSTEM_PROMPT } from './agents/normativa/prompt.js';
+
 // Fase 7 — eval pipeline
 export { runEval } from './eval/runner.js';
 export type { GoldenSet, GoldenCase, EvalRunResult, EvalMetrics, EvalRunOptions } from './eval/runner.js';
