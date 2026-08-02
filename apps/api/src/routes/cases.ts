@@ -13,10 +13,18 @@ function getKey(): string | undefined {
   return process.env.PII_ENCRYPTION_KEY || undefined;
 }
 
-function encryptPII(value: string | null | undefined): string | null {
+export function encryptPII(value: string | null | undefined): string | null {
   if (!value) return value ?? null;
   const key = getKey();
-  if (!key) return value;
+  if (!key) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('PII_ENCRYPTION_KEY no está configurada — no se puede persistir un campo PII');
+    }
+    console.warn(
+      '[cases] PII_ENCRYPTION_KEY no seteada — guardando campo PII en texto plano (solo permitido fuera de producción).',
+    );
+    return value;
+  }
   return encryptField(value, key);
 }
 
