@@ -58,7 +58,8 @@ El throw no necesita try/catch nuevo en la ruta — el error handler global de F
    setInput(content: string): void
    ```
    que internamente hace `trace.update({ input: { content } })` — mismo mecanismo que ya usa `end()` para patchear el output.
-3. En `lexiaCore.ts` (`runLexiaCore` y `runLexiaCoreStream`), inmediatamente después de:
+3. `noopTrace()` (el fallback cuando Langfuse no está configurado) también necesita un stub `setInput: () => {}` para seguir satisfaciendo la interfaz `TraceHandle`.
+4. En `lexiaCore.ts` (`runLexiaCore` y `runLexiaCoreStream`), inmediatamente después de:
    ```ts
    const inputResult = await runInputPipeline(input.content);
    ```
@@ -141,7 +142,7 @@ El `traceId` (usado para correlacionar spans y el audit log) se sigue generando 
 ## Testing
 
 - **Sección 1:** test que simule `NODE_ENV=production` sin `PII_ENCRYPTION_KEY` seteada y verifique que `encryptPII` (vía el endpoint de creación/actualización de `cases`) lanza y el request responde 500, en vez de persistir texto plano. Test complementario en modo no-producción verificando que el fallback con warning se preserva sin cambios.
-- **Sección 2:** test unitario de `startTrace`/`setInput` verificando que ningún texto crudo se pasa al mock del cliente Langfuse en el momento de creación del trace, y que `setInput` recibe el texto sanitizado. Test de integración liviano sobre `runLexiaCore` con un input que dispare el guardrail de PII, verificando que el trace mockeado nunca ve el valor original.
+- **Sección 2:** test unitario de `startTrace`/`setInput` verificando que ningún texto crudo se pasa al mock del cliente Langfuse en el momento de creación del trace, y que `setInput` recibe el texto sanitizado. Test de integración liviano sobre `runLexiaCore` **y** `runLexiaCoreStream` (ambas funciones aplican el mismo cambio) con un input que dispare el guardrail de PII, verificando que el trace mockeado nunca ve el valor original en ninguna de las dos.
 - **Sección 3:** tests unitarios de `logAgentAction`/`assertValidScope` cubriendo: (a) scope único válido, (b) múltiples scopes válidos separados por coma (caso triage), (c) scope no declarado → throw, (d) `agentId` inexistente en el catálogo → throw, (e) confirmar que el throw ocurre incluso sin `DATABASE_URL` seteada (la validación es independiente de la disponibilidad de la DB). Test de regresión que ejercite las 4 llamadas reales existentes (`triage.ts`, `normativa/agent.ts`, `eligibility/agent.ts`, `ccse/agent.ts`) más el nuevo caller de `crisisDetector`, confirmando que ninguna rompe con el enforcement activado.
 
 ## Fuera de alcance (global, para todo este spec)
