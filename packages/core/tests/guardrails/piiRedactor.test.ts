@@ -139,8 +139,7 @@ describe('redactPII — email', () => {
 // ---------------------------------------------------------------------------
 describe('redactPII — texto limpio no modificado', () => {
   it('returns clean immigration text unchanged', () => {
-    const text =
-      'Según el Art. 22 del Código Civil, el plazo de residencia legal es de 10 años.';
+    const text = 'Según el Art. 22 del Código Civil, el plazo de residencia legal es de 10 años.';
     expect(redactPII(text)).toBe(text);
   });
 

@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  detectCrisis,
-  CRISIS_RESOURCES_BLOCK,
-} from '../../src/guardrails/input/crisisDetector.js';
+import { detectCrisis, CRISIS_RESOURCES_BLOCK } from '../../src/guardrails/input/crisisDetector.js';
 
 describe('detectCrisis', () => {
   it('returns no crisis for normal immigration query', () => {

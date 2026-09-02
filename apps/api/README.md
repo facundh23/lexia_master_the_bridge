@@ -12,19 +12,19 @@ pnpm --filter @lexia/api dev
 
 ## Endpoints principales
 
-| Método | Ruta | Descripción |
-|---|---|---|
-| GET | `/health` | Health check básico |
-| GET | `/api/health/deep` | Health check con DB + Chroma |
-| POST | `/api/auth/sign-up/email` | Registro (rate: 10/h) |
-| POST | `/api/auth/sign-in/email` | Login (rate: 5/15min) |
-| GET | `/api/me` | Perfil del usuario autenticado |
-| DELETE | `/api/me/account` | Borrado de cuenta (GDPR Art. 17) |
-| POST | `/api/conversations` | Nueva conversación |
-| POST | `/api/conversations/:id/messages` | Enviar mensaje (llama runLexiaCore) |
-| POST | `/api/ccse/quiz` | Generar simulacro CCSE |
-| POST | `/api/auth/pat` | Crear PAT (MCP, show-once) |
-| POST | `/api/mcp/search` | Búsqueda corpus (requiere PAT + professional) |
+| Método | Ruta                              | Descripción                                   |
+| ------ | --------------------------------- | --------------------------------------------- |
+| GET    | `/health`                         | Health check básico                           |
+| GET    | `/api/health/deep`                | Health check con DB + Chroma                  |
+| POST   | `/api/auth/sign-up/email`         | Registro (rate: 10/h)                         |
+| POST   | `/api/auth/sign-in/email`         | Login (rate: 5/15min)                         |
+| GET    | `/api/me`                         | Perfil del usuario autenticado                |
+| DELETE | `/api/me/account`                 | Borrado de cuenta (GDPR Art. 17)              |
+| POST   | `/api/conversations`              | Nueva conversación                            |
+| POST   | `/api/conversations/:id/messages` | Enviar mensaje (llama runLexiaCore)           |
+| POST   | `/api/ccse/quiz`                  | Generar simulacro CCSE                        |
+| POST   | `/api/auth/pat`                   | Crear PAT (MCP, show-once)                    |
+| POST   | `/api/mcp/search`                 | Búsqueda corpus (requiere PAT + professional) |
 
 ## Rate limiting
 

@@ -34,7 +34,10 @@ export async function requirePat(request: FastifyRequest, reply: FastifyReply): 
     .where(
       and(
         eq(schema.personalAccessTokens.tokenHash, tokenHash),
-        or(isNull(schema.personalAccessTokens.expiresAt), gt(schema.personalAccessTokens.expiresAt, now)),
+        or(
+          isNull(schema.personalAccessTokens.expiresAt),
+          gt(schema.personalAccessTokens.expiresAt, now),
+        ),
       ),
     );
 

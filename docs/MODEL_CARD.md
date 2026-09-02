@@ -12,13 +12,13 @@
 
 ## Uso previsto
 
-| Dimensión | Detalle |
-|---|---|
-| **Caso de uso primario** | Información sobre requisitos, plazos, documentación y exámenes para la nacionalidad española por residencia (B2C) |
-| **Caso de uso secundario** | Herramienta MCP para gestores y abogados de extranjería (B2B) |
-| **Usuarios previstos** | Inmigrantes en España + gestores/abogados habilitados |
-| **Idioma** | Español exclusivamente (MVP) |
-| **Fuera de alcance** | Consejo jurídico accionable, trámites distintos a nacionalidad por residencia, idiomas distintos al español |
+| Dimensión                  | Detalle                                                                                                           |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Caso de uso primario**   | Información sobre requisitos, plazos, documentación y exámenes para la nacionalidad española por residencia (B2C) |
+| **Caso de uso secundario** | Herramienta MCP para gestores y abogados de extranjería (B2B)                                                     |
+| **Usuarios previstos**     | Inmigrantes en España + gestores/abogados habilitados                                                             |
+| **Idioma**                 | Español exclusivamente (MVP)                                                                                      |
+| **Fuera de alcance**       | Consejo jurídico accionable, trámites distintos a nacionalidad por residencia, idiomas distintos al español       |
 
 ---
 
@@ -37,6 +37,7 @@ Lexia **no sustituye** asesoramiento jurídico profesional. Esta restricción es
 Lexia no entrena modelos propios. Usa Anthropic Claude Sonnet 4.6 (primario) y Claude Haiku 4.5 (guardrails + eval). Las políticas de datos de entrenamiento corresponden a Anthropic.
 
 El **corpus RAG** indexado en Chroma incluye documentos públicos:
+
 - BOE: RD 557/2011 (Reglamento de Extranjería)
 - Código Civil arts. 17-26 (nacionalidad)
 - Instrucciones DGRN sobre nacionalidad por residencia
@@ -52,25 +53,25 @@ Estos documentos son de dominio público o libre acceso. No se indexan datos de 
 
 Versión 1.1 — 80 casos en 5 categorías:
 
-| Categoría | Casos | Descripción |
-|---|---|---|
-| `factual_simple` | 35 | Preguntas directas de información |
-| `factual_complex` | 20 | Casos con múltiples variables (país, fecha, situación) |
-| `out_of_scope` | 10 | Preguntas fuera del alcance del vertical |
-| `adversarial` | 10 | Intentos de jailbreak y manipulación |
-| `crisis_signal` | 5 | Señales de angustia o situación de crisis |
+| Categoría         | Casos | Descripción                                            |
+| ----------------- | ----- | ------------------------------------------------------ |
+| `factual_simple`  | 35    | Preguntas directas de información                      |
+| `factual_complex` | 20    | Casos con múltiples variables (país, fecha, situación) |
+| `out_of_scope`    | 10    | Preguntas fuera del alcance del vertical               |
+| `adversarial`     | 10    | Intentos de jailbreak y manipulación                   |
+| `crisis_signal`   | 5     | Señales de angustia o situación de crisis              |
 
 ### Thresholds de calidad (CI gate)
 
-| Métrica | Threshold | Justificación |
-|---|---|---|
-| `factuality_score_avg` | ≥ 80% | Información correcta es la razón de ser del sistema |
-| `citation_validity_rate` | ≥ 90% | Citas verificables son requerimiento legal-ético |
-| `jailbreak_block_rate` | ≥ 85% | Guardrails deben resistir ataques adversariales |
-| `pii_leak_rate` | = 0% | Zero tolerance — GDPR Art. 5(1)(f) |
-| `disclaimer_present_rate` | ≥ 99% | Obligatorio por diseño (casi nunca debe fallar) |
-| `crisis_detection_recall` | ≥ 90% | Seguridad del usuario — casos de crisis deben derivarse |
-| `p95_latency_ms` | ≤ 8000ms | Experiencia de usuario aceptable |
+| Métrica                   | Threshold | Justificación                                           |
+| ------------------------- | --------- | ------------------------------------------------------- |
+| `factuality_score_avg`    | ≥ 80%     | Información correcta es la razón de ser del sistema     |
+| `citation_validity_rate`  | ≥ 90%     | Citas verificables son requerimiento legal-ético        |
+| `jailbreak_block_rate`    | ≥ 85%     | Guardrails deben resistir ataques adversariales         |
+| `pii_leak_rate`           | = 0%      | Zero tolerance — GDPR Art. 5(1)(f)                      |
+| `disclaimer_present_rate` | ≥ 99%     | Obligatorio por diseño (casi nunca debe fallar)         |
+| `crisis_detection_recall` | ≥ 90%     | Seguridad del usuario — casos de crisis deben derivarse |
+| `p95_latency_ms`          | ≤ 8000ms  | Experiencia de usuario aceptable                        |
 
 ### Última ejecución de eval
 
@@ -89,13 +90,13 @@ Ver `artifacts/eval-reports/` para el reporte más reciente.
 
 ## Riesgos y mitigaciones
 
-| Riesgo | Probabilidad | Impacto | Mitigación |
-|---|---|---|---|
-| Prompt injection exitosa | Baja | Medio | Input guardrails 4 capas + output detector + red teaming nightly |
-| PII leak en respuesta | Muy baja | Crítico | PII redaction en input + SafetyJudge + zero-tolerance threshold |
-| Consejo legal accionable | Baja | Alto | `legalAdviceDetector` en output pipeline + disclaimer forzado |
-| Información desactualizada | Media | Medio | Corpus versionado + fecha de última actualización visible |
-| Crisis no detectada | Baja | Crítico | `crisisDetector` con recall ≥90% threshold en CI |
+| Riesgo                     | Probabilidad | Impacto | Mitigación                                                       |
+| -------------------------- | ------------ | ------- | ---------------------------------------------------------------- |
+| Prompt injection exitosa   | Baja         | Medio   | Input guardrails 4 capas + output detector + red teaming nightly |
+| PII leak en respuesta      | Muy baja     | Crítico | PII redaction en input + SafetyJudge + zero-tolerance threshold  |
+| Consejo legal accionable   | Baja         | Alto    | `legalAdviceDetector` en output pipeline + disclaimer forzado    |
+| Información desactualizada | Media        | Medio   | Corpus versionado + fecha de última actualización visible        |
+| Crisis no detectada        | Baja         | Crítico | `crisisDetector` con recall ≥90% threshold en CI                 |
 
 ---
 
@@ -104,6 +105,7 @@ Ver `artifacts/eval-reports/` para el reporte más reciente.
 **Categoría: Riesgo Limitado** (Art. 50 AI Act)
 
 Justificación de NO ser sistema de Alto Riesgo (Annex III):
+
 - Annex III ítem 7 aplica a "AI systems intended to be used by competent public authorities" — Lexia es B2C privado y B2B no-autoridad.
 - Lexia no toma decisiones administrativas — es estrictamente informativa.
 - Guardrails arquitectónicos previenen consejo legal accionable.

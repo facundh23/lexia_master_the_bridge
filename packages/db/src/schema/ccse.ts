@@ -1,13 +1,4 @@
-import {
-  boolean,
-  index,
-  integer,
-  json,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core';
+import { boolean, index, integer, json, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { users } from './auth.js';
 
 export const ccseQuestions = pgTable('ccse_questions', {

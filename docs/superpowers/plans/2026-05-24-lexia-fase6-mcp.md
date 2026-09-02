@@ -19,14 +19,17 @@ Antes de las tasks, se documenta el razonamiento detrás de cada decisión arqui
 **¿Qué se eligió?** El servidor MCP (`apps/mcp`) usa `StdioServerTransport` del SDK. Claude Desktop arranca el proceso con `node dist/index.js` y se comunica por stdin/stdout.
 
 **¿Qué amenaza mitiga?**
+
 - Elimina la superficie de red local. Con HTTP, el servidor escucharía en `localhost:XXXX` — cualquier proceso en la misma máquina podría hacer peticiones a ese puerto (SSRF lateral, credential theft via port scan).
 - En stdio, solo el proceso padre (Claude Desktop) puede comunicarse. No hay socket, no hay TLS que configurar, no hay puerto en el firewall.
 
 **¿Por qué no HTTP local?**
+
 - HTTP local requiere gestión de TLS o acepta cleartext, binding de puerto, y exposición a otros procesos locales.
 - El SDK de MCP recomienda stdio para integraciones de escritorio: "stdio is appropriate for local integrations where the client and server run on the same machine."
 
 **¿Por qué no SSE/StreamableHTTP?**
+
 - SSE/StreamableHTTP es para deployments remotos (servidor MCP en la nube). En ese caso sí necesitaríamos TLS + auth en el transport. Para Fase 6 (MVP desktop), stdio es suficiente y más seguro.
 
 ### DEC-2: apps/mcp es thin client — no accede a DB directamente
@@ -34,11 +37,13 @@ Antes de las tasks, se documenta el razonamiento detrás de cada decisión arqui
 **¿Qué se eligió?** `apps/mcp` solo conoce `LEXIA_API_URL` y `LEXIA_PAT`. Cada tool MCP hace `fetch()` a `apps/api`.
 
 **¿Qué amenaza mitiga?**
+
 - **Least Privilege**: El proceso MCP en el host del gestor solo tiene un PAT con scopes limitados. No tiene `DATABASE_URL` (que incluye usuario y contraseña de Postgres). Si el host del gestor está comprometido, el atacante solo obtiene el PAT — que puede revocarse inmediatamente.
 - **Centralización de audit log**: Si apps/mcp accediera a DB directamente, cada acción del MCP debería loguear por separado y podría hacerlo incorrectamente o no hacerlo. Al pasar por apps/api, el audit log es obligatorio por diseño arquitectónico.
 - **Single source of truth para roles**: La verificación de que `role = 'professional'` ocurre en apps/api en cada request. Si un admin revoca la verificación de un profesional, el acceso se corta en la próxima llamada sin necesidad de rotar tokens o esperar TTL.
 
 **¿Por qué no importar `@lexia/core` directamente en apps/mcp?**
+
 - Requeriría que el proceso MCP tenga `DATABASE_URL`, `ANTHROPIC_API_KEY`, `CHROMA_URL`, etc. — todo el stack de credenciales.
 - Duplica la lógica de autorización y audit log.
 
@@ -47,15 +52,18 @@ Antes de las tasks, se documenta el razonamiento detrás de cada decisión arqui
 **¿Qué se eligió?** El PAT es `crypto.randomBytes(32).toString('hex')` (64 chars hex = 256 bits de entropía). Se guarda `sha256(token)` en DB. El token plaintext se muestra solo una vez al crearlo.
 
 **¿Por qué SHA-256 y no bcrypt?**
+
 - **bcrypt está diseñado para passwords** (baja entropía, elegidos por humanos, susceptibles a diccionarios). Su lentitud (trabajo de hashing configurable) tiene sentido cuando el espacio de búsqueda es pequeño.
 - **Los PATs tienen 256 bits de entropía aleatoria**. Un atacante que obtuviera la DB tendría que hacer brute-force de 2^256 combinaciones. SHA-256 es suficiente — OWASP API Security confirma: "For API tokens with sufficient entropy, a fast hash like SHA-256 is acceptable."
 - bcrypt en cada request de API añadiría ~100ms de latencia innecesaria.
 
 **¿Por qué no almacenar el PAT en plaintext?**
+
 - Si la DB se expone (backup sin cifrar, SQL injection, insider threat), los tokens plaintext son utilizables inmediatamente.
 - Con SHA-256, un dump de DB solo expone hashes — el token real sigue siendo secreto.
 
 **¿Por qué 32 bytes aleatorios y no UUID v4?**
+
 - UUID v4 tiene 122 bits de entropía (algunos bits son fijos por la versión). 32 bytes = 256 bits.
 - `crypto.randomBytes` usa el CSPRNG del OS (getrandom syscall en Linux, CryptGenRandom en Windows). `Math.random()` NO es criptográficamente seguro y está explícitamente prohibido para tokens de seguridad.
 
@@ -64,10 +72,12 @@ Antes de las tasks, se documenta el razonamiento detrás de cada decisión arqui
 **¿Qué se eligió?** El endpoint `POST /api/auth/pat` devuelve `{ token, id }`. Después solo se puede listar el `id` y el `name`, nunca el token de nuevo.
 
 **¿Qué amenaza mitiga?**
+
 - Principio de mínima exposición: el secreto no persiste en el servidor en forma recuperable. Si un atacante consigue acceso de lectura a la DB después de la creación, no puede recuperar el token (solo el hash).
 - Modelo conocido: GitHub PATs, GitLab tokens, AWS access keys — todos funcionan igual. Los usuarios ya entienden este modelo.
 
 **¿Qué pasa si el usuario pierde el token?**
+
 - Lo revoca (`DELETE /api/auth/pat/:id`) y crea uno nuevo. El proceso es deliberadamente incómodo para desincentivar el descuido.
 
 ### DEC-5: Verificación de colegiación manual (MVP)
@@ -75,10 +85,12 @@ Antes de las tasks, se documenta el razonamiento detrás de cada decisión arqui
 **¿Qué se eligió?** El flujo es: gestor envía número de colegiado → queda `status: 'pending'` → admin lo aprueba vía `PATCH /api/admin/professional-verifications/:id` → `users.role` cambia a `'professional'`.
 
 **¿Qué amenaza mitiga?**
+
 - **Acceso no autorizado a tools profesionales**: Los endpoints `/api/mcp/*` exponen RAG con citas y compute_eligibility. Un usuario B2C que se autoproclamara "profesional" podría acceder a outputs más técnicos o menos disclaimerizados.
 - Sin verificación, cualquiera podría hacer `role = 'professional'` con una petición forjada.
 
 **¿Por qué manual y no automatizado?**
+
 - Los Colegios de Abogados en España no tienen una API pública unificada de verificación de colegiación. Cada comunidad autónoma tiene su registro propio.
 - El riesgo R10 del spec reconoce esto: "MVP con verificación manual; automatización Future Work".
 - Para el capstone, la verificación manual es **defendible arquitectónicamente** — el campo `status` existe, el flujo existe, y la automatización es un upgrade de infraestructura, no un cambio de diseño.
@@ -88,6 +100,7 @@ Antes de las tasks, se documenta el razonamiento detrás de cada decisión arqui
 **¿Qué se eligió?** Todos los endpoints `/api/mcp/*` insertan una fila en `audit_log` con `surface: 'mcp'` antes de retornar.
 
 **¿Qué principio aplica?**
+
 - **Non-repudiation**: Ninguna acción de un profesional puede negarse — hay un registro inmutable con timestamp, userId, surface, action y details.
 - **Segregación de surfaces**: Permite queries específicas para auditorías (`WHERE surface = 'mcp'`), detección de anomalías (profesional actuando desde web cuando siempre usa MCP), y compliance con GDPR Art. 5(2) (accountability).
 - El campo `surface` ya existe en la tabla `audit_log` (Fase 1). El schema de `conversations` también tiene `surface`. Esto es consistencia arquitectónica.
@@ -97,6 +110,7 @@ Antes de las tasks, se documenta el razonamiento detrás de cada decisión arqui
 **¿Qué se eligió?** Dos funciones separadas: `requirePat` valida el token y carga el usuario; `requireProfessional` verifica `role = 'professional'`. Se componen en la ruta como `preHandler: [requirePat, requireProfessional]`.
 
 **¿Por qué separados?**
+
 - Single Responsibility: cada middleware hace una sola cosa, testeable de forma independiente.
 - Composabilidad: en el futuro, un endpoint podría requerir PAT pero no role=professional (e.g., un endpoint de lectura básica). Con middleware separado, se puede hacer sin duplicar lógica.
 - Falla explícita: el 401 ("PAT inválido") se distingue del 403 ("no eres profesional"), lo cual ayuda al diagnóstico sin revelar demasiada información.
@@ -106,6 +120,7 @@ Antes de las tasks, se documenta el razonamiento detrás de cada decisión arqui
 **¿Qué se eligió?** `users.role` en DB, leído en cada request por `requireProfessional`.
 
 **¿Por qué no en el PAT payload (tipo JWT)?**
+
 - Los JWTs codifican el rol al momento de emisión y son válidos hasta su expiración aunque el rol haya cambiado.
 - Si un admin revoca la verificación de un profesional a las 14:00, con JWT el profesional podría seguir actuando hasta la expiración del token (potencialmente horas).
 - Con DB lookup, la revocación es instantánea: próxima request → 403.
@@ -116,6 +131,7 @@ Antes de las tasks, se documenta el razonamiento detrás de cada decisión arqui
 ## Mapa de Archivos
 
 ### Nuevos archivos
+
 ```
 packages/db/src/schema/professional.ts          — tablas: personal_access_tokens, professional_verifications
 packages/db/migrations/0005_mcp_professional.sql — migración con ALTER TABLE users + 2 CREATE TABLE
@@ -134,6 +150,7 @@ apps/mcp/README.md                               — instrucciones para gestores
 ```
 
 ### Archivos modificados
+
 ```
 packages/db/src/schema/index.ts                  — + export * from './professional.js'
 packages/db/migrations/meta/_journal.json        — + entry idx 5
@@ -151,6 +168,7 @@ apps/mcp/tsconfig.json                           — ya correcto (extend tsconfi
 **¿Por qué esta task primero?** Todo lo demás depende de las tablas. Sin `personal_access_tokens` no hay PATs, sin `role` en `users` no hay autorización.
 
 **Files:**
+
 - Create: `packages/db/src/schema/professional.ts`
 - Modify: `packages/db/src/schema/index.ts`
 - Create: `packages/db/migrations/0005_mcp_professional.sql`
@@ -265,12 +283,48 @@ Archivo: `packages/db/migrations/meta/_journal.json`
   "version": "7",
   "dialect": "postgresql",
   "entries": [
-    { "idx": 0, "version": "7", "when": 1778616851198, "tag": "0000_dear_centennial", "breakpoints": true },
-    { "idx": 1, "version": "7", "when": 1778786884864, "tag": "0001_deep_mulholland_black", "breakpoints": true },
-    { "idx": 2, "version": "7", "when": 1747440000000, "tag": "0002_add_citations_to_messages", "breakpoints": true },
-    { "idx": 3, "version": "7", "when": 1747958400000, "tag": "0003_token_usage_unique_index", "breakpoints": true },
-    { "idx": 4, "version": "7", "when": 1748217600000, "tag": "0004_ccse_reminders", "breakpoints": true },
-    { "idx": 5, "version": "7", "when": 1748390400000, "tag": "0005_mcp_professional", "breakpoints": true }
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1778616851198,
+      "tag": "0000_dear_centennial",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778786884864,
+      "tag": "0001_deep_mulholland_black",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1747440000000,
+      "tag": "0002_add_citations_to_messages",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1747958400000,
+      "tag": "0003_token_usage_unique_index",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1748217600000,
+      "tag": "0004_ccse_reminders",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1748390400000,
+      "tag": "0005_mcp_professional",
+      "breakpoints": true
+    }
   ]
 }
 ```
@@ -299,6 +353,7 @@ git commit -m "feat(db): add personal_access_tokens, professional_verifications,
 **¿Por qué dos middlewares separados y no uno?** Ver DEC-7. `requirePat` resuelve "¿quién eres?" y `requireProfessional` resuelve "¿tenés permiso?". Son preguntas distintas con respuestas distintas (401 vs 403).
 
 **Files:**
+
 - Modify: `apps/api/src/types.ts`
 - Create: `apps/api/src/middleware/requirePat.ts`
 - Create: `apps/api/src/middleware/requireProfessional.ts`
@@ -331,7 +386,12 @@ vi.mock('@lexia/db', () => ({
     where: vi.fn().mockResolvedValue([]),
   })),
   schema: {
-    personalAccessTokens: { tokenHash: 'tokenHash', userId: 'userId', expiresAt: 'expiresAt', lastUsedAt: 'lastUsedAt' },
+    personalAccessTokens: {
+      tokenHash: 'tokenHash',
+      userId: 'userId',
+      expiresAt: 'expiresAt',
+      lastUsedAt: 'lastUsedAt',
+    },
     users: { id: 'id', role: 'role' },
   },
 }));
@@ -349,8 +409,14 @@ function makeReq(authHeader?: string) {
 
 function makeReply() {
   const r = { _status: 0, _body: null as any };
-  r.status = (code: number) => { r._status = code; return r; };
-  r.send = (body: any) => { r._body = body; return r; };
+  r.status = (code: number) => {
+    r._status = code;
+    return r;
+  };
+  r.send = (body: any) => {
+    r._body = body;
+    return r;
+  };
   return r as any;
 }
 
@@ -429,7 +495,10 @@ export async function requirePat(request: FastifyRequest, reply: FastifyReply): 
       and(
         eq(schema.personalAccessTokens.tokenHash, tokenHash),
         // Ver DEC-3: respetar expiración si existe
-        or(isNull(schema.personalAccessTokens.expiresAt), gt(schema.personalAccessTokens.expiresAt, now)),
+        or(
+          isNull(schema.personalAccessTokens.expiresAt),
+          gt(schema.personalAccessTokens.expiresAt, now),
+        ),
       ),
     );
 
@@ -494,6 +563,7 @@ git commit -m "feat(api): add requirePat + requireProfessional middleware with S
 **¿Por qué esta ruta usa /api/auth/pat?** Semánticamente, los PATs son credenciales de autenticación. Agruparlos bajo `/api/auth/` es consistente con el patrón ya establecido por Better Auth.
 
 **Files:**
+
 - Create: `apps/api/src/routes/pat.ts`
 - Create: `apps/api/src/routes/pat.test.ts`
 - Modify: `apps/api/src/server.ts`
@@ -506,16 +576,21 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 // Mock de requireAuth para simular usuario autenticado
 vi.mock('../middleware/requireAuth.js', () => ({
-  requireAuth: vi.fn(async (req: any) => { req.userId = 'user-1'; req.userEmail = 'test@test.com'; }),
+  requireAuth: vi.fn(async (req: any) => {
+    req.userId = 'user-1';
+    req.userEmail = 'test@test.com';
+  }),
 }));
 
 // Mock DB
 const mockInsert = vi.fn().mockResolvedValue([{ id: 'pat-1' }]);
 const mockSelect = vi.fn().mockReturnValue({
   from: vi.fn().mockReturnThis(),
-  where: vi.fn().mockResolvedValue([
-    { id: 'pat-1', name: 'Mi PAT', lastUsedAt: null, expiresAt: null, createdAt: new Date() },
-  ]),
+  where: vi
+    .fn()
+    .mockResolvedValue([
+      { id: 'pat-1', name: 'Mi PAT', lastUsedAt: null, expiresAt: null, createdAt: new Date() },
+    ]),
 });
 const mockDelete = vi.fn().mockReturnValue({
   where: vi.fn().mockResolvedValue([]),
@@ -623,14 +698,12 @@ export const patRoute: FastifyPluginAsync = async (app) => {
   app.delete('/api/auth/pat/:id', { preHandler: [requireAuth] }, async (request, reply) => {
     const { id } = request.params as { id: string };
 
-    await db
-      .delete(schema.personalAccessTokens)
-      .where(
-        and(
-          eq(schema.personalAccessTokens.id, id),
-          eq(schema.personalAccessTokens.userId, request.userId), // ownership check
-        ),
-      );
+    await db.delete(schema.personalAccessTokens).where(
+      and(
+        eq(schema.personalAccessTokens.id, id),
+        eq(schema.personalAccessTokens.userId, request.userId), // ownership check
+      ),
+    );
 
     return reply.status(204).send();
   });
@@ -671,6 +744,7 @@ git commit -m "feat(api): add PAT CRUD routes with show-once token generation"
 **¿Por qué esta task antes de los endpoints MCP?** Los endpoints MCP requieren `role = 'professional'`, que solo se asigna cuando un admin aprueba la verificación.
 
 **Files:**
+
 - Create: `apps/api/src/routes/professionalVerification.ts`
 - Modify: `apps/api/src/server.ts`
 - Modify: `.env.example`
@@ -702,7 +776,10 @@ export const professionalVerificationRoute: FastifyPluginAsync = async (app) => 
       if (!collegiateNumber?.trim() || !collegiateBody?.trim()) {
         return reply
           .status(400)
-          .send({ error: 'BAD_REQUEST', message: 'collegiateNumber y collegiateBody son requeridos' });
+          .send({
+            error: 'BAD_REQUEST',
+            message: 'collegiateNumber y collegiateBody son requeridos',
+          });
       }
 
       // Upsert: si ya existe una verificación para este usuario, actualizarla
@@ -729,24 +806,20 @@ export const professionalVerificationRoute: FastifyPluginAsync = async (app) => 
   );
 
   // Admin lista verificaciones pendientes
-  app.get(
-    '/api/admin/professional-verifications',
-    { preHandler: [requireAdmin] },
-    async () => {
-      const verifications = await db
-        .select({
-          id: schema.professionalVerifications.id,
-          userId: schema.professionalVerifications.userId,
-          collegiateNumber: schema.professionalVerifications.collegiateNumber,
-          collegiateBody: schema.professionalVerifications.collegiateBody,
-          status: schema.professionalVerifications.status,
-          createdAt: schema.professionalVerifications.createdAt,
-        })
-        .from(schema.professionalVerifications);
+  app.get('/api/admin/professional-verifications', { preHandler: [requireAdmin] }, async () => {
+    const verifications = await db
+      .select({
+        id: schema.professionalVerifications.id,
+        userId: schema.professionalVerifications.userId,
+        collegiateNumber: schema.professionalVerifications.collegiateNumber,
+        collegiateBody: schema.professionalVerifications.collegiateBody,
+        status: schema.professionalVerifications.status,
+        createdAt: schema.professionalVerifications.createdAt,
+      })
+      .from(schema.professionalVerifications);
 
-      return { verifications };
-    },
-  );
+    return { verifications };
+  });
 
   // Admin aprueba o rechaza — actualiza status + role del usuario (ver DEC-5, DEC-8)
   app.patch(
@@ -822,14 +895,16 @@ git commit -m "feat(api): add professional verification flow with admin approval
 
 ---
 
-## Task 5: Endpoints MCP-facing en apps/api — /api/mcp/*
+## Task 5: Endpoints MCP-facing en apps/api — /api/mcp/\*
 
 **¿Por qué endpoints dedicados y no reutilizar los web?**
+
 - Ver DEC-6: audit log con `surface: 'mcp'` requiere rutas dedicadas que controlen el valor de surface.
 - Los endpoints web usan sesiones de Better Auth. Los endpoints MCP usan PAT. Son mecanismos de autenticación distintos — mezclarlos crea complejidad innecesaria.
 - Permite rate limiting diferenciado si es necesario en el futuro.
 
 **Files:**
+
 - Create: `apps/api/src/routes/mcp.ts`
 - Create: `apps/api/src/routes/mcp.test.ts`
 - Modify: `apps/api/src/server.ts`
@@ -1023,7 +1098,9 @@ export const mcpRoute: FastifyPluginAsync = async (app) => {
 
     const manifest = VERTICAL_MANIFESTS[vertical];
     if (!manifest) {
-      return reply.status(404).send({ error: 'NOT_FOUND', message: `Vertical '${vertical}' no encontrado` });
+      return reply
+        .status(404)
+        .send({ error: 'NOT_FOUND', message: `Vertical '${vertical}' no encontrado` });
     }
 
     await logMcpAction(request.userId, 'mcp_requirements', { vertical });
@@ -1091,6 +1168,7 @@ git commit -m "feat(api): add /api/mcp/* endpoints with PAT auth, professional g
 **¿Por qué stdio y no HTTP?** Ver DEC-1 completo arriba. Claude Desktop espera un proceso stdio.
 
 **Files:**
+
 - Modify: `apps/mcp/package.json`
 - Create: `apps/mcp/src/apiClient.ts`
 - Create: `apps/mcp/src/tools/searchCorpus.ts`
@@ -1442,6 +1520,7 @@ git commit -m "feat(mcp): implement MCP server with 3 professional tools via std
 **¿Por qué task separada para el audit log?** El audit log es un requerimiento de compliance (no solo funcional). Los tests deben verificar explícitamente que cada request MCP genera una fila con `surface = 'mcp'`. Esto es lo que se demuestra en la defensa.
 
 **Files:**
+
 - Create: `apps/api/src/routes/mcp.audit.test.ts`
 
 - [ ] **Step 1: Escribir el test de audit log**
@@ -1472,8 +1551,11 @@ vi.mock('../middleware/requireProfessional.js', () => ({
 vi.mock('@lexia/core', () => ({
   runNormativaAgent: vi.fn().mockResolvedValue({ response: 'ok', citations: [] }),
   computeEligibility: vi.fn().mockReturnValue({
-    yearsRequired: 2, isEligible: true, specialCase: 'iberoamerican',
-    legalBasis: 'Art. 22 CC', notes: [],
+    yearsRequired: 2,
+    isEligible: true,
+    specialCase: 'iberoamerican',
+    legalBasis: 'Art. 22 CC',
+    notes: [],
   }),
 }));
 vi.mock('@lexia/db', () => ({
@@ -1493,9 +1575,7 @@ describe('MCP audit log', () => {
       payload: { query: 'test', vertical: 'nacionalidad_residencia' },
     });
 
-    const auditRow = auditInserts.find(
-      (e) => e.table === 'auditLog' && e.row.surface === 'mcp',
-    );
+    const auditRow = auditInserts.find((e) => e.table === 'auditLog' && e.row.surface === 'mcp');
     expect(auditRow).toBeDefined();
     expect(auditRow.row.actorType).toBe('user');
     expect(auditRow.row.actorId).toBe('pro-user');
@@ -1511,9 +1591,7 @@ describe('MCP audit log', () => {
       payload: { countryOrigin: 'argentina' },
     });
 
-    const auditRow = auditInserts.find(
-      (e) => e.table === 'auditLog' && e.row.surface === 'mcp',
-    );
+    const auditRow = auditInserts.find((e) => e.table === 'auditLog' && e.row.surface === 'mcp');
     expect(auditRow).toBeDefined();
     expect(auditRow.row.action).toBe('mcp_eligibility');
   });
@@ -1542,11 +1620,12 @@ git commit -m "test(api): verify surface=mcp in audit_log for all MCP endpoints"
 **¿Por qué documentar el Claude Desktop config y no solo el README?** Claude Desktop lee `claude_desktop_config.json` para arrancar servidores MCP. Sin el ejemplo exacto, el gestor no puede configurarlo. La doc es parte del deliverable.
 
 **Files:**
+
 - Create: `apps/mcp/README.md`
 
 - [ ] **Step 1: Escribir el README para gestores**
 
-```markdown
+````markdown
 # Lexia MCP Server — Guía para Gestores y Abogados
 
 Lexia expone tres herramientas profesionales accesibles desde Claude Desktop o Cursor.
@@ -1566,6 +1645,7 @@ cd lexia-capstone
 pnpm install
 pnpm --filter @lexia/mcp build
 ```
+````
 
 ## Configuración en Claude Desktop
 
@@ -1610,21 +1690,27 @@ En `.cursor/mcp.json` en la raíz de tu proyecto:
 ## Herramientas disponibles
 
 ### `search_corpus_with_citations`
+
 Busca en el corpus legal (BOE, Código Civil, instrucciones DGRN) y devuelve respuesta con citas.
 
 **Ejemplo de uso:**
+
 > "Usa search_corpus_with_citations para saber cuántos años de residencia necesita un cliente colombiano"
 
 ### `compute_eligibility`
+
 Calcula si un cliente cumple el requisito de años de residencia. Resultado determinista (sin LLM).
 
 **Ejemplo de uso:**
+
 > "Usa compute_eligibility con countryOrigin=colombia, arrivalDate=2021-06-01"
 
 ### `get_procedure_requirements`
+
 Devuelve el checklist de documentación y recordatorios clave para el trámite.
 
 **Ejemplo de uso:**
+
 > "Usa get_procedure_requirements para ver qué documentos necesita mi cliente"
 
 ## Seguridad del PAT
@@ -1637,14 +1723,15 @@ Devuelve el checklist de documentación y recordatorios clave para el trámite.
 ## Soporte
 
 Contactar al administrador de Lexia para solicitar verificación de colegiación o reportar problemas.
-```
+
+````
 
 - [ ] **Step 2: Commit**
 
 ```bash
 git add apps/mcp/README.md
 git commit -m "docs(mcp): add gestores guide with Claude Desktop and Cursor setup instructions"
-```
+````
 
 ---
 
@@ -1705,14 +1792,14 @@ git push origin main
 
 ### Spec coverage
 
-| Requisito del spec | Task que lo cubre |
-|---|---|
-| MCP server con `@modelcontextprotocol/sdk` | Task 6 |
-| Tools profesionales (search, eligibility, requirements) | Tasks 5 + 6 |
-| Auth + scopes obligatorios (PAT + colegiación) | Tasks 1, 2, 3, 4 |
-| Audit log diferencia surfaces | Task 5 + 7 |
-| Doc para gestores | Task 8 |
-| Verificación de role professional en MCP | Task 2 (`requireProfessional`) |
+| Requisito del spec                                      | Task que lo cubre              |
+| ------------------------------------------------------- | ------------------------------ |
+| MCP server con `@modelcontextprotocol/sdk`              | Task 6                         |
+| Tools profesionales (search, eligibility, requirements) | Tasks 5 + 6                    |
+| Auth + scopes obligatorios (PAT + colegiación)          | Tasks 1, 2, 3, 4               |
+| Audit log diferencia surfaces                           | Task 5 + 7                     |
+| Doc para gestores                                       | Task 8                         |
+| Verificación de role professional en MCP                | Task 2 (`requireProfessional`) |
 
 ### Invariantes de seguridad verificables
 
@@ -1727,4 +1814,7 @@ git push origin main
 - **R-MCP-1**: El PAT se transmite como Bearer en HTTP. Si `apps/api` está en HTTP (no HTTPS) en producción, es sniffable. Mitigación: Fase 8 configura Caddy con TLS. En desarrollo, se asume red local confiable.
 - **R-MCP-2**: El gestor puede perder el PAT. Mitigación: flujo de revocación + creación nuevo PAT, documentado en README.
 - **R-MCP-3**: La verificación de colegiación es manual — un admin distraído podría aprobar un no-profesional. Mitigación: proceso documentado, único punto de falla humano auditado.
+
+```
+
 ```

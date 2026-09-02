@@ -25,5 +25,11 @@ export { NORMATIVA_SYSTEM_PROMPT } from './agents/normativa/prompt.js';
 
 // Fase 7 — eval pipeline
 export { runEval } from './eval/runner.js';
-export type { GoldenSet, GoldenCase, EvalRunResult, EvalMetrics, EvalRunOptions } from './eval/runner.js';
+export type {
+  GoldenSet,
+  GoldenCase,
+  EvalRunResult,
+  EvalMetrics,
+  EvalRunOptions,
+} from './eval/runner.js';
 export * from './eval/judges/index.js';

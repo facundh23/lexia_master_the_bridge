@@ -18,7 +18,9 @@ export function encryptPII(value: string | null | undefined): string | null {
   const key = getKey();
   if (!key) {
     if (process.env.NODE_ENV === 'production') {
-      throw new Error('PII_ENCRYPTION_KEY no está configurada — no se puede persistir un campo PII');
+      throw new Error(
+        'PII_ENCRYPTION_KEY no está configurada — no se puede persistir un campo PII',
+      );
     }
     console.warn(
       '[cases] PII_ENCRYPTION_KEY no seteada — guardando campo PII en texto plano (solo permitido fuera de producción).',
@@ -102,7 +104,8 @@ export const casesRoute: FastifyPluginAsync = async (app) => {
     const VALID_STATUSES = ['active', 'closed', 'archived'] as const;
     const patch: Record<string, unknown> = { updatedAt: new Date() };
 
-    if ('countryOrigin' in body) patch.countryOrigin = encryptPII(body.countryOrigin as string | undefined);
+    if ('countryOrigin' in body)
+      patch.countryOrigin = encryptPII(body.countryOrigin as string | undefined);
     if ('arrivalDate' in body) patch.arrivalDate = body.arrivalDate ?? null;
     if ('residenceStatus' in body) patch.residenceStatus = body.residenceStatus ?? null;
     if ('hasChildren' in body) patch.hasChildren = Boolean(body.hasChildren);

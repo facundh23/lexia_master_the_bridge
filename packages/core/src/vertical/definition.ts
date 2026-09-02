@@ -1,7 +1,10 @@
 import { z } from 'zod';
 
 export const ReminderTemplateSchema = z.object({
-  slug: z.string().min(1).regex(/^[a-z_]+$/),
+  slug: z
+    .string()
+    .min(1)
+    .regex(/^[a-z_]+$/),
   label: z.string().min(1),
   description: z.string(),
   defaultDaysBeforeDeadline: z.number().int().positive(),

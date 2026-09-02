@@ -18,7 +18,9 @@ describe('runInputPipeline', () => {
   });
 
   it('redacts email addresses from input', async () => {
-    const result = await runInputPipeline('Mi email es john@example.com ¿puedo pedir la nacionalidad?');
+    const result = await runInputPipeline(
+      'Mi email es john@example.com ¿puedo pedir la nacionalidad?',
+    );
     expect(result.blocked).toBe(false);
     expect(result.sanitized).not.toContain('john@example.com');
     expect(result.sanitized).toContain('[EMAIL]');

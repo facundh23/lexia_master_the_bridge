@@ -13,7 +13,9 @@ const SCRYPT_SALT = (() => {
     throw new Error('FIELD_ENCRYPTION_SALT debe setearse en producción (≥32 chars aleatorios)');
   }
   if (!envSalt) {
-    console.warn('[crypto] FIELD_ENCRYPTION_SALT no seteado — usando salt legacy. Setear en producción.');
+    console.warn(
+      '[crypto] FIELD_ENCRYPTION_SALT no seteado — usando salt legacy. Setear en producción.',
+    );
   }
   return envSalt ?? 'lexia-pii-v1';
 })();

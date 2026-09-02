@@ -6,12 +6,12 @@
 
 ## Categorías de incidente
 
-| Severidad | Descripción | Tiempo de respuesta |
-|---|---|---|
-| P0 — Crítico | Servicio caído, breach de datos, PII expuesta | 30 min |
-| P1 — Alto | Degradación severa, auth comprometida, eval regresión >20% | 2h |
-| P2 — Medio | Bug en producción con workaround, error rate >5% | 24h |
-| P3 — Bajo | Incidencia menor, solo logging | Próximo sprint |
+| Severidad    | Descripción                                                | Tiempo de respuesta |
+| ------------ | ---------------------------------------------------------- | ------------------- |
+| P0 — Crítico | Servicio caído, breach de datos, PII expuesta              | 30 min              |
+| P1 — Alto    | Degradación severa, auth comprometida, eval regresión >20% | 2h                  |
+| P2 — Medio   | Bug en producción con workaround, error rate >5%           | 24h                 |
+| P3 — Bajo    | Incidencia menor, solo logging                             | Próximo sprint      |
 
 ---
 
@@ -103,8 +103,8 @@ tsx scripts/ab-safety.ts --baseline=artifacts/eval-baseline.json --candidate=eva
 
 ## Contacto de escalada
 
-| Rol | Contacto |
-|---|---|
-| Responsable técnico | Facundo Herrera — facundhfed@gmail.com |
-| Tutor del máster | (coordinación MUIA) |
-| Autoridad de control GDPR | AEPD — aepd.es / 901 100 099 |
+| Rol                       | Contacto                               |
+| ------------------------- | -------------------------------------- |
+| Responsable técnico       | Facundo Herrera — facundhfed@gmail.com |
+| Tutor del máster          | (coordinación MUIA)                    |
+| Autoridad de control GDPR | AEPD — aepd.es / 901 100 099           |

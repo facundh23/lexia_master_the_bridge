@@ -52,92 +52,71 @@ describe('Global error handler', () => {
 
   // ── 500 behavior ─────────────────────────────────────────────────────────────
 
-  skipIfNoDb(
-    'unhandled Error without statusCode → returns 500 with generic message',
-    async () => {
-      const response = await app.inject({ method: 'GET', url: '/test/throw-500' });
-      expect(response.statusCode).toBe(500);
+  skipIfNoDb('unhandled Error without statusCode → returns 500 with generic message', async () => {
+    const response = await app.inject({ method: 'GET', url: '/test/throw-500' });
+    expect(response.statusCode).toBe(500);
 
-      const body = response.json() as {
-        statusCode: number;
-        error: string;
-        message: string;
-      };
-      expect(body.statusCode).toBe(500);
-      expect(body.message).toBe('Ha ocurrido un error. Intentá nuevamente.');
-    },
-  );
+    const body = response.json() as {
+      statusCode: number;
+      error: string;
+      message: string;
+    };
+    expect(body.statusCode).toBe(500);
+    expect(body.message).toBe('Ha ocurrido un error. Intentá nuevamente.');
+  });
 
-  skipIfNoDb(
-    '500 response body does not contain stack trace',
-    async () => {
-      const response = await app.inject({ method: 'GET', url: '/test/throw-500' });
-      const raw = response.body;
+  skipIfNoDb('500 response body does not contain stack trace', async () => {
+    const response = await app.inject({ method: 'GET', url: '/test/throw-500' });
+    const raw = response.body;
 
-      expect(raw).not.toContain('stack');
-      expect(raw).not.toContain('at Object.');
-      expect(raw).not.toContain('    at '); // stack frame indentation pattern
-    },
-  );
+    expect(raw).not.toContain('stack');
+    expect(raw).not.toContain('at Object.');
+    expect(raw).not.toContain('    at '); // stack frame indentation pattern
+  });
 
-  skipIfNoDb(
-    '500 response body does not leak database connection strings',
-    async () => {
-      const response = await app.inject({ method: 'GET', url: '/test/throw-500' });
-      const raw = response.body;
+  skipIfNoDb('500 response body does not leak database connection strings', async () => {
+    const response = await app.inject({ method: 'GET', url: '/test/throw-500' });
+    const raw = response.body;
 
-      // Must not contain postgresql:// or postgres:// URLs
-      expect(raw).not.toMatch(/postgresql?:\/\//);
-    },
-  );
+    // Must not contain postgresql:// or postgres:// URLs
+    expect(raw).not.toMatch(/postgresql?:\/\//);
+  });
 
-  skipIfNoDb(
-    '500 response body does not leak filesystem paths',
-    async () => {
-      const response = await app.inject({ method: 'GET', url: '/test/throw-500' });
-      const raw = response.body;
+  skipIfNoDb('500 response body does not leak filesystem paths', async () => {
+    const response = await app.inject({ method: 'GET', url: '/test/throw-500' });
+    const raw = response.body;
 
-      // Must not contain absolute Windows or Unix file paths from the server process
-      expect(raw).not.toMatch(/[A-Za-z]:\\Users\\/);   // Windows path
-      expect(raw).not.toMatch(/\/home\/\w/);             // Linux home path
-      expect(raw).not.toMatch(/\/app\/src\//);           // Docker/container path
-    },
-  );
+    // Must not contain absolute Windows or Unix file paths from the server process
+    expect(raw).not.toMatch(/[A-Za-z]:\\Users\\/); // Windows path
+    expect(raw).not.toMatch(/\/home\/\w/); // Linux home path
+    expect(raw).not.toMatch(/\/app\/src\//); // Docker/container path
+  });
 
   // ── 4xx pass-through ─────────────────────────────────────────────────────────
 
-  skipIfNoDb(
-    'error with statusCode 400 → returns 400 with the original message',
-    async () => {
-      const response = await app.inject({ method: 'GET', url: '/test/throw-400' });
-      expect(response.statusCode).toBe(400);
+  skipIfNoDb('error with statusCode 400 → returns 400 with the original message', async () => {
+    const response = await app.inject({ method: 'GET', url: '/test/throw-400' });
+    expect(response.statusCode).toBe(400);
 
-      const body = response.json() as { statusCode: number; message: string };
-      expect(body.statusCode).toBe(400);
-      expect(body.message).toBe('Parámetro inválido');
-    },
-  );
+    const body = response.json() as { statusCode: number; message: string };
+    expect(body.statusCode).toBe(400);
+    expect(body.message).toBe('Parámetro inválido');
+  });
 
-  skipIfNoDb(
-    'error with statusCode 422 → returns 422 with the original message',
-    async () => {
-      const response = await app.inject({ method: 'GET', url: '/test/throw-422' });
-      expect(response.statusCode).toBe(422);
+  skipIfNoDb('error with statusCode 422 → returns 422 with the original message', async () => {
+    const response = await app.inject({ method: 'GET', url: '/test/throw-422' });
+    expect(response.statusCode).toBe(422);
 
-      const body = response.json() as { statusCode: number; message: string };
-      expect(body.statusCode).toBe(422);
-      expect(body.message).toBe('Entidad no procesable');
-    },
-  );
+    const body = response.json() as { statusCode: number; message: string };
+    expect(body.statusCode).toBe(422);
+    expect(body.message).toBe('Entidad no procesable');
+  });
 
-  skipIfNoDb(
-    '4xx response body does not expose stack trace',
-    async () => {
-      const response = await app.inject({ method: 'GET', url: '/test/throw-400' });
-      const raw = response.body;
+  skipIfNoDb('4xx response body does not expose stack trace', async () => {
+    const response = await app.inject({ method: 'GET', url: '/test/throw-400' });
+    const raw = response.body;
 
-      expect(raw).not.toContain('at Object.');
-      expect(raw).not.toContain('    at ');
-    },
-  );
+    expect(raw).not.toContain('at Object.');
+    expect(raw).not.toContain('    at ');
+  });
 });

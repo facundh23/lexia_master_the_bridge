@@ -23,6 +23,7 @@
 ### Tarea 1: Cifrado de PII fail-closed en producción
 
 **Files:**
+
 - Modify: `apps/api/src/routes/cases.ts`
 - Test: `apps/api/tests/cases.encryption.test.ts` (crear)
 
@@ -98,7 +99,9 @@ export function encryptPII(value: string | null | undefined): string | null {
   const key = getKey();
   if (!key) {
     if (process.env.NODE_ENV === 'production') {
-      throw new Error('PII_ENCRYPTION_KEY no está configurada — no se puede persistir un campo PII');
+      throw new Error(
+        'PII_ENCRYPTION_KEY no está configurada — no se puede persistir un campo PII',
+      );
     }
     console.warn(
       '[cases] PII_ENCRYPTION_KEY no seteada — guardando campo PII en texto plano (solo permitido fuera de producción).',
@@ -136,6 +139,7 @@ git commit -m "fix(api): fail-closed en producción si falta PII_ENCRYPTION_KEY 
 ### Tarea 2: Langfuse deja de recibir input crudo
 
 **Files:**
+
 - Modify: `packages/core/src/observability/langfuse.ts`
 - Modify: `packages/core/src/lexiaCore.ts`
 - Test: `packages/core/tests/observability/langfuse.test.ts` (crear)
@@ -301,37 +305,37 @@ Expected: PASS (4 tests)
 En `packages/core/src/lexiaCore.ts`, función `runLexiaCoreStream`, reemplazar:
 
 ```ts
-  const trace = await startTrace({
-    userId: input.userId,
-    content: input.content,
-    vertical: input.vertical,
-  });
+const trace = await startTrace({
+  userId: input.userId,
+  content: input.content,
+  vertical: input.vertical,
+});
 ```
 
 por:
 
 ```ts
-  const trace = await startTrace({
-    userId: input.userId,
-    vertical: input.vertical,
-  });
+const trace = await startTrace({
+  userId: input.userId,
+  vertical: input.vertical,
+});
 ```
 
 y, en la misma función, reemplazar:
 
 ```ts
-  const guardSpan = trace.span('input_guardrails');
-  const inputResult = await runInputPipeline(input.content);
-  guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
+const guardSpan = trace.span('input_guardrails');
+const inputResult = await runInputPipeline(input.content);
+guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
 ```
 
 por:
 
 ```ts
-  const guardSpan = trace.span('input_guardrails');
-  const inputResult = await runInputPipeline(input.content);
-  guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
-  trace.setInput(inputResult.sanitized);
+const guardSpan = trace.span('input_guardrails');
+const inputResult = await runInputPipeline(input.content);
+guardSpan.end({ blocked: inputResult.blocked, hadPII: (inputResult as any).hadPII });
+trace.setInput(inputResult.sanitized);
 ```
 
 Repetir exactamente los mismos dos cambios en la función `runLexiaCore` (el mismo bloque de código aparece de nuevo, sin el parámetro `onToken`).
@@ -450,6 +454,7 @@ git commit -m "fix(core): Langfuse ya no recibe el input crudo del usuario, solo
 ### Tarea 3: Enforcement de scopes de NHI (throw post-hoc)
 
 **Files:**
+
 - Modify: `packages/core/src/nhi/agentIdentities.ts`
 - Modify: `packages/core/src/nhi/auditLogger.ts`
 - Modify: `packages/core/src/lexiaCore.ts`
@@ -665,27 +670,27 @@ import { AGENT_IDENTITIES } from './nhi/agentIdentities.js';
 Luego, en las dos funciones (`runLexiaCoreStream` y `runLexiaCore`), reemplazar cada una de las 2 ocurrencias de:
 
 ```ts
-    await logAgentAction({
-      agentId: 'system:crisis_detector:v1',
-      action: 'escalation_risk',
-      userId: input.userId,
-      traceId: trace.traceId,
-      scopeUsed: 'read:input',
-      details: { crisisType: crisisResult.crisisType },
-    });
+await logAgentAction({
+  agentId: 'system:crisis_detector:v1',
+  action: 'escalation_risk',
+  userId: input.userId,
+  traceId: trace.traceId,
+  scopeUsed: 'read:input',
+  details: { crisisType: crisisResult.crisisType },
+});
 ```
 
 por:
 
 ```ts
-    await logAgentAction({
-      agentId: AGENT_IDENTITIES.crisisDetector.id,
-      action: 'escalation_risk',
-      userId: input.userId,
-      traceId: trace.traceId,
-      scopeUsed: 'read:input',
-      details: { crisisType: crisisResult.crisisType },
-    });
+await logAgentAction({
+  agentId: AGENT_IDENTITIES.crisisDetector.id,
+  action: 'escalation_risk',
+  userId: input.userId,
+  traceId: trace.traceId,
+  scopeUsed: 'read:input',
+  details: { crisisType: crisisResult.crisisType },
+});
 ```
 
 Solo cambia la línea `agentId:` — el resto del bloque queda igual, en ambas funciones.

@@ -16,18 +16,20 @@ const result = await runLexiaCore({
 
 console.log(result.response); // Respuesta con disclaimer inyectado
 console.log(result.citations); // ['Art. 22 Código Civil', ...]
-console.log(result.blocked);   // false (o true si fue bloqueado)
+console.log(result.blocked); // false (o true si fue bloqueado)
 ```
 
 ## Pipeline de guardrails
 
 **Input (4 pasos):**
+
 1. Regex PII redaction
 2. Keyword blocklist
 3. LLM-judge jailbreak detector
 4. Special category minimizer (GDPR Art. 9)
 
 **Output (4 pasos):**
+
 1. Citation enforcer
 2. Legal advice detector
 3. PII output redactor

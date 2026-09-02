@@ -8,17 +8,17 @@ Asistente informativo de extranjería. Capstone del Máster de IA Generativa.
 
 🟢 **Fase 8 completada** — proyecto capstone completo.
 
-| Fase | Descripción | Estado |
-|---|---|---|
-| 0 | Scaffold monorepo | ✅ |
-| 1 | Foundations (auth, DB, RAG base) | ✅ |
-| 2 | LLM + RAG + guardrails | ✅ |
-| 3 | Multi-agente (LangGraph) | ✅ |
-| 4 | Security hardening + dual-LLM | ✅ |
-| 5 | CCSE simulator + vertical completo | ✅ |
-| 6 | MCP server + professional surface | ✅ |
-| 7 | Eval rigurosa + observabilidad | ✅ |
-| 8 | Polish + deploy + defensa | ✅ |
+| Fase | Descripción                        | Estado |
+| ---- | ---------------------------------- | ------ |
+| 0    | Scaffold monorepo                  | ✅     |
+| 1    | Foundations (auth, DB, RAG base)   | ✅     |
+| 2    | LLM + RAG + guardrails             | ✅     |
+| 3    | Multi-agente (LangGraph)           | ✅     |
+| 4    | Security hardening + dual-LLM      | ✅     |
+| 5    | CCSE simulator + vertical completo | ✅     |
+| 6    | MCP server + professional surface  | ✅     |
+| 7    | Eval rigurosa + observabilidad     | ✅     |
+| 8    | Polish + deploy + defensa          | ✅     |
 
 ## Quickstart (dev)
 

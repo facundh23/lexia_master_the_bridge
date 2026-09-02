@@ -32,13 +32,15 @@ export async function runContextRecallJudge(input: ContextRecallInput): Promise<
   });
 
   const contextsText = input.contexts.map((c, i) => `[${i + 1}] ${c}`).join('\n\n');
-  const prompt = PROMPT
-    .replace('{groundTruth}', input.groundTruth)
-    .replace('{contexts}', contextsText.slice(0, 3000));
+  const prompt = PROMPT.replace('{groundTruth}', input.groundTruth).replace(
+    '{contexts}',
+    contextsText.slice(0, 3000),
+  );
 
   try {
     const result = await model.invoke(prompt);
-    const content = typeof result.content === 'string' ? result.content : JSON.stringify(result.content);
+    const content =
+      typeof result.content === 'string' ? result.content : JSON.stringify(result.content);
     const parsed = JSON.parse(content.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
     return {
       score: Math.max(0, Math.min(1, Number(parsed.score ?? 0.5))),

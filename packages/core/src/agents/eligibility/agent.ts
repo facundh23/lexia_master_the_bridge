@@ -136,8 +136,7 @@ function getThinkingBudget(caseData?: EligibilityAgentInput['caseData']): number
   // Complex case (has specific data to reason about) → more tokens
   // General query → lighter budget
   const hasComplexData =
-    caseData &&
-    (caseData.countryOrigin || caseData.arrivalDate || caseData.residenceStatus);
+    caseData && (caseData.countryOrigin || caseData.arrivalDate || caseData.residenceStatus);
   return hasComplexData ? 8000 : 3000;
 }
 
@@ -146,7 +145,8 @@ export async function runEligibilityAgent(
 ): Promise<EligibilityAgentResult> {
   const thinkingBudget = getThinkingBudget(input.caseData);
   const model = new ChatAnthropic({
-    model: process.env.ANTHROPIC_THINKING_MODEL ?? process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
+    model:
+      process.env.ANTHROPIC_THINKING_MODEL ?? process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
     apiKey: process.env.ANTHROPIC_API_KEY,
     // temperature must be 1 when extended thinking is enabled
     temperature: 1,

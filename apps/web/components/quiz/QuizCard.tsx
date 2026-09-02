@@ -37,8 +37,7 @@ export function QuizCard({
 
       <ul className="space-y-2">
         {question.options.map((option, index) => {
-          let className =
-            'w-full text-left px-4 py-3 rounded-lg border transition-colors ';
+          let className = 'w-full text-left px-4 py-3 rounded-lg border transition-colors ';
 
           if (showResult && correctOption !== undefined) {
             if (index === correctOption) {

@@ -26,10 +26,7 @@ export interface ValidatorResult {
   reason: string;
 }
 
-export async function runValidatorAgent(
-  response: string,
-  route: string,
-): Promise<ValidatorResult> {
+export async function runValidatorAgent(response: string, route: string): Promise<ValidatorResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey || route === 'out_of_scope') {
     return { valid: true, reason: 'skipped' };
@@ -42,7 +39,8 @@ export async function runValidatorAgent(
       temperature: 0,
     }).withStructuredOutput(ValidatorSchema);
 
-    const prompt = route === 'eligibility' ? ELIGIBILITY_VALIDATOR_PROMPT : NORMATIVA_VALIDATOR_PROMPT;
+    const prompt =
+      route === 'eligibility' ? ELIGIBILITY_VALIDATOR_PROMPT : NORMATIVA_VALIDATOR_PROMPT;
 
     return await model.invoke([
       { role: 'user', content: `${prompt}\n\nResponse to validate:\n${response}` },

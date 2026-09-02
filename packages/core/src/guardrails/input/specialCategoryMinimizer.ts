@@ -4,7 +4,8 @@ const SPECIAL_CATEGORY_PATTERNS: Array<{ pattern: RegExp; replacement: string }>
     replacement: '[orientación_sexual]',
   },
   {
-    pattern: /\b(soy (musulmán|musulmana|cristiano|cristiana|judío|judía|budista|ateo|atea)|mi (religión|fe) es)\b/gi,
+    pattern:
+      /\b(soy (musulmán|musulmana|cristiano|cristiana|judío|judía|budista|ateo|atea)|mi (religión|fe) es)\b/gi,
     replacement: '[creencia_religiosa]',
   },
   {
@@ -12,7 +13,8 @@ const SPECIAL_CATEGORY_PATTERNS: Array<{ pattern: RegExp; replacement: string }>
     replacement: '[opinión_política]',
   },
   {
-    pattern: /\b(tengo (VIH|SIDA|cáncer|diabetes|epilepsia|esclerosis)|diagnóstico de [a-záéíóúñ]+)\b/gi,
+    pattern:
+      /\b(tengo (VIH|SIDA|cáncer|diabetes|epilepsia|esclerosis)|diagnóstico de [a-záéíóúñ]+)\b/gi,
     replacement: '[dato_salud]',
   },
 ];

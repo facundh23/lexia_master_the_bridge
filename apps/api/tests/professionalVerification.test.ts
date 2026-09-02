@@ -32,8 +32,12 @@ vi.mock('@lexia/db', () => {
 
   const mockVerificationsList = [
     {
-      id: 'ver-1', userId: 'user-gestor', collegiateNumber: '12345',
-      collegiateBody: 'ICAM', status: 'pending', createdAt: new Date(),
+      id: 'ver-1',
+      userId: 'user-gestor',
+      collegiateNumber: '12345',
+      collegiateBody: 'ICAM',
+      status: 'pending',
+      createdAt: new Date(),
     },
   ];
   const mockSelectFromAll = vi.fn().mockResolvedValue(mockVerificationsList);
@@ -52,9 +56,13 @@ vi.mock('@lexia/db', () => {
     })),
     schema: {
       professionalVerifications: {
-        id: 'id', userId: 'user_id', collegiateNumber: 'collegiate_number',
-        collegiateBody: 'collegiate_body', status: 'status',
-        reviewedAt: 'reviewed_at', createdAt: 'created_at',
+        id: 'id',
+        userId: 'user_id',
+        collegiateNumber: 'collegiate_number',
+        collegiateBody: 'collegiate_body',
+        status: 'status',
+        reviewedAt: 'reviewed_at',
+        createdAt: 'created_at',
       },
       users: { id: 'id', role: 'role' },
     },

@@ -1,12 +1,12 @@
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
 import type { ChromaClient } from 'chromadb';
-import type { OpenAIEmbeddings } from '@langchain/openai';
+import type { EmbeddingClient } from '../../rag/embed.js';
 import { retrieveWithACL } from '../../rag/retrieve.js';
 
 export function createSearchCorpusTool(
   chroma: ChromaClient,
-  embeddings: OpenAIEmbeddings,
+  embeddings: EmbeddingClient,
   userId: string,
   vertical: string,
 ) {

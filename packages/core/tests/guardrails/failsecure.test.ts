@@ -144,7 +144,10 @@ describe('runValidatorAgent — fail-secure', () => {
 
   it('skips validation and returns { valid: true, reason: "skipped" } for route out_of_scope', async () => {
     // Should NOT call ChatAnthropic at all for out_of_scope
-    const result = await runValidatorAgent('alguna respuesta de tema no relacionado', 'out_of_scope');
+    const result = await runValidatorAgent(
+      'alguna respuesta de tema no relacionado',
+      'out_of_scope',
+    );
     expect(result.valid).toBe(true);
     expect(result.reason).toBe('skipped');
   });

@@ -14,7 +14,13 @@ interface Message {
 type SseEvent =
   | { type: 'token'; content: string }
   | { type: 'replace'; content: string }
-  | { type: 'done'; userMessageId: string; assistantMessageId: string; citations: string[]; route: string }
+  | {
+      type: 'done';
+      userMessageId: string;
+      assistantMessageId: string;
+      citations: string[];
+      route: string;
+    }
   | { type: 'error'; message: string };
 
 export default function ChatPage() {
@@ -94,9 +100,7 @@ export default function ChatPage() {
             );
           } else if (event.type === 'replace') {
             setMessages((prev) =>
-              prev.map((m) =>
-                m.id === tempAssistantId ? { ...m, content: event.content } : m,
-              ),
+              prev.map((m) => (m.id === tempAssistantId ? { ...m, content: event.content } : m)),
             );
           } else if (event.type === 'done') {
             // Replace temp IDs with the real DB IDs
@@ -109,9 +113,7 @@ export default function ChatPage() {
             );
           } else if (event.type === 'error') {
             setMessages((prev) =>
-              prev.map((m) =>
-                m.id === tempAssistantId ? { ...m, content: event.message } : m,
-              ),
+              prev.map((m) => (m.id === tempAssistantId ? { ...m, content: event.message } : m)),
             );
           }
         }
@@ -120,8 +122,14 @@ export default function ChatPage() {
       console.error(err);
       setMessages((prev) =>
         prev.map((m) =>
-          m.id === `temp-assistant-${Date.now()}` || m.role === 'assistant' && m.content === ''
-            ? { ...m, content: err instanceof Error ? err.message : 'Error al procesar tu consulta. Intentá de nuevo.' }
+          m.id === `temp-assistant-${Date.now()}` || (m.role === 'assistant' && m.content === '')
+            ? {
+                ...m,
+                content:
+                  err instanceof Error
+                    ? err.message
+                    : 'Error al procesar tu consulta. Intentá de nuevo.',
+              }
             : m,
         ),
       );
@@ -136,9 +144,9 @@ export default function ChatPage() {
         <Disclaimer />
       </div>
       <MessageList messages={messages} loading={loading} />
-      <div className="px-4 pb-4">
+       <div className="border-t border-gray-200 bg-white px-4 py-3">
         <div className="max-w-2xl mx-auto">
-          <div className="rounded-xl border border-gray-200 shadow-sm bg-white overflow-hidden">
+          <div className="rounded-xl border border-gray-300 bg-gray-50 overflow-hidden focus-within:border-blue-400 transition-colors">
             <MessageInput onSend={handleSend} disabled={loading || !conversationId} />
           </div>
         </div>

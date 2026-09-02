@@ -1,7 +1,8 @@
-'use client';
+
 
 import { useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Markdown } from './Markdown';
 
 interface Message {
   id: string;
@@ -39,19 +40,27 @@ export function MessageList({ messages, loading }: MessageListProps) {
             Hacé tu primera consulta sobre nacionalidad por residencia.
           </p>
         )}
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`rounded-lg px-4 py-2 max-w-[80%] text-sm whitespace-pre-wrap
-              animate-in fade-in slide-in-from-bottom-2 duration-300
-              ${msg.role === 'user'
-                ? 'self-end bg-blue-600 text-white'
-                : 'self-start bg-gray-100 text-gray-800'
-              }`}
-          >
-            {msg.content}
-          </div>
-        ))}
+         {messages.map((msg) => {
+          if (msg.role === 'user') {
+            return (
+              <div
+                key={msg.id}
+                className="self-end bg-blue-600 text-white rounded-2xl rounded-br-sm px-4 py-2 max-w-[80%] text-sm whitespace-pre-wrap animate-in fade-in slide-in-from-bottom-2 duration-300"
+              >
+                {msg.content}
+              </div>
+            );
+          }
+          if (!msg.content) return null; // asistente aún sin contenido → lo cubre el TypingIndicator
+          return (
+            <div
+              key={msg.id}
+              className="self-start w-full bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300"
+            >
+              <Markdown content={msg.content} />
+            </div>
+          );
+        })}
         {loading && <TypingIndicator />}
         <div ref={bottomRef} />
       </div>

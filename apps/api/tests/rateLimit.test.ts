@@ -7,8 +7,7 @@ describe('Rate limiting', () => {
 
   beforeAll(async () => {
     process.env.DATABASE_URL =
-      process.env.DATABASE_URL ??
-      'postgresql://lexia:lexia_dev_password@localhost:5432/lexia';
+      process.env.DATABASE_URL ?? 'postgresql://lexia:lexia_dev_password@localhost:5432/lexia';
     process.env.BETTER_AUTH_SECRET =
       'test_secret_64_chars_minimum_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
     app = await buildServer();

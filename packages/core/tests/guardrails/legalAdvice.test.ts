@@ -23,7 +23,8 @@ describe('detectLegalAdvice', () => {
   });
 
   it('returns false for a general explanation', () => {
-    const text = 'Los solicitantes deben residir legalmente en España durante el período requerido.';
+    const text =
+      'Los solicitantes deben residir legalmente en España durante el período requerido.';
     expect(detectLegalAdvice(text)).toBe(false);
   });
 });

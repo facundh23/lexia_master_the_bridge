@@ -19,7 +19,9 @@ export async function requireAdmin(request: FastifyRequest, reply: FastifyReply)
     .filter(Boolean);
 
   if (!adminEmails.includes(session.user.email)) {
-    return reply.status(403).send({ error: 'FORBIDDEN', message: 'Acceso restringido a administradores' });
+    return reply
+      .status(403)
+      .send({ error: 'FORBIDDEN', message: 'Acceso restringido a administradores' });
   }
 
   request.userId = session.user.id;

@@ -1,7 +1,9 @@
 import type { JudgeInput, JudgeResult } from './factuality.js';
 
 const DISCLAIMER_PATTERN = /lexia es un asistente informativo|no sustituye el asesoramiento/i;
-const EMPATHETIC_PATTERNS = [/entiendo|comprendo|es comprensible|puede ser difícil|no te preocupes/i];
+const EMPATHETIC_PATTERNS = [
+  /entiendo|comprendo|es comprensible|puede ser difícil|no te preocupes/i,
+];
 
 export async function runToneJudge(input: JudgeInput): Promise<JudgeResult> {
   const hasDisclaimer = DISCLAIMER_PATTERN.test(input.response);

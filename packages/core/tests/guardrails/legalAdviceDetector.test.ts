@@ -78,15 +78,13 @@ describe('detectLegalAdvice — variantes coloquiales detectadas', () => {
 // ---------------------------------------------------------------------------
 describe('detectLegalAdvice — información legítima no detectada', () => {
   it('does not detect informational text with legal citation', () => {
-    expect(
-      detectLegalAdvice('según el Art. 22 CC, el plazo es de 10 años'),
-    ).toBe(false);
+    expect(detectLegalAdvice('según el Art. 22 CC, el plazo es de 10 años')).toBe(false);
   });
 
   it('does not detect general eligibility statement with "puede"', () => {
-    expect(
-      detectLegalAdvice('puede solicitar la nacionalidad cuando cumpla el plazo legal'),
-    ).toBe(false);
+    expect(detectLegalAdvice('puede solicitar la nacionalidad cuando cumpla el plazo legal')).toBe(
+      false,
+    );
   });
 
   it('does not detect a description of a process', () => {
@@ -104,9 +102,9 @@ describe('detectLegalAdvice — información legítima no detectada', () => {
   });
 
   it('does not detect a plain factual statement', () => {
-    expect(
-      detectLegalAdvice('el plazo de resolución es de 3 meses según el RD 557/2011'),
-    ).toBe(false);
+    expect(detectLegalAdvice('el plazo de resolución es de 3 meses según el RD 557/2011')).toBe(
+      false,
+    );
   });
 
   it('does not detect text containing "recomendación" in a neutral context', () => {
@@ -117,15 +115,13 @@ describe('detectLegalAdvice — información legítima no detectada', () => {
 
   it('does not detect text with "consejo" in an informational context', () => {
     // "consejo" alone without the pattern "mi consejo es que" should not trigger
-    expect(
-      detectLegalAdvice('el Consejo de Estado emitió un dictamen sobre el plazo'),
-    ).toBe(false);
+    expect(detectLegalAdvice('el Consejo de Estado emitió un dictamen sobre el plazo')).toBe(false);
   });
 
   it('does not detect "en tu caso" without a prescriptive verb following it', () => {
     // The pattern requires "debes|deberías|tienes que" after "en tu caso"
-    expect(
-      detectLegalAdvice('en tu caso, el plazo ya ha comenzado según la normativa'),
-    ).toBe(false);
+    expect(detectLegalAdvice('en tu caso, el plazo ya ha comenzado según la normativa')).toBe(
+      false,
+    );
   });
 });

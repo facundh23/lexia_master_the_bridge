@@ -1,12 +1,12 @@
 import type { ChromaClient } from 'chromadb';
 import { getCollection } from '../storage/chroma.js';
-import type { OpenAIEmbeddings } from '@langchain/openai';
+import type { EmbeddingClient } from './embed.js';
 import { embedTexts } from './embed.js';
 import type { CorpusChunk } from './types.js';
 
 export async function ingestChunks(
   chroma: ChromaClient,
-  embeddings: OpenAIEmbeddings,
+   embeddings: EmbeddingClient,
   chunks: CorpusChunk[],
   collectionName = 'lexia_corpus',
 ): Promise<void> {

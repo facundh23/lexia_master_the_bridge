@@ -80,7 +80,13 @@ export async function runNormativaAgentStream(
   const safeHistory = sanitizeHistory(input.conversationHistory);
   const messages = [
     new SystemMessage({
-      content: [{ type: 'text', text: NORMATIVA_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } } as any],
+      content: [
+        {
+          type: 'text',
+          text: NORMATIVA_SYSTEM_PROMPT,
+          cache_control: { type: 'ephemeral' },
+        } as any,
+      ],
     }),
     ...safeHistory.map((m) =>
       m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content),
@@ -135,7 +141,13 @@ export async function runNormativaAgent(input: AgentRunInput): Promise<AgentRunR
   const safeHistory = sanitizeHistory(input.conversationHistory);
   const messages = [
     new SystemMessage({
-      content: [{ type: 'text', text: NORMATIVA_SYSTEM_PROMPT, cache_control: { type: 'ephemeral' } } as any],
+      content: [
+        {
+          type: 'text',
+          text: NORMATIVA_SYSTEM_PROMPT,
+          cache_control: { type: 'ephemeral' },
+        } as any,
+      ],
     }),
     ...safeHistory.map((m) =>
       m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content),
@@ -149,8 +161,6 @@ export async function runNormativaAgent(input: AgentRunInput): Promise<AgentRunR
   const response = extractTextContent(lastMessage?.content);
 
   const { citations } = checkForCitations(response);
-
- 
 
   return { response, citations };
 }

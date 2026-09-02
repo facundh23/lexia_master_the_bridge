@@ -112,9 +112,15 @@ async function main() {
   console.log('\n──────────────────────────────────────────────');
   console.log('  RESULTADOS RAGAS');
   console.log('──────────────────────────────────────────────');
-  console.log(`  Faithfulness      ${(metrics.faithfulness * 100).toFixed(1)}%  (¿el modelo inventó algo?)`);
-  console.log(`  Answer Relevance  ${(metrics.answerRelevance * 100).toFixed(1)}%  (¿respondió lo que se preguntó?)`);
-  console.log(`  Context Recall    ${(metrics.contextRecall * 100).toFixed(1)}%  (¿el RAG recuperó bien?)`);
+  console.log(
+    `  Faithfulness      ${(metrics.faithfulness * 100).toFixed(1)}%  (¿el modelo inventó algo?)`,
+  );
+  console.log(
+    `  Answer Relevance  ${(metrics.answerRelevance * 100).toFixed(1)}%  (¿respondió lo que se preguntó?)`,
+  );
+  console.log(
+    `  Context Recall    ${(metrics.contextRecall * 100).toFixed(1)}%  (¿el RAG recuperó bien?)`,
+  );
   console.log('──────────────────────────────────────────────\n');
 
   console.log('  Detalle por pregunta:');

@@ -41,8 +41,14 @@ describe('Me — security: auth enforcement and data isolation', () => {
   afterAll(async () => {
     // Note: DELETE /api/me/account removes the user, so we may not need to clean up
     // user A. We still try to delete both in case the account-deletion test was skipped.
-    await db.delete(schema.users).where(eq(schema.users.email, emailA)).catch(() => {});
-    await db.delete(schema.users).where(eq(schema.users.email, emailB)).catch(() => {});
+    await db
+      .delete(schema.users)
+      .where(eq(schema.users.email, emailA))
+      .catch(() => {});
+    await db
+      .delete(schema.users)
+      .where(eq(schema.users.email, emailB))
+      .catch(() => {});
     await app.close();
   });
 
@@ -68,7 +74,11 @@ describe('Me — security: auth enforcement and data isolation', () => {
         method: 'POST',
         url: '/api/cases',
         headers: { cookie: cookieA },
-        payload: { verticalSlug: 'nacionalidad_residencia', countryOrigin: 'Peru', hasChildren: false },
+        payload: {
+          verticalSlug: 'nacionalidad_residencia',
+          countryOrigin: 'Peru',
+          hasChildren: false,
+        },
       });
 
       // Create a conversation for user B
@@ -131,7 +141,10 @@ describe('Me — security: auth enforcement and data isolation', () => {
       expect(response.statusCode).toBe(204);
 
       // Clean up just in case the deletion did not cascade
-      await db.delete(schema.users).where(eq(schema.users.email, deleteEmail)).catch(() => {});
+      await db
+        .delete(schema.users)
+        .where(eq(schema.users.email, deleteEmail))
+        .catch(() => {});
     },
   );
 

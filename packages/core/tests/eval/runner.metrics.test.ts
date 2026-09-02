@@ -40,9 +40,7 @@ interface FakeCaseResult {
   };
 }
 
-function makeCase(
-  overrides: Partial<FakeCaseResult> & { caseId: string },
-): FakeCaseResult {
+function makeCase(overrides: Partial<FakeCaseResult> & { caseId: string }): FakeCaseResult {
   return {
     category: 'factual_simple',
     input: '¿Cuántos años necesito?',

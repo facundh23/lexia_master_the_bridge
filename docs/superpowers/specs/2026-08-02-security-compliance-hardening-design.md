@@ -27,7 +27,9 @@ function encryptPII(value: string | null | undefined): string | null {
   const key = getKey();
   if (!key) {
     if (process.env.NODE_ENV === 'production') {
-      throw new Error('PII_ENCRYPTION_KEY no está configurada — no se puede persistir un campo PII');
+      throw new Error(
+        'PII_ENCRYPTION_KEY no está configurada — no se puede persistir un campo PII',
+      );
     }
     console.warn(
       '[cases] PII_ENCRYPTION_KEY no seteada — guardando campo PII en texto plano (solo permitido fuera de producción).',
@@ -82,6 +84,7 @@ El `traceId` (usado para correlacionar spans y el audit log) se sigue generando 
 **Diseño:**
 
 1. **`agentIdentities.ts`** — se agrega una identidad nueva para cubrir un caller que hoy no está registrado:
+
    ```ts
    crisisDetector: {
      id: 'agent:crisis_detector:v1',
@@ -103,7 +106,10 @@ El `traceId` (usado para correlacionar spans y el audit log) se sigue generando 
      if (!identity) {
        throw new Error(`NHI scope violation: identidad de agente desconocida "${entry.agentId}"`);
      }
-     const usedScopes = entry.scopeUsed.split(',').map((s) => s.trim()).filter(Boolean);
+     const usedScopes = entry.scopeUsed
+       .split(',')
+       .map((s) => s.trim())
+       .filter(Boolean);
      const invalid = usedScopes.filter((s) => !identity.scopes.includes(s));
      if (invalid.length > 0) {
        throw new Error(
@@ -118,7 +124,9 @@ El `traceId` (usado para correlacionar spans y el audit log) se sigue generando 
      const db = getDb();
      if (!db) return;
      try {
-       await db.insert(schema.auditLog).values({ /* ... sin cambios ... */ });
+       await db.insert(schema.auditLog).values({
+         /* ... sin cambios ... */
+       });
      } catch {
        // fail-open: si la DB no está disponible, no interrumpir el flujo principal
      }
@@ -129,11 +137,11 @@ El `traceId` (usado para correlacionar spans y el audit log) se sigue generando 
 
 3. **`lexiaCore.ts`** — las 2 llamadas a `logAgentAction` para el crisis detector (una en `runLexiaCore`, otra en `runLexiaCoreStream`) cambian:
    ```ts
-   agentId: 'system:crisis_detector:v1'
+   agentId: 'system:crisis_detector:v1';
    ```
    por:
    ```ts
-   agentId: AGENT_IDENTITIES.crisisDetector.id
+   agentId: AGENT_IDENTITIES.crisisDetector.id;
    ```
    consistente con cómo el resto de los agentes referencia su propia identidad.
 

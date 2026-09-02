@@ -25,7 +25,12 @@ export async function runOrchestratorStream(
   switch (triage!.route) {
     case 'normativa': {
       const result = await runNormativaAgentStream(
-        { content: triage.subQuery, conversationHistory: input.conversationHistory, userId: input.userId, vertical: input.vertical },
+        {
+          content: triage.subQuery,
+          conversationHistory: input.conversationHistory,
+          userId: input.userId,
+          vertical: input.vertical,
+        },
         onToken,
       );
       const validation = await runValidatorAgent(result.response, 'normativa');
@@ -49,7 +54,12 @@ export async function runOrchestratorStream(
 
     case 'eligibility': {
       const result = await runEligibilityAgentStream(
-        { content: triage.subQuery, userId: input.userId, caseData: input.caseData, conversationHistory: input.conversationHistory },
+        {
+          content: triage.subQuery,
+          userId: input.userId,
+          caseData: input.caseData,
+          conversationHistory: input.conversationHistory,
+        },
         onToken,
       );
       const validation = await runValidatorAgent(result.response, 'eligibility');
@@ -84,7 +94,12 @@ export async function runOrchestrator(input: OrchestratorInput): Promise<Orchest
       });
       console.log('[orchestrator:normativa] response:', result.response.slice(0, 200));
       const validation = await runValidatorAgent(result.response, 'normativa');
-      console.log('[orchestrator:normativa] validation result:', validation.valid, '—', validation.reason);
+      console.log(
+        '[orchestrator:normativa] validation result:',
+        validation.valid,
+        '—',
+        validation.reason,
+      );
       if (!validation.valid) {
         console.log('[orchestrator:normativa] retrying with citation reminder...');
         const retry = await runNormativaAgent({

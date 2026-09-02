@@ -1,6 +1,8 @@
 import { createDb, schema } from '../src/index.js';
 
-const db = createDb(process.env.DATABASE_URL ?? 'postgresql://lexia:lexia@localhost:5432/lexia_dev');
+const db = createDb(
+  process.env.DATABASE_URL ?? 'postgresql://lexia:lexia@localhost:5432/lexia_dev',
+);
 
 const questions = [
   // --- CONSTITUCIÓN (10) ---
@@ -24,7 +26,12 @@ const questions = [
   },
   {
     questionText: '¿Cuál es la forma política del Estado español según la Constitución?',
-    options: ['República federal', 'Monarquía absoluta', 'Monarquía parlamentaria', 'República parlamentaria'],
+    options: [
+      'República federal',
+      'Monarquía absoluta',
+      'Monarquía parlamentaria',
+      'República parlamentaria',
+    ],
     correctOption: 2,
     category: 'constitucion',
     difficulty: 'easy',
@@ -33,7 +40,12 @@ const questions = [
   },
   {
     questionText: '¿Qué reconoce el artículo 14 de la Constitución Española?',
-    options: ['El derecho a la educación', 'La libertad de expresión', 'La igualdad ante la ley', 'El derecho al trabajo'],
+    options: [
+      'El derecho a la educación',
+      'La libertad de expresión',
+      'La igualdad ante la ley',
+      'El derecho al trabajo',
+    ],
     correctOption: 2,
     category: 'constitucion',
     difficulty: 'medium',
@@ -51,7 +63,12 @@ const questions = [
   },
   {
     questionText: '¿Qué órgano es el máximo intérprete de la Constitución Española?',
-    options: ['El Tribunal Supremo', 'El Consejo de Estado', 'El Tribunal Constitucional', 'El Defensor del Pueblo'],
+    options: [
+      'El Tribunal Supremo',
+      'El Consejo de Estado',
+      'El Tribunal Constitucional',
+      'El Defensor del Pueblo',
+    ],
     correctOption: 2,
     category: 'constitucion',
     difficulty: 'medium',
@@ -69,7 +86,12 @@ const questions = [
   },
   {
     questionText: '¿Qué establece el artículo 1.1 de la Constitución sobre el Estado español?',
-    options: ['La soberanía del Rey', 'España como Estado social y democrático de Derecho', 'La neutralidad religiosa del Estado', 'La división de poderes'],
+    options: [
+      'La soberanía del Rey',
+      'España como Estado social y democrático de Derecho',
+      'La neutralidad religiosa del Estado',
+      'La división de poderes',
+    ],
     correctOption: 1,
     category: 'constitucion',
     difficulty: 'medium',
@@ -78,7 +100,12 @@ const questions = [
   },
   {
     questionText: '¿Quién puede proponer la reforma de la Constitución Española?',
-    options: ['Solo el Gobierno', 'Solo el Senado', 'Las Cortes Generales, el Gobierno y las Asambleas de las CCAA', 'El Rey a propuesta del Tribunal Supremo'],
+    options: [
+      'Solo el Gobierno',
+      'Solo el Senado',
+      'Las Cortes Generales, el Gobierno y las Asambleas de las CCAA',
+      'El Rey a propuesta del Tribunal Supremo',
+    ],
     correctOption: 2,
     category: 'constitucion',
     difficulty: 'hard',
@@ -97,7 +124,12 @@ const questions = [
   // --- GOBIERNO (10) ---
   {
     questionText: '¿Cómo se denomina el órgano legislativo del Estado español?',
-    options: ['El Consejo de Ministros', 'El Tribunal Supremo', 'Las Cortes Generales', 'El Consejo de Estado'],
+    options: [
+      'El Consejo de Ministros',
+      'El Tribunal Supremo',
+      'Las Cortes Generales',
+      'El Consejo de Estado',
+    ],
     correctOption: 2,
     category: 'gobierno',
     difficulty: 'easy',
@@ -106,7 +138,12 @@ const questions = [
   },
   {
     questionText: '¿Cuáles son las dos cámaras que forman las Cortes Generales?',
-    options: ['La Asamblea Nacional y el Senado', 'El Congreso de los Diputados y el Senado', 'El Congreso y el Tribunal Supremo', 'La Cámara Alta y la Cámara de Representantes'],
+    options: [
+      'La Asamblea Nacional y el Senado',
+      'El Congreso de los Diputados y el Senado',
+      'El Congreso y el Tribunal Supremo',
+      'La Cámara Alta y la Cámara de Representantes',
+    ],
     correctOption: 1,
     category: 'gobierno',
     difficulty: 'easy',
@@ -124,7 +161,12 @@ const questions = [
   },
   {
     questionText: '¿Quién nombra al Presidente del Gobierno en España?',
-    options: ['El Congreso directamente', 'El Tribunal Constitucional', 'El Rey, a propuesta del Congreso', 'Los ciudadanos en elección directa'],
+    options: [
+      'El Congreso directamente',
+      'El Tribunal Constitucional',
+      'El Rey, a propuesta del Congreso',
+      'Los ciudadanos en elección directa',
+    ],
     correctOption: 2,
     category: 'gobierno',
     difficulty: 'medium',
@@ -133,7 +175,12 @@ const questions = [
   },
   {
     questionText: '¿Cómo se llama el jefe del Estado en España?',
-    options: ['El Presidente del Gobierno', 'El Presidente del Congreso', 'El Rey', 'El Presidente del Senado'],
+    options: [
+      'El Presidente del Gobierno',
+      'El Presidente del Congreso',
+      'El Rey',
+      'El Presidente del Senado',
+    ],
     correctOption: 2,
     category: 'gobierno',
     difficulty: 'easy',
@@ -151,7 +198,12 @@ const questions = [
   },
   {
     questionText: '¿Qué es el Defensor del Pueblo?',
-    options: ['El presidente del Tribunal Supremo', 'Un ministro del Interior', 'Un comisionado de las Cortes para defender los derechos ciudadanos', 'El Fiscal General del Estado'],
+    options: [
+      'El presidente del Tribunal Supremo',
+      'Un ministro del Interior',
+      'Un comisionado de las Cortes para defender los derechos ciudadanos',
+      'El Fiscal General del Estado',
+    ],
     correctOption: 2,
     category: 'gobierno',
     difficulty: 'medium',
@@ -160,7 +212,12 @@ const questions = [
   },
   {
     questionText: '¿Qué función tiene el Tribunal de Cuentas?',
-    options: ['Resolver recursos de casación', 'Fiscalizar las cuentas y la gestión económica del sector público', 'Asesorar al Gobierno en materias legales', 'Gestionar la deuda pública'],
+    options: [
+      'Resolver recursos de casación',
+      'Fiscalizar las cuentas y la gestión económica del sector público',
+      'Asesorar al Gobierno en materias legales',
+      'Gestionar la deuda pública',
+    ],
     correctOption: 1,
     category: 'gobierno',
     difficulty: 'hard',
@@ -169,7 +226,12 @@ const questions = [
   },
   {
     questionText: '¿Dónde está la sede de la Presidencia del Gobierno de España?',
-    options: ['El Palacio Real', 'El Congreso de los Diputados', 'El Palacio de la Moncloa', 'El Palacio de Oriente'],
+    options: [
+      'El Palacio Real',
+      'El Congreso de los Diputados',
+      'El Palacio de la Moncloa',
+      'El Palacio de Oriente',
+    ],
     correctOption: 2,
     category: 'gobierno',
     difficulty: 'easy',
@@ -178,7 +240,12 @@ const questions = [
   },
   {
     questionText: '¿Qué es el Consejo de Estado?',
-    options: ['El órgano máximo del poder ejecutivo', 'El supremo órgano consultivo del Gobierno', 'El órgano de control del poder judicial', 'La cámara de coordinación territorial'],
+    options: [
+      'El órgano máximo del poder ejecutivo',
+      'El supremo órgano consultivo del Gobierno',
+      'El órgano de control del poder judicial',
+      'La cámara de coordinación territorial',
+    ],
     correctOption: 1,
     category: 'gobierno',
     difficulty: 'hard',
@@ -233,7 +300,12 @@ const questions = [
   },
   {
     questionText: '¿Qué son los Estatutos de Autonomía?',
-    options: ['Las leyes que regulan los municipios', 'Los reglamentos del Senado', 'Las normas institucionales básicas de cada comunidad autónoma', 'Los decretos del Gobierno central'],
+    options: [
+      'Las leyes que regulan los municipios',
+      'Los reglamentos del Senado',
+      'Las normas institucionales básicas de cada comunidad autónoma',
+      'Los decretos del Gobierno central',
+    ],
     correctOption: 2,
     category: 'territorio',
     difficulty: 'medium',
@@ -242,7 +314,12 @@ const questions = [
   },
   {
     questionText: '¿En qué mar está bañada la costa este de España?',
-    options: ['El Mar del Norte', 'El Océano Atlántico', 'El Mar Mediterráneo', 'El Mar Cantábrico'],
+    options: [
+      'El Mar del Norte',
+      'El Océano Atlántico',
+      'El Mar Mediterráneo',
+      'El Mar Cantábrico',
+    ],
     correctOption: 2,
     category: 'territorio',
     difficulty: 'easy',
@@ -287,7 +364,8 @@ const questions = [
     source: 'Manual CCSE, Bloque 4',
   },
   {
-    questionText: '¿Cuándo se celebraron las primeras elecciones democráticas en España tras el franquismo?',
+    questionText:
+      '¿Cuándo se celebraron las primeras elecciones democráticas en España tras el franquismo?',
     options: ['1975', '1976', '1977', '1978'],
     correctOption: 2,
     category: 'historia',
@@ -315,7 +393,12 @@ const questions = [
   },
   {
     questionText: '¿Qué ocurrió en España el 23 de febrero de 1981?',
-    options: ['Se firmó la Constitución', 'España ingresó en la OTAN', 'Un intento de golpe de Estado', 'Felipe González ganó las elecciones'],
+    options: [
+      'Se firmó la Constitución',
+      'España ingresó en la OTAN',
+      'Un intento de golpe de Estado',
+      'Felipe González ganó las elecciones',
+    ],
     correctOption: 2,
     category: 'historia',
     difficulty: 'medium',
@@ -332,7 +415,8 @@ const questions = [
     source: 'Manual CCSE, Bloque 4',
   },
   {
-    questionText: '¿En qué siglo se unieron los Reinos de Castilla y Aragón con los Reyes Católicos?',
+    questionText:
+      '¿En qué siglo se unieron los Reinos de Castilla y Aragón con los Reyes Católicos?',
     options: ['XIV', 'XV', 'XVI', 'XVII'],
     correctOption: 1,
     category: 'historia',
@@ -360,7 +444,12 @@ const questions = [
   },
   {
     questionText: '¿Qué conquista marcó el fin de la Reconquista en 1492?',
-    options: ['La toma de Sevilla', 'La batalla de Covadonga', 'La conquista de Granada', 'La toma de Toledo'],
+    options: [
+      'La toma de Sevilla',
+      'La batalla de Covadonga',
+      'La conquista de Granada',
+      'La toma de Toledo',
+    ],
     correctOption: 2,
     category: 'historia',
     difficulty: 'medium',
@@ -397,7 +486,12 @@ const questions = [
   },
   {
     questionText: '¿Qué celebra España el 12 de octubre?',
-    options: ['La Constitución', 'La muerte de Franco', 'La Fiesta Nacional (Día de la Hispanidad)', 'El fin de la Guerra Civil'],
+    options: [
+      'La Constitución',
+      'La muerte de Franco',
+      'La Fiesta Nacional (Día de la Hispanidad)',
+      'El fin de la Guerra Civil',
+    ],
     correctOption: 2,
     category: 'sociedad',
     difficulty: 'easy',
@@ -415,7 +509,12 @@ const questions = [
   },
   {
     questionText: '¿Quién escribió "Don Quijote de la Mancha"?',
-    options: ['Federico García Lorca', 'Lope de Vega', 'Francisco de Quevedo', 'Miguel de Cervantes'],
+    options: [
+      'Federico García Lorca',
+      'Lope de Vega',
+      'Francisco de Quevedo',
+      'Miguel de Cervantes',
+    ],
     correctOption: 3,
     category: 'sociedad',
     difficulty: 'easy',
@@ -433,7 +532,12 @@ const questions = [
   },
   {
     questionText: '¿Cuál es el premio literario de mayor prestigio en lengua española?',
-    options: ['El Premio Planeta', 'El Premio Nobel', 'El Premio Cervantes', 'El Premio Nacional de las Letras'],
+    options: [
+      'El Premio Planeta',
+      'El Premio Nobel',
+      'El Premio Cervantes',
+      'El Premio Nacional de las Letras',
+    ],
     correctOption: 2,
     category: 'sociedad',
     difficulty: 'medium',
@@ -451,7 +555,12 @@ const questions = [
   },
   {
     questionText: '¿Cuál es la festividad más importante de la Semana Santa española?',
-    options: ['El Viernes de Dolores', 'El Domingo de Ramos', 'El Viernes Santo', 'El Domingo de Resurrección'],
+    options: [
+      'El Viernes de Dolores',
+      'El Domingo de Ramos',
+      'El Viernes Santo',
+      'El Domingo de Resurrección',
+    ],
     correctOption: 3,
     category: 'sociedad',
     difficulty: 'medium',

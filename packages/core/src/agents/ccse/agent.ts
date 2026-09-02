@@ -61,7 +61,9 @@ export async function generateCcseQuiz(userId: string, size = 25): Promise<CCSEQ
 
     const attemptId = attempt?.id ?? '';
 
-    const ccseIdentity = (AGENT_IDENTITIES as Record<string, { id: string; scopes: readonly string[] }>)['ccse'];
+    const ccseIdentity = (
+      AGENT_IDENTITIES as Record<string, { id: string; scopes: readonly string[] }>
+    )['ccse'];
     if (ccseIdentity) {
       await logAgentAction({
         agentId: ccseIdentity.id,
@@ -101,7 +103,12 @@ export async function evaluateCcseAnswers(
         correctOption: schema.ccseQuestions.correctOption,
       })
       .from(schema.ccseQuestions)
-      .where(sql`${schema.ccseQuestions.id}::text = ANY(ARRAY[${sql.join(questionIds.map((id) => sql`${id}`), sql`, `)}])`);
+      .where(
+        sql`${schema.ccseQuestions.id}::text = ANY(ARRAY[${sql.join(
+          questionIds.map((id) => sql`${id}`),
+          sql`, `,
+        )}])`,
+      );
 
     const correctMap = new Map(questionRows.map((q) => [q.id, q.correctOption]));
 

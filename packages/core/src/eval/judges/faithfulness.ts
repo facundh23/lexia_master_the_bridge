@@ -40,14 +40,14 @@ export async function runFaithfulnessJudge(input: FaithfulnessInput): Promise<Ra
   const systemPromptSection = input.systemPrompt
     ? `PROMPT DEL SISTEMA (fuente de confianza estática):\n${input.systemPrompt.slice(0, 6000)}\n`
     : '';
-  const prompt = PROMPT
-    .replace('{systemPromptSection}', systemPromptSection)
+  const prompt = PROMPT.replace('{systemPromptSection}', systemPromptSection)
     .replace('{contexts}', contextsText.slice(0, 3000))
     .replace('{response}', input.response.slice(0, 1500));
 
   try {
     const result = await model.invoke(prompt);
-    const content = typeof result.content === 'string' ? result.content : JSON.stringify(result.content);
+    const content =
+      typeof result.content === 'string' ? result.content : JSON.stringify(result.content);
     const parsed = JSON.parse(content.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
     return {
       score: Math.max(0, Math.min(1, Number(parsed.score ?? 0.5))),

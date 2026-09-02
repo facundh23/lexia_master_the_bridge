@@ -21,7 +21,10 @@ export const professionalVerificationRoute: FastifyPluginAsync = async (app) => 
       if (!collegiateNumber?.trim() || !collegiateBody?.trim()) {
         return reply
           .status(400)
-          .send({ error: 'BAD_REQUEST', message: 'collegiateNumber y collegiateBody son requeridos' });
+          .send({
+            error: 'BAD_REQUEST',
+            message: 'collegiateNumber y collegiateBody son requeridos',
+          });
       }
 
       // Upsert: si ya tiene una verificación, actualizarla a pending
@@ -48,24 +51,20 @@ export const professionalVerificationRoute: FastifyPluginAsync = async (app) => 
   );
 
   // Admin lista verificaciones
-  app.get(
-    '/api/admin/professional-verifications',
-    { preHandler: [requireAdmin] },
-    async () => {
-      const verifications = await db
-        .select({
-          id: schema.professionalVerifications.id,
-          userId: schema.professionalVerifications.userId,
-          collegiateNumber: schema.professionalVerifications.collegiateNumber,
-          collegiateBody: schema.professionalVerifications.collegiateBody,
-          status: schema.professionalVerifications.status,
-          createdAt: schema.professionalVerifications.createdAt,
-        })
-        .from(schema.professionalVerifications);
+  app.get('/api/admin/professional-verifications', { preHandler: [requireAdmin] }, async () => {
+    const verifications = await db
+      .select({
+        id: schema.professionalVerifications.id,
+        userId: schema.professionalVerifications.userId,
+        collegiateNumber: schema.professionalVerifications.collegiateNumber,
+        collegiateBody: schema.professionalVerifications.collegiateBody,
+        status: schema.professionalVerifications.status,
+        createdAt: schema.professionalVerifications.createdAt,
+      })
+      .from(schema.professionalVerifications);
 
-      return { verifications };
-    },
-  );
+    return { verifications };
+  });
 
   // Admin aprueba o rechaza — actualiza status y role del usuario
   app.patch(

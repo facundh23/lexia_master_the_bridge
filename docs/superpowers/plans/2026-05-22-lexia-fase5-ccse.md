@@ -12,46 +12,47 @@
 
 ## File Map
 
-| File | Action |
-|---|---|
-| `packages/db/src/schema/ccse.ts` | Create — ccse_questions, ccse_attempts, ccse_attempt_questions |
-| `packages/db/src/schema/reminders.ts` | Create — reminders, human_review_requests |
-| `packages/db/src/schema/index.ts` | Modify — export new schemas |
-| `packages/db/migrations/0004_ccse_reminders.sql` | Create — migration SQL |
-| `packages/db/migrations/meta/0004_snapshot.json` | Create — Drizzle snapshot |
-| `packages/db/migrations/meta/_journal.json` | Modify — add entry |
-| `packages/db/seeds/ccse_questions.ts` | Create — 50 preguntas CCSE |
-| `packages/core/src/agents/ccse/agent.ts` | Create — generateCcseQuiz + evaluateCcseAnswers |
-| `packages/core/src/agents/ccse/prompt.ts` | Create — system prompt |
-| `packages/core/src/agents/ccse/tools.ts` | Create — LangChain tool wrappers |
-| `packages/core/tests/agents/ccse.test.ts` | Create |
-| `packages/core/src/tools/requestHumanReview.ts` | Create |
-| `packages/core/tests/tools/requestHumanReview.test.ts` | Create |
-| `packages/core/src/nhi/agentIdentities.ts` | Modify — add ccse |
-| `packages/core/src/agents/index.ts` | Modify — add ccse exports |
-| `packages/core/src/vertical/definition.ts` | Modify — add reminders field |
-| `packages/core/src/verticals/nacionalidad_residencia/manifest.ts` | Modify — 4 templates |
-| `packages/core/src/index.ts` | Modify — export requestHumanReview |
-| `apps/api/src/routes/ccse.ts` | Create — /api/ccse/* |
-| `apps/api/src/routes/reminders.ts` | Create — /api/reminders |
-| `apps/api/src/middleware/requireAdmin.ts` | Create |
-| `apps/api/src/routes/admin.ts` | Create — /api/admin/ccse/* |
-| `apps/api/src/routes/me.ts` | Modify — add POST /api/me/request-review |
-| `apps/api/src/middleware/requireAuth.ts` | Modify — set request.userEmail |
-| `apps/api/src/types.ts` | Modify — add userEmail |
-| `apps/api/src/server.ts` | Modify — register new routes |
-| `apps/web/components/quiz/QuizCard.tsx` | Create |
-| `apps/web/app/(app)/quiz/page.tsx` | Create |
-| `apps/web/app/(app)/layout.tsx` | Modify — add quiz nav link |
-| `scripts/reminder-worker.ts` | Create |
-| `tests/eval/golden_set.v1.json` | Modify — 40 → 60 cases |
-| `.env.example` | Modify — add ADMIN_EMAILS |
+| File                                                              | Action                                                         |
+| ----------------------------------------------------------------- | -------------------------------------------------------------- |
+| `packages/db/src/schema/ccse.ts`                                  | Create — ccse_questions, ccse_attempts, ccse_attempt_questions |
+| `packages/db/src/schema/reminders.ts`                             | Create — reminders, human_review_requests                      |
+| `packages/db/src/schema/index.ts`                                 | Modify — export new schemas                                    |
+| `packages/db/migrations/0004_ccse_reminders.sql`                  | Create — migration SQL                                         |
+| `packages/db/migrations/meta/0004_snapshot.json`                  | Create — Drizzle snapshot                                      |
+| `packages/db/migrations/meta/_journal.json`                       | Modify — add entry                                             |
+| `packages/db/seeds/ccse_questions.ts`                             | Create — 50 preguntas CCSE                                     |
+| `packages/core/src/agents/ccse/agent.ts`                          | Create — generateCcseQuiz + evaluateCcseAnswers                |
+| `packages/core/src/agents/ccse/prompt.ts`                         | Create — system prompt                                         |
+| `packages/core/src/agents/ccse/tools.ts`                          | Create — LangChain tool wrappers                               |
+| `packages/core/tests/agents/ccse.test.ts`                         | Create                                                         |
+| `packages/core/src/tools/requestHumanReview.ts`                   | Create                                                         |
+| `packages/core/tests/tools/requestHumanReview.test.ts`            | Create                                                         |
+| `packages/core/src/nhi/agentIdentities.ts`                        | Modify — add ccse                                              |
+| `packages/core/src/agents/index.ts`                               | Modify — add ccse exports                                      |
+| `packages/core/src/vertical/definition.ts`                        | Modify — add reminders field                                   |
+| `packages/core/src/verticals/nacionalidad_residencia/manifest.ts` | Modify — 4 templates                                           |
+| `packages/core/src/index.ts`                                      | Modify — export requestHumanReview                             |
+| `apps/api/src/routes/ccse.ts`                                     | Create — /api/ccse/\*                                          |
+| `apps/api/src/routes/reminders.ts`                                | Create — /api/reminders                                        |
+| `apps/api/src/middleware/requireAdmin.ts`                         | Create                                                         |
+| `apps/api/src/routes/admin.ts`                                    | Create — /api/admin/ccse/\*                                    |
+| `apps/api/src/routes/me.ts`                                       | Modify — add POST /api/me/request-review                       |
+| `apps/api/src/middleware/requireAuth.ts`                          | Modify — set request.userEmail                                 |
+| `apps/api/src/types.ts`                                           | Modify — add userEmail                                         |
+| `apps/api/src/server.ts`                                          | Modify — register new routes                                   |
+| `apps/web/components/quiz/QuizCard.tsx`                           | Create                                                         |
+| `apps/web/app/(app)/quiz/page.tsx`                                | Create                                                         |
+| `apps/web/app/(app)/layout.tsx`                                   | Modify — add quiz nav link                                     |
+| `scripts/reminder-worker.ts`                                      | Create                                                         |
+| `tests/eval/golden_set.v1.json`                                   | Modify — 40 → 60 cases                                         |
+| `.env.example`                                                    | Modify — add ADMIN_EMAILS                                      |
 
 ---
 
 ## Task 1: DB Schema — CCSE + Reminders Tables + Migration
 
 **Files:**
+
 - Create: `packages/db/src/schema/ccse.ts`
 - Create: `packages/db/src/schema/reminders.ts`
 - Modify: `packages/db/src/schema/index.ts`
@@ -62,17 +63,9 @@
 - [ ] **Step 1: Write the schema files**
 
 `packages/db/src/schema/ccse.ts`:
+
 ```typescript
-import {
-  boolean,
-  index,
-  integer,
-  json,
-  pgTable,
-  text,
-  timestamp,
-  uuid,
-} from 'drizzle-orm/pg-core';
+import { boolean, index, integer, json, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { users } from './auth.js';
 
 export const ccseQuestions = pgTable('ccse_questions', {
@@ -126,6 +119,7 @@ export const ccseAttemptQuestions = pgTable(
 ```
 
 `packages/db/src/schema/reminders.ts`:
+
 ```typescript
 import { pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core';
 import { users } from './auth.js';
@@ -162,6 +156,7 @@ export const humanReviewRequests = pgTable('human_review_requests', {
 - [ ] **Step 2: Update schema index**
 
 `packages/db/src/schema/index.ts`:
+
 ```typescript
 export * from './auth.js';
 export * from './audit.js';
@@ -174,6 +169,7 @@ export * from './reminders.js';
 - [ ] **Step 3: Write the SQL migration**
 
 `packages/db/migrations/0004_ccse_reminders.sql`:
+
 ```sql
 -- Migration 0004: CCSE tables + reminders + human review requests
 --> statement-breakpoint
@@ -243,6 +239,7 @@ CREATE INDEX IF NOT EXISTS "ccse_attempt_questions_attempt_idx" ON "ccse_attempt
 - [ ] **Step 4: Update migration journal**
 
 In `packages/db/migrations/meta/_journal.json`, add to the `"entries"` array:
+
 ```json
 {
   "idx": 4,
@@ -256,6 +253,7 @@ In `packages/db/migrations/meta/_journal.json`, add to the `"entries"` array:
 - [ ] **Step 5: Create Drizzle snapshot**
 
 Copy `packages/db/migrations/meta/0003_snapshot.json` as base for `packages/db/migrations/meta/0004_snapshot.json`. Change top-level fields:
+
 - `"id"`: `"c3d4e5f6-a7b8-9012-cdef-123456789012"`
 - `"prevId"`: `"b2c3d4e5-f6a7-8901-bcde-f12345678901"`
 
@@ -366,6 +364,7 @@ Then add to `"tables"`:
 ```
 
 Also add to `"_meta"` → `"tables"` in the snapshot:
+
 ```json
 "public.ccse_questions": "public.ccse_questions",
 "public.ccse_attempts": "public.ccse_attempts",
@@ -387,15 +386,19 @@ git commit -m "feat(db): add ccse + reminders + human_review_requests tables (mi
 ## Task 2: CCSE Questions Seed Data (50 preguntas)
 
 **Files:**
+
 - Create: `packages/db/seeds/ccse_questions.ts`
 
 - [ ] **Step 1: Write the seed file**
 
 `packages/db/seeds/ccse_questions.ts`:
+
 ```typescript
 import { createDb, schema } from '../src/index.js';
 
-const db = createDb(process.env.DATABASE_URL ?? 'postgresql://lexia:lexia@localhost:5432/lexia_dev');
+const db = createDb(
+  process.env.DATABASE_URL ?? 'postgresql://lexia:lexia@localhost:5432/lexia_dev',
+);
 
 const questions = [
   // --- CONSTITUCIÓN (10) ---
@@ -419,7 +422,12 @@ const questions = [
   },
   {
     questionText: '¿Cuál es la forma política del Estado español según la Constitución?',
-    options: ['República federal', 'Monarquía absoluta', 'Monarquía parlamentaria', 'República parlamentaria'],
+    options: [
+      'República federal',
+      'Monarquía absoluta',
+      'Monarquía parlamentaria',
+      'República parlamentaria',
+    ],
     correctOption: 2,
     category: 'constitucion',
     difficulty: 'easy',
@@ -428,7 +436,12 @@ const questions = [
   },
   {
     questionText: '¿Qué reconoce el artículo 14 de la Constitución Española?',
-    options: ['El derecho a la educación', 'La libertad de expresión', 'La igualdad ante la ley', 'El derecho al trabajo'],
+    options: [
+      'El derecho a la educación',
+      'La libertad de expresión',
+      'La igualdad ante la ley',
+      'El derecho al trabajo',
+    ],
     correctOption: 2,
     category: 'constitucion',
     difficulty: 'medium',
@@ -446,7 +459,12 @@ const questions = [
   },
   {
     questionText: '¿Qué órgano es el máximo intérprete de la Constitución Española?',
-    options: ['El Tribunal Supremo', 'El Consejo de Estado', 'El Tribunal Constitucional', 'El Defensor del Pueblo'],
+    options: [
+      'El Tribunal Supremo',
+      'El Consejo de Estado',
+      'El Tribunal Constitucional',
+      'El Defensor del Pueblo',
+    ],
     correctOption: 2,
     category: 'constitucion',
     difficulty: 'medium',
@@ -464,7 +482,12 @@ const questions = [
   },
   {
     questionText: '¿Qué principio fundamental recoge el artículo 1.1 de la Constitución?',
-    options: ['La soberanía del Rey', 'España como Estado social y democrático de Derecho', 'La neutralidad religiosa del Estado', 'La división de poderes'],
+    options: [
+      'La soberanía del Rey',
+      'España como Estado social y democrático de Derecho',
+      'La neutralidad religiosa del Estado',
+      'La división de poderes',
+    ],
     correctOption: 1,
     category: 'constitucion',
     difficulty: 'medium',
@@ -473,7 +496,12 @@ const questions = [
   },
   {
     questionText: '¿Quién puede proponer la reforma de la Constitución Española?',
-    options: ['Solo el Gobierno', 'Solo el Senado', 'Las Cortes Generales, el Gobierno y las Asambleas de las Comunidades Autónomas', 'El Rey a propuesta del Tribunal Supremo'],
+    options: [
+      'Solo el Gobierno',
+      'Solo el Senado',
+      'Las Cortes Generales, el Gobierno y las Asambleas de las Comunidades Autónomas',
+      'El Rey a propuesta del Tribunal Supremo',
+    ],
     correctOption: 2,
     category: 'constitucion',
     difficulty: 'hard',
@@ -492,7 +520,12 @@ const questions = [
   // --- GOBIERNO (10) ---
   {
     questionText: '¿Cómo se denomina el órgano legislativo del Estado español?',
-    options: ['El Consejo de Ministros', 'El Tribunal Supremo', 'Las Cortes Generales', 'El Consejo de Estado'],
+    options: [
+      'El Consejo de Ministros',
+      'El Tribunal Supremo',
+      'Las Cortes Generales',
+      'El Consejo de Estado',
+    ],
     correctOption: 2,
     category: 'gobierno',
     difficulty: 'easy',
@@ -501,7 +534,12 @@ const questions = [
   },
   {
     questionText: '¿Cuáles son las dos cámaras que forman las Cortes Generales?',
-    options: ['La Asamblea Nacional y el Senado', 'El Congreso de los Diputados y el Senado', 'El Congreso y el Tribunal Supremo', 'La Cámara Alta y la Cámara de Representantes'],
+    options: [
+      'La Asamblea Nacional y el Senado',
+      'El Congreso de los Diputados y el Senado',
+      'El Congreso y el Tribunal Supremo',
+      'La Cámara Alta y la Cámara de Representantes',
+    ],
     correctOption: 1,
     category: 'gobierno',
     difficulty: 'easy',
@@ -519,7 +557,12 @@ const questions = [
   },
   {
     questionText: '¿Quién nombra al Presidente del Gobierno en España?',
-    options: ['El Congreso directamente', 'El Tribunal Constitucional', 'El Rey, a propuesta del Congreso', 'Los ciudadanos en elección directa'],
+    options: [
+      'El Congreso directamente',
+      'El Tribunal Constitucional',
+      'El Rey, a propuesta del Congreso',
+      'Los ciudadanos en elección directa',
+    ],
     correctOption: 2,
     category: 'gobierno',
     difficulty: 'medium',
@@ -528,7 +571,12 @@ const questions = [
   },
   {
     questionText: '¿Cómo se llama el jefe del Estado en España?',
-    options: ['El Presidente del Gobierno', 'El Presidente del Congreso', 'El Rey', 'El Presidente del Senado'],
+    options: [
+      'El Presidente del Gobierno',
+      'El Presidente del Congreso',
+      'El Rey',
+      'El Presidente del Senado',
+    ],
     correctOption: 2,
     category: 'gobierno',
     difficulty: 'easy',
@@ -546,7 +594,12 @@ const questions = [
   },
   {
     questionText: '¿Qué es el Defensor del Pueblo?',
-    options: ['El presidente del Tribunal Supremo', 'Un ministro del Interior', 'Un comisionado de las Cortes para defender los derechos ciudadanos', 'El Fiscal General del Estado'],
+    options: [
+      'El presidente del Tribunal Supremo',
+      'Un ministro del Interior',
+      'Un comisionado de las Cortes para defender los derechos ciudadanos',
+      'El Fiscal General del Estado',
+    ],
     correctOption: 2,
     category: 'gobierno',
     difficulty: 'medium',
@@ -555,7 +608,12 @@ const questions = [
   },
   {
     questionText: '¿Qué función tiene el Tribunal de Cuentas?',
-    options: ['Resolver recursos de casación', 'Fiscalizar las cuentas y la gestión económica del sector público', 'Asesorar al Gobierno en materias legales', 'Gestionar la deuda pública'],
+    options: [
+      'Resolver recursos de casación',
+      'Fiscalizar las cuentas y la gestión económica del sector público',
+      'Asesorar al Gobierno en materias legales',
+      'Gestionar la deuda pública',
+    ],
     correctOption: 1,
     category: 'gobierno',
     difficulty: 'hard',
@@ -564,7 +622,12 @@ const questions = [
   },
   {
     questionText: '¿Dónde está la sede de la Presidencia del Gobierno de España?',
-    options: ['El Palacio Real', 'El Congreso de los Diputados', 'El Palacio de la Moncloa', 'El Palacio de Oriente'],
+    options: [
+      'El Palacio Real',
+      'El Congreso de los Diputados',
+      'El Palacio de la Moncloa',
+      'El Palacio de Oriente',
+    ],
     correctOption: 2,
     category: 'gobierno',
     difficulty: 'easy',
@@ -573,7 +636,12 @@ const questions = [
   },
   {
     questionText: '¿Qué es el Consejo de Estado?',
-    options: ['El órgano máximo del poder ejecutivo', 'El supremo órgano consultivo del Gobierno', 'El órgano de control del poder judicial', 'El órgano de coordinación entre comunidades autónomas'],
+    options: [
+      'El órgano máximo del poder ejecutivo',
+      'El supremo órgano consultivo del Gobierno',
+      'El órgano de control del poder judicial',
+      'El órgano de coordinación entre comunidades autónomas',
+    ],
     correctOption: 1,
     category: 'gobierno',
     difficulty: 'hard',
@@ -628,7 +696,12 @@ const questions = [
   },
   {
     questionText: '¿Qué son los Estatutos de Autonomía?',
-    options: ['Las leyes que regulan los municipios', 'Los reglamentos del Senado', 'Las normas institucionales básicas de cada comunidad autónoma', 'Los decretos del Gobierno central'],
+    options: [
+      'Las leyes que regulan los municipios',
+      'Los reglamentos del Senado',
+      'Las normas institucionales básicas de cada comunidad autónoma',
+      'Los decretos del Gobierno central',
+    ],
     correctOption: 2,
     category: 'territorio',
     difficulty: 'medium',
@@ -637,7 +710,12 @@ const questions = [
   },
   {
     questionText: '¿En qué mar está bañada la costa este de España?',
-    options: ['El Mar del Norte', 'El Océano Atlántico', 'El Mar Mediterráneo', 'El Mar Cantábrico'],
+    options: [
+      'El Mar del Norte',
+      'El Océano Atlántico',
+      'El Mar Mediterráneo',
+      'El Mar Cantábrico',
+    ],
     correctOption: 2,
     category: 'territorio',
     difficulty: 'easy',
@@ -682,7 +760,8 @@ const questions = [
     source: 'Manual CCSE, Bloque 4',
   },
   {
-    questionText: '¿Cuándo se celebraron las primeras elecciones democráticas en España tras el franquismo?',
+    questionText:
+      '¿Cuándo se celebraron las primeras elecciones democráticas en España tras el franquismo?',
     options: ['1975', '1976', '1977', '1978'],
     correctOption: 2,
     category: 'historia',
@@ -710,7 +789,12 @@ const questions = [
   },
   {
     questionText: '¿Qué ocurrió en España el 23 de febrero de 1981?',
-    options: ['Se firmó la Constitución', 'España ingresó en la OTAN', 'Un intento de golpe de Estado', 'Felipe González ganó las elecciones'],
+    options: [
+      'Se firmó la Constitución',
+      'España ingresó en la OTAN',
+      'Un intento de golpe de Estado',
+      'Felipe González ganó las elecciones',
+    ],
     correctOption: 2,
     category: 'historia',
     difficulty: 'medium',
@@ -755,7 +839,12 @@ const questions = [
   },
   {
     questionText: '¿Qué conquista marcó el fin de la Reconquista en España?',
-    options: ['La toma de Sevilla', 'La batalla de Covadonga', 'La conquista de Granada', 'La toma de Toledo'],
+    options: [
+      'La toma de Sevilla',
+      'La batalla de Covadonga',
+      'La conquista de Granada',
+      'La toma de Toledo',
+    ],
     correctOption: 2,
     category: 'historia',
     difficulty: 'medium',
@@ -792,7 +881,12 @@ const questions = [
   },
   {
     questionText: '¿Qué celebra España el 12 de octubre?',
-    options: ['La Constitución', 'La muerte de Franco', 'La Fiesta Nacional (Día de la Hispanidad)', 'El fin de la Guerra Civil'],
+    options: [
+      'La Constitución',
+      'La muerte de Franco',
+      'La Fiesta Nacional (Día de la Hispanidad)',
+      'El fin de la Guerra Civil',
+    ],
     correctOption: 2,
     category: 'sociedad',
     difficulty: 'easy',
@@ -810,7 +904,12 @@ const questions = [
   },
   {
     questionText: '¿Quién escribió "Don Quijote de la Mancha"?',
-    options: ['Federico García Lorca', 'Lope de Vega', 'Francisco de Quevedo', 'Miguel de Cervantes'],
+    options: [
+      'Federico García Lorca',
+      'Lope de Vega',
+      'Francisco de Quevedo',
+      'Miguel de Cervantes',
+    ],
     correctOption: 3,
     category: 'sociedad',
     difficulty: 'easy',
@@ -828,7 +927,12 @@ const questions = [
   },
   {
     questionText: '¿Cuál es el premio literario de mayor prestigio en lengua española?',
-    options: ['El Premio Planeta', 'El Premio Nobel', 'El Premio Cervantes', 'El Premio Nacional de las Letras'],
+    options: [
+      'El Premio Planeta',
+      'El Premio Nobel',
+      'El Premio Cervantes',
+      'El Premio Nacional de las Letras',
+    ],
     correctOption: 2,
     category: 'sociedad',
     difficulty: 'medium',
@@ -873,6 +977,7 @@ seed().catch((err) => {
 ```bash
 cd packages/db && npx tsc --noEmit
 ```
+
 Expected: no errors.
 
 - [ ] **Step 3: Commit**
@@ -887,6 +992,7 @@ git commit -m "feat(db): add 50 CCSE questions seed data"
 ## Task 3: CCSEAgent (generateCcseQuiz + evaluateCcseAnswers + Tools)
 
 **Files:**
+
 - Create: `packages/core/src/agents/ccse/prompt.ts`
 - Create: `packages/core/src/agents/ccse/agent.ts`
 - Create: `packages/core/src/agents/ccse/tools.ts`
@@ -895,6 +1001,7 @@ git commit -m "feat(db): add 50 CCSE questions seed data"
 - [ ] **Step 1: Write failing tests**
 
 `packages/core/tests/agents/ccse.test.ts`:
+
 ```typescript
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -931,7 +1038,14 @@ describe('generateCcseQuiz', () => {
   it('does not include correctOption in returned questions', async () => {
     process.env.DATABASE_URL = 'postgresql://test';
     const mockQuestions = [
-      { id: 'q-1', questionText: '¿Test?', options: ['A', 'B', 'C', 'D'], correctOption: 2, category: 'constitucion', difficulty: 'easy' },
+      {
+        id: 'q-1',
+        questionText: '¿Test?',
+        options: ['A', 'B', 'C', 'D'],
+        correctOption: 2,
+        category: 'constitucion',
+        difficulty: 'easy',
+      },
     ];
     const mockAttempt = [{ id: 'attempt-1' }];
 
@@ -960,7 +1074,9 @@ describe('generateCcseQuiz', () => {
 
 describe('evaluateCcseAnswers', () => {
   it('returns zero score when DB unavailable', async () => {
-    const result = await evaluateCcseAnswers('attempt-1', [{ questionId: 'q-1', selectedOption: 0 }]);
+    const result = await evaluateCcseAnswers('attempt-1', [
+      { questionId: 'q-1', selectedOption: 0 },
+    ]);
     expect(result.score).toBe(0);
     expect(result.passed).toBe(false);
   });
@@ -972,11 +1088,13 @@ describe('evaluateCcseAnswers', () => {
 ```bash
 cd packages/core && pnpm test tests/agents/ccse.test.ts
 ```
+
 Expected: FAIL — "Cannot find module '../../src/agents/ccse/agent.js'"
 
 - [ ] **Step 3: Write system prompt**
 
 `packages/core/src/agents/ccse/prompt.ts`:
+
 ```typescript
 const canary = process.env.LEXIA_CANARY_TOKEN ? `\n<!-- ${process.env.LEXIA_CANARY_TOKEN} -->` : '';
 
@@ -996,6 +1114,7 @@ Responde siempre en español, con un tono pedagógico y alentador.${canary}`;
 - [ ] **Step 4: Write agent functions**
 
 `packages/core/src/agents/ccse/agent.ts`:
+
 ```typescript
 import { createDb, schema } from '@lexia/db';
 import { sql } from 'drizzle-orm';
@@ -1100,7 +1219,12 @@ export async function evaluateCcseAnswers(
         correctOption: schema.ccseQuestions.correctOption,
       })
       .from(schema.ccseQuestions)
-      .where(sql`${schema.ccseQuestions.id} = ANY(ARRAY[${sql.join(questionIds.map((id) => sql`${id}::uuid`), sql`, `)}])`);
+      .where(
+        sql`${schema.ccseQuestions.id} = ANY(ARRAY[${sql.join(
+          questionIds.map((id) => sql`${id}::uuid`),
+          sql`, `,
+        )}])`,
+      );
 
     const correctMap = new Map(questionRows.map((q) => [q.id, q.correctOption]));
 
@@ -1118,16 +1242,14 @@ export async function evaluateCcseAnswers(
     const maxScore = answers.length;
     const passed = maxScore > 0 && score / maxScore >= 0.6;
 
-    await db
-      .insert(schema.ccseAttemptQuestions)
-      .values(
-        results.map((r) => ({
-          attemptId,
-          questionId: r.questionId,
-          selectedOption: r.selectedOption,
-          isCorrect: r.isCorrect,
-        })),
-      );
+    await db.insert(schema.ccseAttemptQuestions).values(
+      results.map((r) => ({
+        attemptId,
+        questionId: r.questionId,
+        selectedOption: r.selectedOption,
+        isCorrect: r.isCorrect,
+      })),
+    );
 
     await db
       .update(schema.ccseAttempts)
@@ -1144,6 +1266,7 @@ export async function evaluateCcseAnswers(
 - [ ] **Step 5: Write LangChain tool wrappers**
 
 `packages/core/src/agents/ccse/tools.ts`:
+
 ```typescript
 import { tool } from '@langchain/core/tools';
 import { z } from 'zod';
@@ -1165,7 +1288,10 @@ export function createGenerateCcseQuizTool(userId: string) {
       description:
         'Genera un simulacro del examen CCSE con preguntas aleatorias del banco de preguntas. Devuelve las preguntas y un attemptId para evaluar las respuestas después.',
       schema: z.object({
-        size: z.number().optional().describe('Número de preguntas. Por defecto 25 (igual que el examen real).'),
+        size: z
+          .number()
+          .optional()
+          .describe('Número de preguntas. Por defecto 25 (igual que el examen real).'),
       }),
     },
   );
@@ -1173,7 +1299,13 @@ export function createGenerateCcseQuizTool(userId: string) {
 
 export function createEvaluateCcseAnswerTool() {
   return tool(
-    async ({ attemptId, answers }: { attemptId: string; answers: Array<{ questionId: string; selectedOption: number }> }) => {
+    async ({
+      attemptId,
+      answers,
+    }: {
+      attemptId: string;
+      answers: Array<{ questionId: string; selectedOption: number }>;
+    }) => {
       const result = await evaluateCcseAnswers(attemptId, answers);
       const passMark = result.passed ? '✅ APROBADO' : '❌ SUSPENSO';
       return JSON.stringify({
@@ -1206,6 +1338,7 @@ export function createEvaluateCcseAnswerTool() {
 ```bash
 cd packages/core && pnpm test tests/agents/ccse.test.ts
 ```
+
 Expected: PASS (3 tests)
 
 - [ ] **Step 7: Commit**
@@ -1220,6 +1353,7 @@ git commit -m "feat(core): add CCSEAgent with generateCcseQuiz + evaluateCcseAns
 ## Task 4: NHI CCSE Identity + requestHumanReview Tool + Exports
 
 **Files:**
+
 - Modify: `packages/core/src/nhi/agentIdentities.ts`
 - Create: `packages/core/src/tools/requestHumanReview.ts`
 - Create: `packages/core/tests/tools/requestHumanReview.test.ts`
@@ -1229,6 +1363,7 @@ git commit -m "feat(core): add CCSEAgent with generateCcseQuiz + evaluateCcseAns
 - [ ] **Step 1: Write failing test**
 
 `packages/core/tests/tools/requestHumanReview.test.ts`:
+
 ```typescript
 import { describe, it, expect, vi } from 'vitest';
 
@@ -1274,11 +1409,13 @@ describe('requestHumanReview', () => {
 ```bash
 cd packages/core && pnpm test tests/tools/requestHumanReview.test.ts
 ```
+
 Expected: FAIL — "Cannot find module"
 
 - [ ] **Step 3: Add ccse identity to AGENT_IDENTITIES**
 
 `packages/core/src/nhi/agentIdentities.ts` — add ccse entry:
+
 ```typescript
 export const AGENT_IDENTITIES = {
   planner: {
@@ -1317,6 +1454,7 @@ export const AGENT_IDENTITIES = {
 - [ ] **Step 4: Write requestHumanReview tool**
 
 Create `packages/core/src/tools/requestHumanReview.ts`:
+
 ```typescript
 import { createDb, schema } from '@lexia/db';
 
@@ -1365,11 +1503,13 @@ export async function requestHumanReview(input: HumanReviewInput): Promise<Human
 ```bash
 cd packages/core && pnpm test tests/tools/requestHumanReview.test.ts
 ```
+
 Expected: PASS (2 tests)
 
 - [ ] **Step 6: Update agents/index.ts**
 
 `packages/core/src/agents/index.ts` — add at end:
+
 ```typescript
 export { generateCcseQuiz, evaluateCcseAnswers } from './ccse/agent.js';
 export type { CCSEQuizResult, CCSEQuizQuestion, CCSEAnswer, CCSEEvalResult } from './ccse/agent.js';
@@ -1379,6 +1519,7 @@ export { createGenerateCcseQuizTool, createEvaluateCcseAnswerTool } from './ccse
 - [ ] **Step 7: Update core index.ts**
 
 `packages/core/src/index.ts` — add at end:
+
 ```typescript
 export { requestHumanReview } from './tools/requestHumanReview.js';
 export type { HumanReviewInput, HumanReviewResult } from './tools/requestHumanReview.js';
@@ -1389,6 +1530,7 @@ export type { HumanReviewInput, HumanReviewResult } from './tools/requestHumanRe
 ```bash
 cd packages/core && pnpm test
 ```
+
 Expected: all tests pass
 
 - [ ] **Step 9: Commit**
@@ -1403,6 +1545,7 @@ git commit -m "feat(core): add ccse NHI identity + requestHumanReview tool (GDPR
 ## Task 5: API Routes (CCSE + Admin + Reminders + Human Review)
 
 **Files:**
+
 - Create: `apps/api/src/routes/ccse.ts`
 - Create: `apps/api/src/middleware/requireAdmin.ts`
 - Create: `apps/api/src/routes/admin.ts`
@@ -1416,6 +1559,7 @@ git commit -m "feat(core): add ccse NHI identity + requestHumanReview tool (GDPR
 - [ ] **Step 1: Update types.ts**
 
 `apps/api/src/types.ts`:
+
 ```typescript
 declare module 'fastify' {
   interface FastifyRequest {
@@ -1428,14 +1572,16 @@ declare module 'fastify' {
 - [ ] **Step 2: Update requireAuth middleware to also set userEmail**
 
 In `apps/api/src/middleware/requireAuth.ts`, change the last two lines:
+
 ```typescript
-  request.userId = session.user.id;
-  request.userEmail = session.user.email;
+request.userId = session.user.id;
+request.userEmail = session.user.email;
 ```
 
 - [ ] **Step 3: Write requireAdmin middleware**
 
 `apps/api/src/middleware/requireAdmin.ts`:
+
 ```typescript
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { auth } from '../auth.js';
@@ -1452,9 +1598,14 @@ export async function requireAdmin(request: FastifyRequest, reply: FastifyReply)
     return reply.status(401).send({ error: 'UNAUTHORIZED' });
   }
 
-  const adminEmails = (process.env.ADMIN_EMAILS ?? '').split(',').map((e) => e.trim()).filter(Boolean);
+  const adminEmails = (process.env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim())
+    .filter(Boolean);
   if (!adminEmails.includes(session.user.email)) {
-    return reply.status(403).send({ error: 'FORBIDDEN', message: 'Acceso restringido a administradores' });
+    return reply
+      .status(403)
+      .send({ error: 'FORBIDDEN', message: 'Acceso restringido a administradores' });
   }
 
   request.userId = session.user.id;
@@ -1465,6 +1616,7 @@ export async function requireAdmin(request: FastifyRequest, reply: FastifyReply)
 - [ ] **Step 4: Write CCSE routes**
 
 `apps/api/src/routes/ccse.ts`:
+
 ```typescript
 import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../middleware/requireAuth.js';
@@ -1475,26 +1627,25 @@ import { generateCcseQuiz, evaluateCcseAnswers } from '@lexia/core';
 const db = createDb(process.env.DATABASE_URL ?? '');
 
 export const ccseRoute: FastifyPluginAsync = async (app) => {
-  app.post(
-    '/api/ccse/quiz',
-    { preHandler: [requireAuth] },
-    async (request, reply) => {
-      const { size } = (request.body as { size?: number }) ?? {};
-      const quizSize = Math.min(Math.max(size ?? 25, 5), 50);
-      const result = await generateCcseQuiz(request.userId, quizSize);
-      if (!result.attemptId) {
-        return reply.status(503).send({ error: 'SERVICE_UNAVAILABLE', message: 'No se pudo generar el simulacro' });
-      }
-      return result;
-    },
-  );
+  app.post('/api/ccse/quiz', { preHandler: [requireAuth] }, async (request, reply) => {
+    const { size } = (request.body as { size?: number }) ?? {};
+    const quizSize = Math.min(Math.max(size ?? 25, 5), 50);
+    const result = await generateCcseQuiz(request.userId, quizSize);
+    if (!result.attemptId) {
+      return reply
+        .status(503)
+        .send({ error: 'SERVICE_UNAVAILABLE', message: 'No se pudo generar el simulacro' });
+    }
+    return result;
+  });
 
   app.post(
     '/api/ccse/attempts/:attemptId/submit',
     { preHandler: [requireAuth] },
     async (request, reply) => {
       const { attemptId } = request.params as { attemptId: string };
-      const { answers } = (request.body as { answers: Array<{ questionId: string; selectedOption: number }> }) ?? {};
+      const { answers } =
+        (request.body as { answers: Array<{ questionId: string; selectedOption: number }> }) ?? {};
 
       if (!Array.isArray(answers) || answers.length === 0) {
         return reply.status(400).send({ error: 'BAD_REQUEST', message: 'answers requerido' });
@@ -1513,34 +1664,31 @@ export const ccseRoute: FastifyPluginAsync = async (app) => {
     },
   );
 
-  app.get(
-    '/api/ccse/history',
-    { preHandler: [requireAuth] },
-    async (request) => {
-      const attempts = await db
-        .select({
-          id: schema.ccseAttempts.id,
-          quizSize: schema.ccseAttempts.quizSize,
-          score: schema.ccseAttempts.score,
-          maxScore: schema.ccseAttempts.maxScore,
-          durationSeconds: schema.ccseAttempts.durationSeconds,
-          completedAt: schema.ccseAttempts.completedAt,
-          createdAt: schema.ccseAttempts.createdAt,
-        })
-        .from(schema.ccseAttempts)
-        .where(eq(schema.ccseAttempts.userId, request.userId))
-        .orderBy(desc(schema.ccseAttempts.createdAt))
-        .limit(20);
+  app.get('/api/ccse/history', { preHandler: [requireAuth] }, async (request) => {
+    const attempts = await db
+      .select({
+        id: schema.ccseAttempts.id,
+        quizSize: schema.ccseAttempts.quizSize,
+        score: schema.ccseAttempts.score,
+        maxScore: schema.ccseAttempts.maxScore,
+        durationSeconds: schema.ccseAttempts.durationSeconds,
+        completedAt: schema.ccseAttempts.completedAt,
+        createdAt: schema.ccseAttempts.createdAt,
+      })
+      .from(schema.ccseAttempts)
+      .where(eq(schema.ccseAttempts.userId, request.userId))
+      .orderBy(desc(schema.ccseAttempts.createdAt))
+      .limit(20);
 
-      return { attempts };
-    },
-  );
+    return { attempts };
+  });
 };
 ```
 
 - [ ] **Step 5: Write admin routes**
 
 `apps/api/src/routes/admin.ts`:
+
 ```typescript
 import type { FastifyPluginAsync } from 'fastify';
 import { requireAdmin } from '../middleware/requireAdmin.js';
@@ -1550,31 +1698,27 @@ import { eq } from 'drizzle-orm';
 const db = createDb(process.env.DATABASE_URL ?? '');
 
 export const adminRoute: FastifyPluginAsync = async (app) => {
-  app.get(
-    '/api/admin/ccse/questions',
-    { preHandler: [requireAdmin] },
-    async (request) => {
-      const { verified } = request.query as { verified?: string };
-      const query = db.select().from(schema.ccseQuestions);
+  app.get('/api/admin/ccse/questions', { preHandler: [requireAdmin] }, async (request) => {
+    const { verified } = request.query as { verified?: string };
+    const query = db.select().from(schema.ccseQuestions);
 
-      if (verified === 'true') {
-        const questions = await db
-          .select()
-          .from(schema.ccseQuestions)
-          .where(eq(schema.ccseQuestions.verifiedByHuman, true));
-        return { questions, total: questions.length };
-      } else if (verified === 'false') {
-        const questions = await db
-          .select()
-          .from(schema.ccseQuestions)
-          .where(eq(schema.ccseQuestions.verifiedByHuman, false));
-        return { questions, total: questions.length };
-      }
-
-      const questions = await query;
+    if (verified === 'true') {
+      const questions = await db
+        .select()
+        .from(schema.ccseQuestions)
+        .where(eq(schema.ccseQuestions.verifiedByHuman, true));
       return { questions, total: questions.length };
-    },
-  );
+    } else if (verified === 'false') {
+      const questions = await db
+        .select()
+        .from(schema.ccseQuestions)
+        .where(eq(schema.ccseQuestions.verifiedByHuman, false));
+      return { questions, total: questions.length };
+    }
+
+    const questions = await query;
+    return { questions, total: questions.length };
+  });
 
   app.patch(
     '/api/admin/ccse/questions/:id',
@@ -1584,7 +1728,9 @@ export const adminRoute: FastifyPluginAsync = async (app) => {
       const { verifiedByHuman } = (request.body as { verifiedByHuman?: boolean }) ?? {};
 
       if (typeof verifiedByHuman !== 'boolean') {
-        return reply.status(400).send({ error: 'BAD_REQUEST', message: 'verifiedByHuman boolean requerido' });
+        return reply
+          .status(400)
+          .send({ error: 'BAD_REQUEST', message: 'verifiedByHuman boolean requerido' });
       }
 
       const updated = await db
@@ -1603,6 +1749,7 @@ export const adminRoute: FastifyPluginAsync = async (app) => {
 - [ ] **Step 6: Write reminders route**
 
 `apps/api/src/routes/reminders.ts`:
+
 ```typescript
 import type { FastifyPluginAsync } from 'fastify';
 import { requireAuth } from '../middleware/requireAuth.js';
@@ -1612,83 +1759,79 @@ import { eq, desc } from 'drizzle-orm';
 const db = createDb(process.env.DATABASE_URL ?? '');
 
 export const remindersRoute: FastifyPluginAsync = async (app) => {
-  app.get(
-    '/api/reminders',
-    { preHandler: [requireAuth] },
-    async (request) => {
-      const reminders = await db
-        .select()
-        .from(schema.reminders)
-        .where(eq(schema.reminders.userId, request.userId))
-        .orderBy(desc(schema.reminders.scheduledFor));
-      return { reminders };
-    },
-  );
+  app.get('/api/reminders', { preHandler: [requireAuth] }, async (request) => {
+    const reminders = await db
+      .select()
+      .from(schema.reminders)
+      .where(eq(schema.reminders.userId, request.userId))
+      .orderBy(desc(schema.reminders.scheduledFor));
+    return { reminders };
+  });
 
-  app.post(
-    '/api/reminders',
-    { preHandler: [requireAuth] },
-    async (request, reply) => {
-      const { templateSlug, scheduledFor, caseId } = (request.body as {
+  app.post('/api/reminders', { preHandler: [requireAuth] }, async (request, reply) => {
+    const { templateSlug, scheduledFor, caseId } =
+      (request.body as {
         templateSlug: string;
         scheduledFor: string;
         caseId?: string;
       }) ?? {};
 
-      if (!templateSlug || !scheduledFor) {
-        return reply.status(400).send({ error: 'BAD_REQUEST', message: 'templateSlug y scheduledFor son requeridos' });
-      }
+    if (!templateSlug || !scheduledFor) {
+      return reply
+        .status(400)
+        .send({ error: 'BAD_REQUEST', message: 'templateSlug y scheduledFor son requeridos' });
+    }
 
-      const scheduledDate = new Date(scheduledFor);
-      if (isNaN(scheduledDate.getTime())) {
-        return reply.status(400).send({ error: 'BAD_REQUEST', message: 'scheduledFor debe ser una fecha ISO válida' });
-      }
+    const scheduledDate = new Date(scheduledFor);
+    if (isNaN(scheduledDate.getTime())) {
+      return reply
+        .status(400)
+        .send({ error: 'BAD_REQUEST', message: 'scheduledFor debe ser una fecha ISO válida' });
+    }
 
-      const [reminder] = await db
-        .insert(schema.reminders)
-        .values({
-          userId: request.userId,
-          caseId: caseId ?? null,
-          templateSlug,
-          scheduledFor: scheduledDate,
-        })
-        .returning();
+    const [reminder] = await db
+      .insert(schema.reminders)
+      .values({
+        userId: request.userId,
+        caseId: caseId ?? null,
+        templateSlug,
+        scheduledFor: scheduledDate,
+      })
+      .returning();
 
-      return reply.status(201).send(reminder);
-    },
-  );
+    return reply.status(201).send(reminder);
+  });
 };
 ```
 
 - [ ] **Step 7: Add request-review endpoint to me.ts**
 
 In `apps/api/src/routes/me.ts`, add after the existing routes (before the closing `}`):
+
 ```typescript
-  app.post(
-    '/api/me/request-review',
-    { preHandler: [requireAuth] },
-    async (request, reply) => {
-      const { reason, conversationId } = (request.body as { reason: string; conversationId?: string }) ?? {};
+app.post('/api/me/request-review', { preHandler: [requireAuth] }, async (request, reply) => {
+  const { reason, conversationId } =
+    (request.body as { reason: string; conversationId?: string }) ?? {};
 
-      if (!reason || reason.trim().length === 0) {
-        return reply.status(400).send({ error: 'BAD_REQUEST', message: 'reason es requerido' });
-      }
+  if (!reason || reason.trim().length === 0) {
+    return reply.status(400).send({ error: 'BAD_REQUEST', message: 'reason es requerido' });
+  }
 
-      const { requestHumanReview } = await import('@lexia/core');
-      const result = await requestHumanReview({
-        userId: request.userId,
-        reason: reason.trim(),
-        conversationId,
-      });
+  const { requestHumanReview } = await import('@lexia/core');
+  const result = await requestHumanReview({
+    userId: request.userId,
+    reason: reason.trim(),
+    conversationId,
+  });
 
-      return reply.status(201).send(result);
-    },
-  );
+  return reply.status(201).send(result);
+});
 ```
 
 - [ ] **Step 8: Register routes in server.ts**
 
 In `apps/api/src/server.ts`, add imports and register:
+
 ```typescript
 import { ccseRoute } from './routes/ccse.js';
 import { remindersRoute } from './routes/reminders.js';
@@ -1696,15 +1839,17 @@ import { adminRoute } from './routes/admin.js';
 ```
 
 Inside `buildServer()`, after the existing `await app.register(deepHealthRoute);`:
+
 ```typescript
-  await app.register(ccseRoute);
-  await app.register(remindersRoute);
-  await app.register(adminRoute);
+await app.register(ccseRoute);
+await app.register(remindersRoute);
+await app.register(adminRoute);
 ```
 
 - [ ] **Step 9: Update .env.example**
 
 Add to `.env.example`:
+
 ```
 # Admin access (comma-separated list of admin email addresses)
 ADMIN_EMAILS=
@@ -1715,6 +1860,7 @@ ADMIN_EMAILS=
 ```bash
 pnpm --filter @lexia/api typecheck
 ```
+
 Expected: 0 errors
 
 - [ ] **Step 11: Commit**
@@ -1729,6 +1875,7 @@ git commit -m "feat(api): add /api/ccse, /api/reminders, /api/admin/ccse, /api/m
 ## Task 6: Quiz UI (apps/web)
 
 **Files:**
+
 - Create: `apps/web/components/quiz/QuizCard.tsx`
 - Create: `apps/web/app/(app)/quiz/page.tsx`
 - Modify: `apps/web/app/(app)/layout.tsx`
@@ -1736,6 +1883,7 @@ git commit -m "feat(api): add /api/ccse, /api/reminders, /api/admin/ccse, /api/m
 - [ ] **Step 1: Write QuizCard component**
 
 `apps/web/components/quiz/QuizCard.tsx`:
+
 ```typescript
 'use client';
 
@@ -1813,6 +1961,7 @@ export function QuizCard({
 - [ ] **Step 2: Write Quiz page**
 
 `apps/web/app/(app)/quiz/page.tsx`:
+
 ```typescript
 'use client';
 
@@ -2043,6 +2192,7 @@ export default function QuizPage() {
 - [ ] **Step 3: Add quiz nav link to layout**
 
 Read `apps/web/app/(app)/layout.tsx` and add a "Simulacro CCSE" link. The existing layout likely has a nav section. Add:
+
 ```typescript
 <Link href="/quiz" className="text-sm text-gray-600 hover:text-gray-900">Simulacro CCSE</Link>
 ```
@@ -2052,6 +2202,7 @@ Read `apps/web/app/(app)/layout.tsx` and add a "Simulacro CCSE" link. The existi
 ```bash
 pnpm --filter @lexia/web typecheck
 ```
+
 Expected: 0 errors
 
 - [ ] **Step 5: Commit**
@@ -2066,6 +2217,7 @@ git commit -m "feat(web): add CCSE quiz UI with QuizCard component and quiz flow
 ## Task 7: Reminder Templates + VerticalDefinition Extension + Email Worker
 
 **Files:**
+
 - Modify: `packages/core/src/vertical/definition.ts`
 - Modify: `packages/core/src/verticals/nacionalidad_residencia/manifest.ts`
 - Create: `scripts/reminder-worker.ts`
@@ -2073,11 +2225,15 @@ git commit -m "feat(web): add CCSE quiz UI with QuizCard component and quiz flow
 - [ ] **Step 1: Add ReminderTemplate to VerticalDefinition**
 
 `packages/core/src/vertical/definition.ts`:
+
 ```typescript
 import { z } from 'zod';
 
 export const ReminderTemplateSchema = z.object({
-  slug: z.string().min(1).regex(/^[a-z_]+$/),
+  slug: z
+    .string()
+    .min(1)
+    .regex(/^[a-z_]+$/),
   label: z.string().min(1),
   description: z.string(),
   defaultDaysBeforeDeadline: z.number().int().positive(),
@@ -2110,6 +2266,7 @@ export type VerticalDefinition = z.infer<typeof VerticalDefinitionSchema>;
 - [ ] **Step 2: Add 4 reminder templates to manifest**
 
 `packages/core/src/verticals/nacionalidad_residencia/manifest.ts`:
+
 ```typescript
 import type { VerticalDefinition } from '../../vertical/definition.js';
 
@@ -2168,16 +2325,19 @@ export const nacionalidadResidencia: VerticalDefinition = {
 - [ ] **Step 3: Add node-cron to apps/api**
 
 In `apps/api/package.json`, add to `"dependencies"`:
+
 ```json
 "node-cron": "^3.0.3"
 ```
 
 And to `"devDependencies"`:
+
 ```json
 "@types/node-cron": "^3.0.11"
 ```
 
 Then run:
+
 ```bash
 pnpm install
 ```
@@ -2185,13 +2345,16 @@ pnpm install
 - [ ] **Step 4: Write reminder worker script**
 
 `scripts/reminder-worker.ts`:
+
 ```typescript
 import cron from 'node-cron';
 import nodemailer from 'nodemailer';
 import { createDb, schema } from '../packages/db/src/index.js';
 import { isNull, lte, and, eq } from 'drizzle-orm';
 
-const db = createDb(process.env.DATABASE_URL ?? 'postgresql://lexia:lexia@localhost:5432/lexia_dev');
+const db = createDb(
+  process.env.DATABASE_URL ?? 'postgresql://lexia:lexia@localhost:5432/lexia_dev',
+);
 
 const mailer = nodemailer.createTransport({
   host: process.env.SMTP_HOST ?? 'localhost',
@@ -2261,6 +2424,7 @@ console.log('[reminder-worker] Iniciado. Procesando recordatorios cada hora.');
 ```bash
 pnpm --filter @lexia/core typecheck
 ```
+
 Expected: 0 errors
 
 - [ ] **Step 6: Run core tests**
@@ -2268,6 +2432,7 @@ Expected: 0 errors
 ```bash
 pnpm --filter @lexia/core test
 ```
+
 Expected: all pass
 
 - [ ] **Step 7: Commit**
@@ -2282,6 +2447,7 @@ git commit -m "feat: add reminder templates to vertical manifest + email cron wo
 ## Task 8: Golden Set Expansion (40 → 60 Cases)
 
 **Files:**
+
 - Modify: `tests/eval/golden_set.v1.json`
 
 - [ ] **Step 1: Add 20 new golden test cases**
@@ -2459,6 +2625,7 @@ Open `tests/eval/golden_set.v1.json` and:
 ```bash
 node -e "JSON.parse(require('fs').readFileSync('tests/eval/golden_set.v1.json','utf8')); console.log('JSON válido')"
 ```
+
 Expected: `JSON válido`
 
 - [ ] **Step 3: Verify count**
@@ -2466,6 +2633,7 @@ Expected: `JSON válido`
 ```bash
 node -e "const d=JSON.parse(require('fs').readFileSync('tests/eval/golden_set.v1.json','utf8')); console.log('Total cases:', d.cases.length)"
 ```
+
 Expected: `Total cases: 60`
 
 - [ ] **Step 4: Commit**
@@ -2484,6 +2652,7 @@ git commit -m "test(eval): expand golden set from 40 to 60 cases (CCSE, crisis, 
 ```bash
 pnpm --filter @lexia/core typecheck
 ```
+
 Expected: 0 errors
 
 - [ ] **Step 2: Run full core test suite**
@@ -2491,6 +2660,7 @@ Expected: 0 errors
 ```bash
 pnpm --filter @lexia/core test
 ```
+
 Expected: all tests pass
 
 - [ ] **Step 3: Run API typecheck**
@@ -2498,6 +2668,7 @@ Expected: all tests pass
 ```bash
 pnpm --filter @lexia/api typecheck
 ```
+
 Expected: 0 errors
 
 - [ ] **Step 4: Run web typecheck**
@@ -2505,6 +2676,7 @@ Expected: 0 errors
 ```bash
 pnpm --filter @lexia/web typecheck
 ```
+
 Expected: 0 errors
 
 - [ ] **Step 5: Commit any remaining changes**
@@ -2549,4 +2721,5 @@ git tag fase-5-complete
 git log --oneline -3
 git tag -l | grep fase
 ```
+
 Expected: `fase-5-complete` visible, HEAD points to merge commit.

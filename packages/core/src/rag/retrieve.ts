@@ -1,6 +1,6 @@
 import type { ChromaClient } from 'chromadb';
 import { getCollection } from '../storage/chroma.js';
-import type { OpenAIEmbeddings } from '@langchain/openai';
+import type { EmbeddingClient } from './embed.js';
 import { embedQuery } from './embed.js';
 import { candidatesCount, rerankChunks } from './rerank.js';
 import { extractKeyTerms, bm25Score } from './bm25.js';
@@ -9,7 +9,7 @@ import type { CorpusChunk, RetrieveOptions, RetrievedChunk, SourceType } from '.
 
 export async function retrieveWithACL(
   chroma: ChromaClient,
-  embeddings: OpenAIEmbeddings,
+  embeddings: EmbeddingClient,
   query: string,
   options: RetrieveOptions,
 ): Promise<RetrievedChunk[]> {
@@ -58,7 +58,9 @@ export async function retrieveWithACL(
       const publicSparseResult = await collection.query({
         queryEmbeddings: [queryVector],
         nResults: nResults,
-        where: { $and: [{ vertical: { $eq: vertical } }, { visibility: { $eq: 'public' } }] } as any,
+        where: {
+          $and: [{ vertical: { $eq: vertical } }, { visibility: { $eq: 'public' } }],
+        } as any,
         whereDocument: keywordFilter as any,
         include: ['documents', 'distances', 'metadatas'] as any,
       });

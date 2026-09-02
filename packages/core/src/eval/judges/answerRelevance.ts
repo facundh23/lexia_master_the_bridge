@@ -22,20 +22,24 @@ Rúbrica:
 
 Devuelve SOLO JSON válido: {"score": <0-1>, "rationale": "<una oración>"}`;
 
-export async function runAnswerRelevanceJudge(input: AnswerRelevanceInput): Promise<RagasJudgeResult> {
+export async function runAnswerRelevanceJudge(
+  input: AnswerRelevanceInput,
+): Promise<RagasJudgeResult> {
   const model = new ChatAnthropic({
     model: process.env.EVAL_JUDGE_MODEL ?? 'claude-haiku-4-5-20251001',
     apiKey: process.env.ANTHROPIC_API_KEY,
     temperature: 0,
   });
 
-  const prompt = PROMPT
-    .replace('{question}', input.question)
-    .replace('{response}', input.response.slice(0, 2000));
+  const prompt = PROMPT.replace('{question}', input.question).replace(
+    '{response}',
+    input.response.slice(0, 2000),
+  );
 
   try {
     const result = await model.invoke(prompt);
-    const content = typeof result.content === 'string' ? result.content : JSON.stringify(result.content);
+    const content =
+      typeof result.content === 'string' ? result.content : JSON.stringify(result.content);
     const parsed = JSON.parse(content.match(/\{[\s\S]*\}/)?.[0] ?? '{}');
     return {
       score: Math.max(0, Math.min(1, Number(parsed.score ?? 0.5))),

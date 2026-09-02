@@ -18,15 +18,15 @@ Según GDPR Art. 33, una brecha es notificable si es "probable que entrañe un r
 
 ## Timeline obligatorio (72h desde detección)
 
-| Hito | Acción |
-|---|---|
-| T+0h | Detección del incidente |
-| T+1h | Contener la brecha (ver incident_response.md) |
-| T+2h | Evaluar alcance: qué datos, cuántos afectados, desde cuándo |
-| T+24h | Preparar borrador de notificación |
-| T+48h | Revisar y aprobar borrador |
-| T+72h | **Notificar a AEPD** (obligatorio si hay riesgo) |
-| T+72h+ | Notificar a afectados si riesgo alto (Art. 34) |
+| Hito   | Acción                                                      |
+| ------ | ----------------------------------------------------------- |
+| T+0h   | Detección del incidente                                     |
+| T+1h   | Contener la brecha (ver incident_response.md)               |
+| T+2h   | Evaluar alcance: qué datos, cuántos afectados, desde cuándo |
+| T+24h  | Preparar borrador de notificación                           |
+| T+48h  | Revisar y aprobar borrador                                  |
+| T+72h  | **Notificar a AEPD** (obligatorio si hay riesgo)            |
+| T+72h+ | Notificar a afectados si riesgo alto (Art. 34)              |
 
 ---
 
@@ -88,6 +88,7 @@ docker exec -it lexia-postgres psql -U lexia -d lexia -c "
 ## Notificación a afectados (Art. 34 — si riesgo alto)
 
 Si el riesgo residual es alto (ej: exposición de contraseñas, datos especiales), notificar a usuarios afectados por email con:
+
 - Qué ocurrió
 - Qué datos se vieron afectados
 - Qué medidas se han tomado

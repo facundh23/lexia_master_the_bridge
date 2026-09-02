@@ -89,12 +89,14 @@ tests/lexiaCore.test.ts         ← añadir tests budget + crisis
 ## Task 1: Canary Tokens en System Prompts
 
 **Files:**
+
 - Modify: `packages/core/src/agents/normativa/prompt.ts`
 - Modify: `packages/core/src/agents/eligibility/prompt.ts`
 - Modify: `scripts/detector-worker.ts`
 - Modify: `.env.example`
 
 ### ¿Qué es esto?
+
 Un "canary token" es una cadena secreta inyectada en el system prompt. Si aparece en el audit_log o en outputs del sistema, es señal de exfiltración (el LLM "repitió" o filtró su propio system prompt). El detector worker ya escanea el audit_log por los canaries `LEXIA_CANARY_ALPHA_7291` etc.; en esta tarea hacemos que esos tokens estén efectivamente en los system prompts.
 
 - [ ] **Step 1: Escribir el test para canary en prompts**
@@ -128,6 +130,7 @@ describe('canary tokens in system prompts', () => {
 ```powershell
 cd packages/core && pnpm vitest run tests/nhi/agentIdentities.test.ts
 ```
+
 Expected: PASS (los prompts existen, el test de longitud pasa).
 
 - [ ] **Step 3: Modificar `packages/core/src/agents/normativa/prompt.ts` para inyectar canary**
@@ -188,11 +191,13 @@ const CANARY_TOKENS = [
   ...(process.env.LEXIA_CANARY_TOKEN ? [process.env.LEXIA_CANARY_TOKEN] : []),
 ];
 ```
+
 El resto del archivo queda igual.
 
 - [ ] **Step 6: Añadir `LEXIA_CANARY_TOKEN` a `.env.example`**
 
 Añadir al final del bloque de AI/LLM en `.env.example`:
+
 ```
 # Security — Canary Tokens
 LEXIA_CANARY_TOKEN=LEXIA_CANARY_ALPHA_7291
@@ -206,6 +211,7 @@ VALIDATOR_MODEL=claude-haiku-4-5-20251001
 cd packages/core && pnpm vitest run tests/nhi/agentIdentities.test.ts
 pnpm --filter @lexia/core typecheck
 ```
+
 Expected: PASS, no type errors.
 
 - [ ] **Step 8: Commit**
@@ -224,11 +230,13 @@ git commit -m "feat(security): inject canary tokens into system prompts via env"
 ## Task 2: NHI Agent Identities + Audit Logger
 
 **Files:**
+
 - Create: `packages/core/src/nhi/agentIdentities.ts`
 - Create: `packages/core/src/nhi/auditLogger.ts`
 - Modify: `packages/core/package.json`
 
 ### ¿Qué es esto?
+
 NHI (Non-Human Identities) — cada agente del sistema tiene una identidad trazable con scopes definidos (§4.4 del spec). El `auditLogger` escribe en la tabla `audit_log` con `actorType='agent'`. El `@lexia/db` se añade como dependencia del core para poder escribir al audit_log desde los agentes.
 
 - [ ] **Step 1: Escribir el test para agentIdentities**
@@ -274,6 +282,7 @@ describe('AGENT_IDENTITIES', () => {
 ```powershell
 cd packages/core && pnpm vitest run tests/nhi/agentIdentities.test.ts
 ```
+
 Expected: FAIL — "Cannot find module '../../src/nhi/agentIdentities.js'"
 
 - [ ] **Step 3: Crear `packages/core/src/nhi/agentIdentities.ts`**
@@ -319,11 +328,13 @@ export const AGENT_IDENTITIES = {
 ```powershell
 pnpm vitest run tests/nhi/agentIdentities.test.ts
 ```
+
 Expected: PASS
 
 - [ ] **Step 5: Añadir `@lexia/db` a `packages/core/package.json`**
 
 En el bloque `"dependencies"`, añadir:
+
 ```json
 "@lexia/db": "workspace:*"
 ```
@@ -380,6 +391,7 @@ export async function logAgentAction(entry: AgentAuditEntry): Promise<void> {
 ```powershell
 pnpm install
 ```
+
 Expected: no errors, `@lexia/db` resuelto en core.
 
 - [ ] **Step 8: Typecheck**
@@ -387,6 +399,7 @@ Expected: no errors, `@lexia/db` resuelto en core.
 ```powershell
 pnpm --filter @lexia/core typecheck
 ```
+
 Expected: no errors.
 
 - [ ] **Step 9: Commit**
@@ -404,12 +417,14 @@ git commit -m "feat(nhi): add agent identity constants and audit logger"
 ## Task 3: NHI Logging en Agentes + Redacción en Audit Log al Bloquear
 
 **Files:**
+
 - Modify: `packages/core/src/agents/orchestrator/triage.ts`
 - Modify: `packages/core/src/agents/normativa/agent.ts`
 - Modify: `packages/core/src/agents/eligibility/agent.ts`
 - Modify: `apps/api/src/routes/messages.ts`
 
 ### ¿Qué hace?
+
 1. Cada llamada LLM de agente escribe en audit_log con su identidad NHI.
 2. Cuando `lexiaResult.blocked === true`, messages.ts escribe un audit_log entry con la query **redactada** (`[REDACTED]`), no en claro.
 
@@ -483,10 +498,11 @@ export interface EligibilityAgentInput {
 ```
 
 Y en el call desde `graph.ts`:
+
 ```typescript
 const result = await runEligibilityAgent({
   content: triage.subQuery,
-  userId: input.userId,   // ← añadir
+  userId: input.userId, // ← añadir
   caseData: input.caseData,
   conversationHistory: input.conversationHistory,
 });
@@ -508,7 +524,7 @@ if (lexiaResult.blocked) {
     targetId: conversationId,
     details: {
       reason: lexiaResult.blockReason,
-      query: '[REDACTED]',  // ← no persistir la query bloqueada en audit_log
+      query: '[REDACTED]', // ← no persistir la query bloqueada en audit_log
     },
     traceId: lexiaResult.traceId ?? null,
   });
@@ -521,6 +537,7 @@ if (lexiaResult.blocked) {
 pnpm --filter @lexia/core typecheck
 pnpm --filter @lexia/api typecheck
 ```
+
 Expected: no errors.
 
 - [ ] **Step 6: Commit**
@@ -536,6 +553,7 @@ git commit -m "feat(nhi): log agent actions to audit_log + redact blocked querie
 ## Task 4: Input Guardrail Step 3 — LLM-Judge Jailbreak
 
 **Files:**
+
 - Create: `packages/core/src/guardrails/input/llmJudgeJailbreak.ts`
 - Create: `packages/core/tests/guardrails/llmJudge.test.ts`
 - Modify: `packages/core/src/guardrails/input/index.ts` (pipeline se vuelve async)
@@ -544,6 +562,7 @@ git commit -m "feat(nhi): log agent actions to audit_log + redact blocked querie
 - Modify: `packages/core/tests/lexiaCore.test.ts` (async updates)
 
 ### ¿Qué hace?
+
 Añade un tercer paso al input pipeline: un LLM judge (Haiku 4.5) que detecta jailbreaks sofisticados que el keyword blocklist no captura. Si `confidence >= 0.7` y `isJailbreak: true` → bloquea. Fail-open: si el API key no está disponible o hay error, devuelve `false` (no bloquea).
 
 **Importante:** Este paso hace que `runInputPipeline` sea `async`. Todos los callers necesitan `await`.
@@ -618,6 +637,7 @@ describe('llmJudgeJailbreak', () => {
 ```powershell
 pnpm vitest run tests/guardrails/llmJudge.test.ts
 ```
+
 Expected: FAIL — "Cannot find module"
 
 - [ ] **Step 3: Crear `packages/core/src/guardrails/input/llmJudgeJailbreak.ts`**
@@ -662,6 +682,7 @@ export async function llmJudgeJailbreak(text: string): Promise<boolean> {
 ```powershell
 pnpm vitest run tests/guardrails/llmJudge.test.ts
 ```
+
 Expected: PASS (4 tests)
 
 - [ ] **Step 5: Actualizar `packages/core/src/guardrails/input/index.ts` (async pipeline)**
@@ -671,7 +692,11 @@ import { redactPII } from './regexPIIRedactor.js';
 import { checkKeywordBlocklist } from './keywordBlocklist.js';
 import { llmJudgeJailbreak } from './llmJudgeJailbreak.js';
 
-export type BlockReason = 'jailbreak_attempt' | 'pii_detected' | 'special_category_detected' | 'budget_exceeded';
+export type BlockReason =
+  | 'jailbreak_attempt'
+  | 'pii_detected'
+  | 'special_category_detected'
+  | 'budget_exceeded';
 
 export interface InputPipelineResult {
   sanitized: string;
@@ -688,13 +713,25 @@ export async function runInputPipeline(text: string): Promise<InputPipelineResul
 
   // Step 2: Keyword blocklist (sync, fast)
   if (checkKeywordBlocklist(sanitized1)) {
-    return { sanitized: sanitized1, blocked: true, reason: 'jailbreak_attempt', hadPII, hadSpecialCategory: false };
+    return {
+      sanitized: sanitized1,
+      blocked: true,
+      reason: 'jailbreak_attempt',
+      hadPII,
+      hadSpecialCategory: false,
+    };
   }
 
   // Step 3: LLM-judge jailbreak (async, Haiku)
   const isLlmJailbreak = await llmJudgeJailbreak(sanitized1);
   if (isLlmJailbreak) {
-    return { sanitized: sanitized1, blocked: true, reason: 'jailbreak_attempt', hadPII, hadSpecialCategory: false };
+    return {
+      sanitized: sanitized1,
+      blocked: true,
+      reason: 'jailbreak_attempt',
+      hadPII,
+      hadSpecialCategory: false,
+    };
   }
 
   return { sanitized: sanitized1, blocked: false, hadPII, hadSpecialCategory: false };
@@ -706,10 +743,13 @@ Nota: `hadSpecialCategory` y el step 4 se añaden en Task 5.
 - [ ] **Step 6: Actualizar `packages/core/src/lexiaCore.ts`**
 
 Cambiar la línea:
+
 ```typescript
 const inputResult = runInputPipeline(input.content);
 ```
+
 Por:
+
 ```typescript
 const inputResult = await runInputPipeline(input.content);
 ```
@@ -739,7 +779,9 @@ describe('runInputPipeline', () => {
   });
 
   it('redacts email addresses from input', async () => {
-    const result = await runInputPipeline('Mi email es john@example.com ¿puedo pedir la nacionalidad?');
+    const result = await runInputPipeline(
+      'Mi email es john@example.com ¿puedo pedir la nacionalidad?',
+    );
     expect(result.blocked).toBe(false);
     expect(result.sanitized).not.toContain('john@example.com');
     expect(result.sanitized).toContain('[EMAIL]');
@@ -791,6 +833,7 @@ describe('runInputPipeline', () => {
 ```powershell
 pnpm vitest run tests/guardrails/input.test.ts
 ```
+
 Expected: PASS (8 tests)
 
 - [ ] **Step 9: Ejecutar tests de lexiaCore**
@@ -798,6 +841,7 @@ Expected: PASS (8 tests)
 ```powershell
 pnpm vitest run tests/lexiaCore.test.ts
 ```
+
 Expected: PASS (los tests de lexiaCore mockean el orquestador, el pipeline async se resuelve correctamente)
 
 - [ ] **Step 10: Typecheck**
@@ -805,6 +849,7 @@ Expected: PASS (los tests de lexiaCore mockean el orquestador, el pipeline async
 ```powershell
 pnpm --filter @lexia/core typecheck
 ```
+
 Expected: no errors.
 
 - [ ] **Step 11: Commit**
@@ -821,11 +866,13 @@ git commit -m "feat(guardrails): add async LLM-judge jailbreak as input step 3"
 ## Task 5: Input Guardrail Step 4 — Special Category Minimizer (GDPR Art. 9)
 
 **Files:**
+
 - Create: `packages/core/src/guardrails/input/specialCategoryMinimizer.ts`
 - Create: `packages/core/tests/guardrails/specialCategory.test.ts`
 - Modify: `packages/core/src/guardrails/input/index.ts`
 
 ### ¿Qué hace?
+
 Detecta datos de categoría especial (Art. 9 GDPR): orientación sexual, religión, condición de salud, opiniones políticas. En lugar de bloquear, **reemplaza** el texto sensible con un placeholder genérico. El usuario puede seguir usando el sistema y la consulta se procesa, pero la información personal sensible no se persiste en claro.
 
 - [ ] **Step 1: Escribir el test para specialCategoryMinimizer**
@@ -877,6 +924,7 @@ describe('minimizeSpecialCategories', () => {
 ```powershell
 pnpm vitest run tests/guardrails/specialCategory.test.ts
 ```
+
 Expected: FAIL — "Cannot find module"
 
 - [ ] **Step 3: Crear `packages/core/src/guardrails/input/specialCategoryMinimizer.ts`**
@@ -888,7 +936,8 @@ const SPECIAL_CATEGORY_PATTERNS: Array<{ pattern: RegExp; replacement: string }>
     replacement: '[orientación_sexual]',
   },
   {
-    pattern: /\b(soy (musulmán|musulmana|cristiano|cristiana|judío|judía|budista|ateo|atea)|mi (religión|fe) es)\b/gi,
+    pattern:
+      /\b(soy (musulmán|musulmana|cristiano|cristiana|judío|judía|budista|ateo|atea)|mi (religión|fe) es)\b/gi,
     replacement: '[creencia_religiosa]',
   },
   {
@@ -896,7 +945,8 @@ const SPECIAL_CATEGORY_PATTERNS: Array<{ pattern: RegExp; replacement: string }>
     replacement: '[opinión_política]',
   },
   {
-    pattern: /\b(tengo (VIH|SIDA|cáncer|diabetes|epilepsia|esclerosis)|diagnóstico de [a-záéíóú]+)\b/gi,
+    pattern:
+      /\b(tengo (VIH|SIDA|cáncer|diabetes|epilepsia|esclerosis)|diagnóstico de [a-záéíóú]+)\b/gi,
     replacement: '[dato_salud]',
   },
 ];
@@ -927,6 +977,7 @@ export function minimizeSpecialCategories(text: string): SpecialCategoryResult {
 ```powershell
 pnpm vitest run tests/guardrails/specialCategory.test.ts
 ```
+
 Expected: PASS (5 tests)
 
 - [ ] **Step 5: Integrar en `packages/core/src/guardrails/input/index.ts` como step 4**
@@ -939,7 +990,11 @@ import { checkKeywordBlocklist } from './keywordBlocklist.js';
 import { llmJudgeJailbreak } from './llmJudgeJailbreak.js';
 import { minimizeSpecialCategories } from './specialCategoryMinimizer.js';
 
-export type BlockReason = 'jailbreak_attempt' | 'pii_detected' | 'special_category_detected' | 'budget_exceeded';
+export type BlockReason =
+  | 'jailbreak_attempt'
+  | 'pii_detected'
+  | 'special_category_detected'
+  | 'budget_exceeded';
 
 export interface InputPipelineResult {
   sanitized: string;
@@ -954,12 +1009,24 @@ export async function runInputPipeline(text: string): Promise<InputPipelineResul
   const hadPII = sanitized1 !== text;
 
   if (checkKeywordBlocklist(sanitized1)) {
-    return { sanitized: sanitized1, blocked: true, reason: 'jailbreak_attempt', hadPII, hadSpecialCategory: false };
+    return {
+      sanitized: sanitized1,
+      blocked: true,
+      reason: 'jailbreak_attempt',
+      hadPII,
+      hadSpecialCategory: false,
+    };
   }
 
   const isLlmJailbreak = await llmJudgeJailbreak(sanitized1);
   if (isLlmJailbreak) {
-    return { sanitized: sanitized1, blocked: true, reason: 'jailbreak_attempt', hadPII, hadSpecialCategory: false };
+    return {
+      sanitized: sanitized1,
+      blocked: true,
+      reason: 'jailbreak_attempt',
+      hadPII,
+      hadSpecialCategory: false,
+    };
   }
 
   // Step 4: Special category minimization (GDPR Art. 9) — minimizes, does not block
@@ -974,6 +1041,7 @@ export async function runInputPipeline(text: string): Promise<InputPipelineResul
 ```powershell
 pnpm vitest run
 ```
+
 Expected: PASS
 
 - [ ] **Step 7: Commit**
@@ -990,11 +1058,13 @@ git commit -m "feat(guardrails): add GDPR Art.9 special category minimizer as in
 ## Task 6: Crisis Detection + Inyección de Recursos CEAR
 
 **Files:**
+
 - Create: `packages/core/src/guardrails/input/crisisDetector.ts`
 - Create: `packages/core/tests/guardrails/crisisDetector.test.ts`
 - Modify: `packages/core/src/lexiaCore.ts`
 
 ### ¿Qué hace?
+
 Detecta señales de crisis (deportación inminente, violencia, sin techo, menor solo). No bloquea la consulta, pero: (1) inyecta un bloque con recursos CEAR/016 al inicio de la respuesta, (2) registra en audit_log como `escalation_risk`. Cumple el add-on E del spec §4.5.
 
 - [ ] **Step 1: Escribir el test para crisisDetector**
@@ -1048,6 +1118,7 @@ describe('detectCrisis', () => {
 ```powershell
 pnpm vitest run tests/guardrails/crisisDetector.test.ts
 ```
+
 Expected: FAIL
 
 - [ ] **Step 3: Crear `packages/core/src/guardrails/input/crisisDetector.ts`**
@@ -1060,19 +1131,23 @@ interface CrisisPattern {
 
 const CRISIS_PATTERNS: CrisisPattern[] = [
   {
-    pattern: /\b(me van a deportar|deportaci[oó]n inminente|expulsi[oó]n en \d+|mañana me expulsan|en \d+ d[ií]as? (me expulsan|deportan))\b/i,
+    pattern:
+      /\b(me van a deportar|deportaci[oó]n inminente|expulsi[oó]n en \d+|mañana me expulsan|en \d+ d[ií]as? (me expulsan|deportan))\b/i,
     type: 'deportation_imminent',
   },
   {
-    pattern: /\b(violencia|maltrato|me pega|amenaz(a|as|an)|peligro de vida|016|agresor|abuso (físico|sexual))\b/i,
+    pattern:
+      /\b(violencia|maltrato|me pega|amenaz(a|as|an)|peligro de vida|016|agresor|abuso (físico|sexual))\b/i,
     type: 'gender_violence',
   },
   {
-    pattern: /\b(sin (techo|alojamiento|casa|donde dormir)|en la calle|desahucio|me echan de casa)\b/i,
+    pattern:
+      /\b(sin (techo|alojamiento|casa|donde dormir)|en la calle|desahucio|me echan de casa)\b/i,
     type: 'no_housing',
   },
   {
-    pattern: /\b(menor (solo|sin documentos|sin papeles|sin adulto)|hijo menor.{0,30}(solo|sin)|niño (abandonado|sin padres))\b/i,
+    pattern:
+      /\b(menor (solo|sin documentos|sin papeles|sin adulto)|hijo menor.{0,30}(solo|sin)|niño (abandonado|sin padres))\b/i,
     type: 'unaccompanied_minor',
   },
 ];
@@ -1108,21 +1183,25 @@ export const CRISIS_RESOURCES_BLOCK = `
 ```powershell
 pnpm vitest run tests/guardrails/crisisDetector.test.ts
 ```
+
 Expected: PASS (6 tests)
 
 - [ ] **Step 5: Modificar `packages/core/src/lexiaCore.ts` para inyectar recursos de crisis**
 
 Añadir import:
+
 ```typescript
 import { detectCrisis, CRISIS_RESOURCES_BLOCK } from './guardrails/input/crisisDetector.js';
 ```
 
 Después del `guardSpan.end(...)` y antes del check de `inputResult.blocked`:
+
 ```typescript
 const crisisResult = detectCrisis(input.content);
 ```
 
 Después de construir `finalResult`, antes de `trace.end(...)`:
+
 ```typescript
 if (crisisResult.hasCrisis) {
   finalResult.response = CRISIS_RESOURCES_BLOCK + finalResult.response;
@@ -1132,6 +1211,7 @@ if (crisisResult.hasCrisis) {
 ```
 
 Para el audit log del crisis, añadir import de auditLogger y AGENT_IDENTITIES (ya disponibles en core tras Task 2), y escribir:
+
 ```typescript
 import { logAgentAction } from './nhi/auditLogger.js';
 
@@ -1152,6 +1232,7 @@ if (crisisResult.hasCrisis) {
 - [ ] **Step 6: Actualizar tests de lexiaCore para crisis injection**
 
 En `packages/core/tests/lexiaCore.test.ts`, añadir un test:
+
 ```typescript
 it('inyecta recursos CEAR cuando detecta crisis en el input', async () => {
   const result = await runLexiaCore({
@@ -1169,6 +1250,7 @@ it('inyecta recursos CEAR cuando detecta crisis en el input', async () => {
 ```powershell
 pnpm vitest run
 ```
+
 Expected: PASS
 
 - [ ] **Step 8: Commit**
@@ -1186,11 +1268,13 @@ git commit -m "feat(security): add crisis detection with CEAR resources injectio
 ## Task 7: Validator LLM — Dual-LLM Pattern Completo
 
 **Files:**
+
 - Create: `packages/core/src/agents/validator/index.ts`
 - Create: `packages/core/tests/agents/validator.test.ts`
 - Modify: `packages/core/src/agents/orchestrator/graph.ts`
 
 ### ¿Qué hace?
+
 Implementa el tercer LLM del dual-LLM pattern (§4.3 del spec). El Validator recibe el output del Specialist (NormativaAgent o EligibilityAgent) y verifica: (1) tiene citas, (2) no da consejo jurídico accionable, (3) no tiene PII. Si falla → canned response. Fail-open: si el API key no está disponible, valida como `true`.
 
 - [ ] **Step 1: Escribir el test para Validator**
@@ -1256,6 +1340,7 @@ describe('runValidatorAgent', () => {
 ```powershell
 pnpm vitest run tests/agents/validator.test.ts
 ```
+
 Expected: FAIL
 
 - [ ] **Step 3: Crear `packages/core/src/agents/validator/index.ts`**
@@ -1281,10 +1366,7 @@ export interface ValidatorResult {
   reason: string;
 }
 
-export async function runValidatorAgent(
-  response: string,
-  route: string,
-): Promise<ValidatorResult> {
+export async function runValidatorAgent(response: string, route: string): Promise<ValidatorResult> {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey || route === 'out_of_scope') {
     return { valid: true, reason: 'skipped' };
@@ -1311,6 +1393,7 @@ export async function runValidatorAgent(
 ```powershell
 pnpm vitest run tests/agents/validator.test.ts
 ```
+
 Expected: PASS (4 tests)
 
 - [ ] **Step 5: Modificar `packages/core/src/agents/orchestrator/graph.ts`**
@@ -1384,6 +1467,7 @@ vi.mock('../../src/agents/validator/index.js', () => ({
 ```powershell
 pnpm vitest run
 ```
+
 Expected: PASS
 
 - [ ] **Step 8: Commit**
@@ -1401,12 +1485,14 @@ git commit -m "feat(agents): add Validator LLM completing dual-LLM pattern (Plan
 ## Task 8: Output Guardrail Step 2 — Legal Advice Detector
 
 **Files:**
+
 - Create: `packages/core/src/guardrails/output/legalAdviceDetector.ts`
 - Create: `packages/core/tests/guardrails/legalAdvice.test.ts`
 - Modify: `packages/core/src/guardrails/output/index.ts`
 - Modify: `packages/core/src/lexiaCore.ts`
 
 ### ¿Qué hace?
+
 Detecta si el output del LLM contiene consejo jurídico accionable (patrones de "en tu caso debes hacer X"). Si lo detecta, reemplaza la respuesta con una derivación a abogado/gestor. Se hace con regex rápido (sin LLM) para minimizar latencia. Inserta la detección como step 2 del output pipeline.
 
 - [ ] **Step 1: Escribir el test para legalAdviceDetector**
@@ -1439,7 +1525,8 @@ describe('detectLegalAdvice', () => {
   });
 
   it('returns false for a general explanation', () => {
-    const text = 'Los solicitantes deben residir legalmente en España durante el período requerido.';
+    const text =
+      'Los solicitantes deben residir legalmente en España durante el período requerido.';
     expect(detectLegalAdvice(text)).toBe(false);
   });
 });
@@ -1450,6 +1537,7 @@ describe('detectLegalAdvice', () => {
 ```powershell
 pnpm vitest run tests/guardrails/legalAdvice.test.ts
 ```
+
 Expected: FAIL
 
 - [ ] **Step 3: Crear `packages/core/src/guardrails/output/legalAdviceDetector.ts`**
@@ -1474,6 +1562,7 @@ export function detectLegalAdvice(text: string): boolean {
 ```powershell
 pnpm vitest run tests/guardrails/legalAdvice.test.ts
 ```
+
 Expected: PASS (5 tests)
 
 - [ ] **Step 5: Modificar `packages/core/src/guardrails/output/index.ts`**
@@ -1517,6 +1606,7 @@ export function runOutputPipeline(text: string): OutputPipelineResult {
 - [ ] **Step 6: Actualizar `packages/core/tests/guardrails/output.test.ts`**
 
 Añadir un test para legal advice detection (sin cambiar los existentes):
+
 ```typescript
 it('replaces legal advice response with canned response', () => {
   const result = runOutputPipeline('Te recomiendo que presentes el formulario urgentemente.');
@@ -1531,6 +1621,7 @@ it('replaces legal advice response with canned response', () => {
 ```powershell
 pnpm vitest run
 ```
+
 Expected: PASS
 
 - [ ] **Step 8: Commit**
@@ -1548,11 +1639,13 @@ git commit -m "feat(guardrails): add legal advice detector as output step 2"
 ## Task 9: Output Guardrail Step 3 — PII Output Redactor
 
 **Files:**
+
 - Create: `packages/core/src/guardrails/output/piiOutputRedactor.ts`
 - Create: `packages/core/tests/guardrails/piiOutputRedactor.test.ts`
 - Modify: `packages/core/src/guardrails/output/index.ts`
 
 ### ¿Qué hace?
+
 Redacta PII que el LLM haya podido "inventar" o repetir en su output (emails, DNIs, NIEs, IBANs, teléfonos). Step 3 del output pipeline.
 
 - [ ] **Step 1: Escribir el test para piiOutputRedactor**
@@ -1600,6 +1693,7 @@ describe('redactPIIFromOutput', () => {
 ```powershell
 pnpm vitest run tests/guardrails/piiOutputRedactor.test.ts
 ```
+
 Expected: FAIL
 
 - [ ] **Step 3: Crear `packages/core/src/guardrails/output/piiOutputRedactor.ts`**
@@ -1627,11 +1721,13 @@ export function redactPIIFromOutput(text: string): string {
 ```powershell
 pnpm vitest run tests/guardrails/piiOutputRedactor.test.ts
 ```
+
 Expected: PASS (5 tests)
 
 - [ ] **Step 5: Integrar en `packages/core/src/guardrails/output/index.ts` como step 3**
 
 Añadir import y paso:
+
 ```typescript
 import { redactPIIFromOutput } from './piiOutputRedactor.js';
 
@@ -1641,6 +1737,7 @@ const withDisclaimer = injectDisclaimer(sanitizedText);
 ```
 
 El archivo completo queda:
+
 ```typescript
 import { checkForCitations } from './citationEnforcer.js';
 import { injectDisclaimer } from './disclaimerInjector.js';
@@ -1676,6 +1773,7 @@ export function runOutputPipeline(text: string): OutputPipelineResult {
 ```powershell
 pnpm vitest run
 ```
+
 Expected: PASS
 
 - [ ] **Step 7: Commit**
@@ -1692,6 +1790,7 @@ git commit -m "feat(guardrails): add PII output redactor as output step 3 (compl
 ## Task 10: Per-User Budget + /me/usage Endpoint
 
 **Files:**
+
 - Create: `packages/core/src/budget/tokenBudget.ts`
 - Create: `packages/core/tests/budget/tokenBudget.test.ts`
 - Modify: `packages/db/src/schema/infrastructure.ts`
@@ -1699,6 +1798,7 @@ git commit -m "feat(guardrails): add PII output redactor as output step 3 (compl
 - Modify: `apps/api/src/routes/me.ts`
 
 ### ¿Qué hace?
+
 Implementa el per-user budget (add-on G del spec §4.5): free tier de 50k tokens/mes. Si el usuario supera el límite, recibe una respuesta enlatada. Expone `/api/me/usage` para que el front pueda mostrar el consumo. Requiere añadir una unique constraint a `token_usage(user_id, period_month)` para el upsert con Drizzle.
 
 - [ ] **Step 1: Escribir el test para tokenBudget**
@@ -1732,6 +1832,7 @@ describe('tokenBudget', () => {
 ```powershell
 pnpm vitest run tests/budget/tokenBudget.test.ts
 ```
+
 Expected: FAIL
 
 - [ ] **Step 3: Crear `packages/core/src/budget/tokenBudget.ts`**
@@ -1788,6 +1889,7 @@ export async function recordUsage(
 ```powershell
 pnpm vitest run tests/budget/tokenBudget.test.ts
 ```
+
 Expected: PASS (3 tests)
 
 - [ ] **Step 5: Añadir unique constraint a `packages/db/src/schema/infrastructure.ts`**
@@ -1807,7 +1909,9 @@ import { boolean, index, integer, pgTable, text, timestamp, uniqueIndex, uuid } 
 ```powershell
 pnpm --filter @lexia/db db:generate
 ```
+
 Expected: genera un archivo `packages/db/migrations/0003_token_usage_unique.sql` con:
+
 ```sql
 ALTER TABLE "token_usage" ADD CONSTRAINT "token_usage_user_period_idx" UNIQUE("user_id","period_month");
 ```
@@ -1818,6 +1922,7 @@ Verificar el archivo generado y confirmar que el SQL es correcto.
 # Aplicar en la DB local
 pnpm --filter @lexia/db db:migrate
 ```
+
 Expected: migración aplicada sin errores (requiere docker compose up -d postgres).
 
 - [ ] **Step 7: Modificar `packages/core/src/lexiaCore.ts` — budget check y record usage**
@@ -1836,10 +1941,11 @@ function getCoreDb() {
 ```
 
 Añadir canned response para budget_exceeded en `CANNED_RESPONSES`:
+
 ```typescript
 const CANNED_RESPONSES: Record<BlockReason, string> = {
-  jailbreak_attempt: '...',  // existente
-  pii_detected: '...',       // existente
+  jailbreak_attempt: '...', // existente
+  pii_detected: '...', // existente
   special_category_detected:
     'He detectado información de categoría especial en tu consulta. Por protección de tus datos, no persisto esta información. Por favor, reformula tu pregunta sin incluir datos sensibles de identidad personal.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*',
   budget_exceeded:
@@ -1848,6 +1954,7 @@ const CANNED_RESPONSES: Record<BlockReason, string> = {
 ```
 
 En `runLexiaCore`, después de la traza y ANTES del guardrail de input:
+
 ```typescript
 // Budget check
 const coreDb = getCoreDb();
@@ -1867,12 +1974,11 @@ if (coreDb) {
 ```
 
 Después de construir `finalResult`, antes de `trace.end(...)`:
+
 ```typescript
 // Record usage (approx: (input + output) chars / 4 ≈ tokens)
 if (coreDb) {
-  const estimatedTokens = Math.ceil(
-    (input.content.length + finalResult.response.length) / 4,
-  );
+  const estimatedTokens = Math.ceil((input.content.length + finalResult.response.length) / 4);
   await recordUsage(input.userId, estimatedTokens, coreDb).catch(() => {});
 }
 ```
@@ -1880,6 +1986,7 @@ if (coreDb) {
 - [ ] **Step 8: Añadir `/api/me/usage` en `apps/api/src/routes/me.ts`**
 
 Añadir al final de `meRoute`, antes del cierre:
+
 ```typescript
 app.get('/api/me/usage', { preHandler: [requireAuth] }, async (request) => {
   const period = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`;
@@ -1890,10 +1997,7 @@ app.get('/api/me/usage', { preHandler: [requireAuth] }, async (request) => {
     })
     .from(schema.tokenUsage)
     .where(
-      and(
-        eq(schema.tokenUsage.userId, request.userId),
-        eq(schema.tokenUsage.periodMonth, period),
-      ),
+      and(eq(schema.tokenUsage.userId, request.userId), eq(schema.tokenUsage.periodMonth, period)),
     );
 
   const tokensUsed = rows[0]?.tokensUsed ?? 0;
@@ -1908,6 +2012,7 @@ app.get('/api/me/usage', { preHandler: [requireAuth] }, async (request) => {
 ```
 
 Añadir `and` al import de drizzle:
+
 ```typescript
 import { eq, and } from 'drizzle-orm';
 ```
@@ -1919,6 +2024,7 @@ pnpm --filter @lexia/core typecheck
 pnpm --filter @lexia/api typecheck
 pnpm --filter @lexia/db typecheck
 ```
+
 Expected: no errors.
 
 - [ ] **Step 10: Commit**
@@ -1938,11 +2044,13 @@ git commit -m "feat(budget): add per-user token budget (50k/month) + GET /api/me
 ## Task 11: PDF Sanitization en Document Upload
 
 **Files:**
+
 - Create: `packages/core/src/storage/pdfSanitizer.ts`
 - Create: `packages/core/tests/storage/pdfSanitizer.test.ts`
 - Modify: `apps/api/src/routes/documents.ts`
 
 ### ¿Qué hace?
+
 Valida PDFs subidos por el usuario antes de almacenarlos en MinIO. Rechaza PDFs con JavaScript embebido, formularios activos u otros elementos que puedan ser vectores de prompt injection. Un PDF limpio pasa y se almacena con `status: 'pending'`; uno malicioso → `status: 'rejected'` y 400.
 
 - [ ] **Step 1: Escribir el test para pdfSanitizer**
@@ -1993,6 +2101,7 @@ describe('sanitizePdf', () => {
 ```powershell
 pnpm vitest run tests/storage/pdfSanitizer.test.ts
 ```
+
 Expected: FAIL
 
 - [ ] **Step 3: Crear `packages/core/src/storage/pdfSanitizer.ts`**
@@ -2036,11 +2145,13 @@ export const MAX_PDF_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 ```powershell
 pnpm vitest run tests/storage/pdfSanitizer.test.ts
 ```
+
 Expected: PASS (5 tests)
 
 - [ ] **Step 5: Modificar `apps/api/src/routes/documents.ts`**
 
 Añadir import:
+
 ```typescript
 import { sanitizePdf, MAX_PDF_SIZE_BYTES } from '@lexia/core/storage';
 ```
@@ -2054,8 +2165,7 @@ if (buffer.length > MAX_PDF_SIZE_BYTES) {
 }
 
 // Sanitización de PDFs
-const isPdf =
-  data.mimetype === 'application/pdf' || (data.filename.toLowerCase().endsWith('.pdf'));
+const isPdf = data.mimetype === 'application/pdf' || data.filename.toLowerCase().endsWith('.pdf');
 if (isPdf) {
   const sanitization = sanitizePdf(buffer);
   if (!sanitization.safe) {
@@ -2068,12 +2178,15 @@ if (isPdf) {
       sizeBytes: buffer.length,
       mimeType: data.mimetype,
     });
-    return reply.status(400).send({ error: 'PDF_SANITIZATION_FAILED', reason: sanitization.reason });
+    return reply
+      .status(400)
+      .send({ error: 'PDF_SANITIZATION_FAILED', reason: sanitization.reason });
   }
 }
 ```
 
 También actualizar el export en `packages/core/src/storage/index.ts` para incluir `pdfSanitizer`:
+
 ```typescript
 export * from './pdfSanitizer.js';
 ```
@@ -2084,6 +2197,7 @@ export * from './pdfSanitizer.js';
 pnpm --filter @lexia/api typecheck
 pnpm --filter @lexia/core typecheck
 ```
+
 Expected: no errors.
 
 - [ ] **Step 7: Commit**
@@ -2100,16 +2214,19 @@ git commit -m "feat(security): PDF sanitization on upload — reject JS/Launch e
 ## Task 12: DPIA Draft + Exportaciones Finales + Version Bump
 
 **Files:**
+
 - Create: `docs/compliance/dpia.md`
 - Modify: `packages/core/src/index.ts`
 
 ### ¿Qué hace?
+
 Escribe el primer borrador del DPIA (Data Protection Impact Assessment, Art. 35 GDPR) y actualiza el índice de exportaciones del core con los nuevos módulos. La versión de core sube a `0.3.0`.
 
 - [ ] **Step 1: Crear `docs/compliance/dpia.md`**
 
 ```markdown
 # DPIA — Data Protection Impact Assessment
+
 **Proyecto:** Lexia — Asistente informativo de extranjería  
 **Versión:** 0.1 (borrador)  
 **Fecha:** 2026-05-20  
@@ -2120,50 +2237,51 @@ Escribe el primer borrador del DPIA (Data Protection Impact Assessment, Art. 35 
 
 ## 1. Descripción del tratamiento
 
-| Campo | Detalle |
-|---|---|
-| Nombre del tratamiento | Asistencia informativa sobre nacionalidad española por residencia |
-| Responsable del tratamiento | Facundo Herrera (proyecto educativo Máster IA Generativa) |
-| Finalidad principal | Responder preguntas sobre el proceso de obtención de nacionalidad española |
-| Base jurídica | Consentimiento explícito del usuario (Art. 6.1.a GDPR) |
-| Categorías de datos tratados | Datos identificativos (email, nombre), datos de inmigración (país de origen, fecha de llegada, estado de residencia), historial de conversaciones |
-| Categorías especiales (Art. 9) | Posiblemente implícitas en consultas de asilo, religión, orientación sexual — minimizadas por guardrail |
-| Destinatarios | Ninguno (no se comparten datos con terceros, excepto procesadores: Anthropic API, Langfuse self-hosted) |
+| Campo                          | Detalle                                                                                                                                                 |
+| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Nombre del tratamiento         | Asistencia informativa sobre nacionalidad española por residencia                                                                                       |
+| Responsable del tratamiento    | Facundo Herrera (proyecto educativo Máster IA Generativa)                                                                                               |
+| Finalidad principal            | Responder preguntas sobre el proceso de obtención de nacionalidad española                                                                              |
+| Base jurídica                  | Consentimiento explícito del usuario (Art. 6.1.a GDPR)                                                                                                  |
+| Categorías de datos tratados   | Datos identificativos (email, nombre), datos de inmigración (país de origen, fecha de llegada, estado de residencia), historial de conversaciones       |
+| Categorías especiales (Art. 9) | Posiblemente implícitas en consultas de asilo, religión, orientación sexual — minimizadas por guardrail                                                 |
+| Destinatarios                  | Ninguno (no se comparten datos con terceros, excepto procesadores: Anthropic API, Langfuse self-hosted)                                                 |
 | Transferencias internacionales | Anthropic API (USA) — cubierto por SCCs y Transfer Impact Assessment. Langfuse self-hosted en EU (Hetzner Alemania). OpenAI API (fallback, USA) — SCCs. |
-| Período de retención | Conversaciones: 2 años desde último acceso. Documentos: 1 año. Audit log: 3 años. |
+| Período de retención           | Conversaciones: 2 años desde último acceso. Documentos: 1 año. Audit log: 3 años.                                                                       |
 
 ---
 
 ## 2. Necesidad y proporcionalidad
 
-| Criterio | Evaluación |
-|---|---|
+| Criterio                                        | Evaluación                                                                                                                    |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
 | ¿Es necesario el tratamiento para la finalidad? | Sí. Sin historial de conversación no puede darse contexto continuado. Sin caso del usuario, no puede calcularse elegibilidad. |
-| ¿Podría lograrse con menos datos? | Mínimamente. Los datos de caso son opcionales; la conversación es la unidad mínima necesaria. |
-| ¿Es proporcional el tratamiento? | Sí. Los datos recopilados son los estrictamente necesarios para el servicio informativo. |
-| ¿Existe base jurídica adecuada? | Sí: consentimiento (onboarding explícito con ToS y Privacy Policy antes del primer uso). |
-| ¿Se informó a los interesados? | Sí: Privacy Policy visible, aviso "soy IA" en primer mensaje (AI Act Art. 50). |
+| ¿Podría lograrse con menos datos?               | Mínimamente. Los datos de caso son opcionales; la conversación es la unidad mínima necesaria.                                 |
+| ¿Es proporcional el tratamiento?                | Sí. Los datos recopilados son los estrictamente necesarios para el servicio informativo.                                      |
+| ¿Existe base jurídica adecuada?                 | Sí: consentimiento (onboarding explícito con ToS y Privacy Policy antes del primer uso).                                      |
+| ¿Se informó a los interesados?                  | Sí: Privacy Policy visible, aviso "soy IA" en primer mensaje (AI Act Art. 50).                                                |
 
 ---
 
 ## 3. Riesgos identificados
 
-| ID | Riesgo | Probabilidad | Impacto | Medida de mitigación | Riesgo residual |
-|---|---|---|---|---|---|
-| R1 | Filtración de PII por bug de código | Baja | Alto | Field-level AES-256-GCM, ACL por usuario en Chroma, audit log | Bajo |
-| R2 | Exposición de datos por prompt injection | Baja | Medio | Dual-LLM pattern, canary tokens, input guardrails 4 pasos | Bajo |
-| R3 | Inferencia de categorías especiales desde consultas | Media | Medio | Special category minimizer (GDPR Art. 9), no persistencia en claro | Bajo-Medio |
-| R4 | Acceso no autorizado a datos de otro usuario | Muy baja | Crítico | Auth obligatoria, ACL user_id en todas las queries, RLS en Drizzle | Muy bajo |
-| R5 | Transferencia internacional inadecuada (Anthropic/OpenAI USA) | Baja | Alto | SCCs vigentes, Transfer Impact Assessment, EU-only hosting | Bajo |
-| R6 | Retención excesiva de datos de conversación | Media | Medio | Política de retención documentada, endpoint /me/account DELETE | Bajo |
-| R7 | Consejo jurídico accionable generado por LLM | Media | Medio | Legal advice detector (output step 2), Validator LLM, canned response | Bajo |
-| R8 | Breach de base de datos | Muy baja | Crítico | Cifrado field-level, acceso restringido, plan breach 72h (runbooks/) | Bajo |
+| ID  | Riesgo                                                        | Probabilidad | Impacto | Medida de mitigación                                                  | Riesgo residual |
+| --- | ------------------------------------------------------------- | ------------ | ------- | --------------------------------------------------------------------- | --------------- |
+| R1  | Filtración de PII por bug de código                           | Baja         | Alto    | Field-level AES-256-GCM, ACL por usuario en Chroma, audit log         | Bajo            |
+| R2  | Exposición de datos por prompt injection                      | Baja         | Medio   | Dual-LLM pattern, canary tokens, input guardrails 4 pasos             | Bajo            |
+| R3  | Inferencia de categorías especiales desde consultas           | Media        | Medio   | Special category minimizer (GDPR Art. 9), no persistencia en claro    | Bajo-Medio      |
+| R4  | Acceso no autorizado a datos de otro usuario                  | Muy baja     | Crítico | Auth obligatoria, ACL user_id en todas las queries, RLS en Drizzle    | Muy bajo        |
+| R5  | Transferencia internacional inadecuada (Anthropic/OpenAI USA) | Baja         | Alto    | SCCs vigentes, Transfer Impact Assessment, EU-only hosting            | Bajo            |
+| R6  | Retención excesiva de datos de conversación                   | Media        | Medio   | Política de retención documentada, endpoint /me/account DELETE        | Bajo            |
+| R7  | Consejo jurídico accionable generado por LLM                  | Media        | Medio   | Legal advice detector (output step 2), Validator LLM, canned response | Bajo            |
+| R8  | Breach de base de datos                                       | Muy baja     | Crítico | Cifrado field-level, acceso restringido, plan breach 72h (runbooks/)  | Bajo            |
 
 ---
 
 ## 4. Medidas técnicas y organizativas implementadas
 
 ### Técnicas (ya implementadas en Fase 0-4)
+
 - **Cifrado en tránsito**: TLS 1.3 (Caddy reverse proxy)
 - **Cifrado en reposo**: Field-level AES-256-GCM para `cases.country_origin`, `cases.notes`, `documents.filename`
 - **Autenticación**: Better Auth con email verification, password HIBP check, session management
@@ -2182,6 +2300,7 @@ Escribe el primer borrador del DPIA (Data Protection Impact Assessment, Art. 35 
 - **EU-only hosting**: Hetzner Alemania (objetivo producción)
 
 ### Organizativas
+
 - Aviso "soy IA" en primer mensaje de cada conversación (AI Act Art. 50)
 - Disclaimer persistente inyectado por outputPipeline (no removible por prompt injection)
 - AI Act risk classification: Riesgo limitado, no Anexo III — documentado en `docs/compliance/ai_act_classification.md`
@@ -2193,6 +2312,7 @@ Escribe el primer borrador del DPIA (Data Protection Impact Assessment, Art. 35 
 ## 5. Consulta a interesados
 
 Los usuarios son el colectivo interesado. Al ser un proyecto educativo en fase de desarrollo, la consulta formal no se ha realizado. Se han incorporado las siguientes consideraciones de diseño centradas en el usuario:
+
 - Onboarding claro sobre naturaleza del servicio (informativo, no jurídico)
 - Opción de eliminar cuenta y datos en cualquier momento
 - Exportación de datos en cualquier momento
@@ -2208,7 +2328,7 @@ El tratamiento presenta **riesgo residual bajo** tras la aplicación de las medi
 
 ---
 
-*Este DPIA es un borrador para el proyecto de capstone del Máster de IA Generativa. No sustituye asesoramiento legal profesional en materia de protección de datos.*
+_Este DPIA es un borrador para el proyecto de capstone del Máster de IA Generativa. No sustituye asesoramiento legal profesional en materia de protección de datos._
 ```
 
 - [ ] **Step 2: Actualizar `packages/core/src/index.ts`**
@@ -2240,6 +2360,7 @@ pnpm --filter @lexia/api typecheck
 pnpm --filter @lexia/db typecheck
 pnpm --filter @lexia/core test
 ```
+
 Expected: todos los typechecks limpios, todos los tests pasan.
 
 - [ ] **Step 4: Ejecutar lint en todo el monorepo**
@@ -2248,6 +2369,7 @@ Expected: todos los typechecks limpios, todos los tests pasan.
 pnpm --filter @lexia/core lint
 pnpm --filter @lexia/api lint
 ```
+
 Expected: no errores. Ejecutar `pnpm format` si hay warnings de prettier.
 
 - [ ] **Step 5: Commit final**
@@ -2296,4 +2418,7 @@ Antes de marcar Fase 4 como completa, verificar:
 3. **Migración DB**: el `onConflictDoUpdate` de Drizzle requiere que exista la unique constraint en la DB. Si la migración falla, verificar que docker-compose postgres esté corriendo: `docker compose -f docker-compose.dev.yml up -d postgres`.
 
 4. **Orden de los tasks**: Tasks 1-3 son independientes y pueden ejecutarse en paralelo. Tasks 4-9 dependen de que el pipeline async de Task 4 esté en su lugar. Task 10 (PDF) es independiente de 4-9. Task 12 solo puede hacerse cuando todos los anteriores están completos.
+
+```
+
 ```

@@ -12,12 +12,12 @@ pnpm --filter @lexia/web dev
 
 ## Páginas principales
 
-| Ruta | Descripción |
-|---|---|
-| `/` | Landing page |
-| `/chat` | Interfaz de chat principal |
-| `/quiz` | Simulacro CCSE |
-| `/me` | Perfil + exportar datos + borrar cuenta |
+| Ruta    | Descripción                             |
+| ------- | --------------------------------------- |
+| `/`     | Landing page                            |
+| `/chat` | Interfaz de chat principal              |
+| `/quiz` | Simulacro CCSE                          |
+| `/me`   | Perfil + exportar datos + borrar cuenta |
 
 ## Variables de entorno
 

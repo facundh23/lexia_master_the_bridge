@@ -22,7 +22,9 @@ const goldenSet = isSmoke
 console.log(`\n🔍 Lexia Eval Runner`);
 console.log(`Mode: ${isSmoke ? 'SMOKE (5 cases)' : 'FULL (' + goldenSet.cases.length + ' cases)'}`);
 console.log(`Triggered by: ${triggeredBy}`);
-console.log(`Judge model: ${process.env.EVAL_JUDGE_MODEL ?? 'claude-haiku-4-5-20251001 (or deterministic fallback)'}\n`);
+console.log(
+  `Judge model: ${process.env.EVAL_JUDGE_MODEL ?? 'claude-haiku-4-5-20251001 (or deterministic fallback)'}\n`,
+);
 
 const result = await runEval(goldenSet, {
   userId: 'eval-runner-system',

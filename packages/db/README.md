@@ -14,24 +14,27 @@ const db = createDb(process.env.DATABASE_URL!);
 await db.insert(schema.conversations).values({ userId, vertical: 'nacionalidad_residencia' });
 
 // Query
-const convs = await db.select().from(schema.conversations).where(eq(schema.conversations.userId, userId));
+const convs = await db
+  .select()
+  .from(schema.conversations)
+  .where(eq(schema.conversations.userId, userId));
 ```
 
 ## Tablas principales
 
-| Tabla | Descripción |
-|---|---|
-| `users` | Usuarios (Better Auth + role: user/admin/professional) |
-| `conversations` | Conversaciones por usuario |
-| `messages` | Mensajes individuales |
-| `cases` | Datos del caso del usuario (cifrados parcialmente) |
-| `documents` | Documentos subidos (PDF sanitizado) |
-| `audit_log` | Log inmutable de acciones (surface: web/mcp) |
-| `ccse_attempts` | Intentos de simulacro CCSE |
-| `reminders` | Recordatorios programados |
-| `personal_access_tokens` | PATs para surface MCP |
-| `professional_verifications` | Verificación de colegiación |
-| `eval_runs` | Resultados del pipeline de eval |
+| Tabla                        | Descripción                                            |
+| ---------------------------- | ------------------------------------------------------ |
+| `users`                      | Usuarios (Better Auth + role: user/admin/professional) |
+| `conversations`              | Conversaciones por usuario                             |
+| `messages`                   | Mensajes individuales                                  |
+| `cases`                      | Datos del caso del usuario (cifrados parcialmente)     |
+| `documents`                  | Documentos subidos (PDF sanitizado)                    |
+| `audit_log`                  | Log inmutable de acciones (surface: web/mcp)           |
+| `ccse_attempts`              | Intentos de simulacro CCSE                             |
+| `reminders`                  | Recordatorios programados                              |
+| `personal_access_tokens`     | PATs para surface MCP                                  |
+| `professional_verifications` | Verificación de colegiación                            |
+| `eval_runs`                  | Resultados del pipeline de eval                        |
 
 ## Migraciones
 

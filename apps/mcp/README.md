@@ -76,6 +76,7 @@ Busca en el corpus legal de Lexia (BOE, Código Civil, instrucciones DGRN) y dev
 | `vertical` | string | No | Vertical (default: `nacionalidad_residencia`) |
 
 **Ejemplo:**
+
 > "Usa search_corpus_with_citations para saber cuántos años de residencia necesita un cliente colombiano para solicitar la nacionalidad"
 
 ---
@@ -92,6 +93,7 @@ Calcula si un cliente cumple el requisito de años de residencia. Resultado dete
 | `residenceStatus` | string | No | `"refugee"`, `"stateless"`, u omitir para caso general |
 
 **Ejemplo:**
+
 > "Usa compute_eligibility con countryOrigin=colombia, arrivalDate=2021-06-01 para mi cliente"
 
 ---
@@ -106,6 +108,7 @@ Devuelve el checklist de documentación y recordatorios clave para el trámite.
 | `vertical` | string | Sí | Vertical (e.g. `"nacionalidad_residencia"`) |
 
 **Ejemplo:**
+
 > "Usa get_procedure_requirements para ver qué documentos necesita mi cliente para la nacionalidad"
 
 ---
@@ -119,16 +122,17 @@ Devuelve el checklist de documentación y recordatorios clave para el trámite.
 
 ## Troubleshooting
 
-| Error | Causa | Solución |
-|-------|-------|---------|
-| `LEXIA_API_URL y LEXIA_PAT son requeridos` | Variables de entorno no configuradas | Verificar `env` en el config de Claude Desktop / Cursor |
-| `API error 401: PAT inválido o expirado` | PAT revocado o incorrecto | Generar nuevo PAT desde el perfil web |
+| Error                                                           | Causa                                 | Solución                                                |
+| --------------------------------------------------------------- | ------------------------------------- | ------------------------------------------------------- |
+| `LEXIA_API_URL y LEXIA_PAT son requeridos`                      | Variables de entorno no configuradas  | Verificar `env` en el config de Claude Desktop / Cursor |
+| `API error 401: PAT inválido o expirado`                        | PAT revocado o incorrecto             | Generar nuevo PAT desde el perfil web                   |
 | `API error 403: Acceso restringido a profesionales verificados` | Verificación de colegiación pendiente | Contactar al administrador para aprobar la verificación |
-| `API error 404: Vertical no encontrado` | Vertical inexistente | Solo `nacionalidad_residencia` está disponible en MVP |
+| `API error 404: Vertical no encontrado`                         | Vertical inexistente                  | Solo `nacionalidad_residencia` está disponible en MVP   |
 
 ## Soporte
 
 Contactar al administrador de Lexia para:
+
 - Solicitar verificación de colegiación
 - Reportar problemas de acceso
 - Consultar sobre disponibilidad de nuevos verticales

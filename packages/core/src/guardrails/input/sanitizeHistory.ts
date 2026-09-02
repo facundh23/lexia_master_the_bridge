@@ -8,13 +8,11 @@ const SYSTEM_INJECTION_RE =
 export function sanitizeHistory(
   history: Array<{ role: 'user' | 'assistant'; content: string }>,
 ): Array<{ role: 'user' | 'assistant'; content: string }> {
-  return history
-    .slice(-MAX_HISTORY_TURNS)
-    .map((m) => {
-      let content = m.content.slice(0, MAX_TURN_LENGTH);
-      if (SYSTEM_INJECTION_RE.test(content)) {
-        content = '[mensaje eliminado por política de seguridad]';
-      }
-      return { role: m.role, content };
-    });
+  return history.slice(-MAX_HISTORY_TURNS).map((m) => {
+    let content = m.content.slice(0, MAX_TURN_LENGTH);
+    if (SYSTEM_INJECTION_RE.test(content)) {
+      content = '[mensaje eliminado por política de seguridad]';
+    }
+    return { role: m.role, content };
+  });
 }
