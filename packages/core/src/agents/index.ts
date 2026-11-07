@@ -10,6 +10,7 @@ export type {
   OrchestratorOutput,
   CaseData,
   Route,
+  StreamStatus,
 } from './orchestrator/index.js';
 export { generateCcseQuiz, evaluateCcseAnswers } from './ccse/agent.js';
 export type { CCSEQuizResult, CCSEQuizQuestion, CCSEAnswer, CCSEEvalResult } from './ccse/agent.js';

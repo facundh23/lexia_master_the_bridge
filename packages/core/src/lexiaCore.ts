@@ -6,7 +6,7 @@ import { detectCrisis, CRISIS_RESOURCES_BLOCK } from './guardrails/input/crisisD
 import { logAgentAction } from './nhi/auditLogger.js';
 import { AGENT_IDENTITIES } from './nhi/agentIdentities.js';
 import type { BlockReason } from './guardrails/input/index.js';
-import type { CaseData, Route } from './agents/orchestrator/state.js';
+import type { CaseData, Route, StreamStatus } from './agents/orchestrator/state.js';
 import { createDb } from '@lexia/db';
 import { checkBudget, recordUsage } from './budget/tokenBudget.js';
 
@@ -47,6 +47,7 @@ export interface LexiaCoreResult {
 export async function runLexiaCoreStream(
   input: LexiaCoreInput,
   onToken: (token: string) => void,
+  onStatus?: (status: StreamStatus) => void,
 ): Promise<LexiaCoreResult> {
   const trace = await startTrace({
     userId: input.userId,
@@ -99,6 +100,7 @@ export async function runLexiaCoreStream(
       caseData: input.caseData,
     },
     onToken,
+    onStatus,
   );
   orchSpan.end({
     route: orchestratorResult.route,

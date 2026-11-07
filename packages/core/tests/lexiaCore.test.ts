@@ -6,10 +6,17 @@ vi.mock('../src/agents/orchestrator/graph.js', () => ({
     citations: ['Art. 22 del Código Civil'],
     route: 'normativa',
   }),
+  runOrchestratorStream: vi.fn().mockImplementation(async (_input, onToken, onStatus) => {
+    onStatus?.('analyzing');
+    const response = 'Según el Art. 22 del Código Civil, necesitas 10 años de residencia.';
+    onToken(response);
+    return { response, citations: ['Art. 22 del Código Civil'], route: 'normativa' };
+  }),
 }));
 
-import { runLexiaCore } from '../src/lexiaCore.js';
-import { runOrchestrator } from '../src/agents/orchestrator/graph.js';
+import { runLexiaCore, runLexiaCoreStream } from '../src/lexiaCore.js';
+import { runOrchestrator, runOrchestratorStream } from '../src/agents/orchestrator/graph.js';
+import type { StreamStatus } from '../src/index.js';
 
 const baseInput = {
   content: '¿Cuántos años necesito?',
@@ -56,5 +63,23 @@ describe('runLexiaCore', () => {
     expect(result.blocked).toBe(false);
     expect(result.response).toContain('CEAR');
     expect(result.response).toContain('016');
+  });
+});
+
+describe('runLexiaCoreStream', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('pasa onStatus al orquestador', async () => {
+    const onStatus = vi.fn<(status: StreamStatus) => void>();
+    await runLexiaCoreStream(baseInput, () => {}, onStatus);
+    expect(vi.mocked(runOrchestratorStream).mock.calls[0]![2]).toBe(onStatus);
+    expect(onStatus).toHaveBeenCalledWith('analyzing');
+  });
+
+  it('funciona sin onStatus', async () => {
+    const tokens: string[] = [];
+    const result = await runLexiaCoreStream(baseInput, (t) => tokens.push(t));
+    expect(tokens).toHaveLength(1);
+    expect(result.route).toBe('normativa');
   });
 });
