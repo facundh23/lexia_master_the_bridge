@@ -43,7 +43,10 @@ const mockEmbedding = {
 } as unknown as OpenAIEmbeddings;
 
 describe('retrieveWithACL', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockCollection.query.mockResolvedValue(mockQueryResult);
+  });
 
   it('queries Chroma with $and filter for vertical + visibility', async () => {
     await retrieveWithACL(mockChroma, mockEmbedding, 'cuántos años de residencia', {
@@ -76,7 +79,8 @@ describe('retrieveWithACL', () => {
   });
 
   it('filters out null documents', async () => {
-    mockCollection.query.mockResolvedValueOnce({
+    // La búsqueda híbrida consulta Chroma dos veces (densa + por palabras clave): ambas devuelven esto
+    mockCollection.query.mockResolvedValue({
       ids: [['c1', 'c2']],
       documents: [[null, 'Texto válido']],
       distances: [[0.1, 0.2]],
