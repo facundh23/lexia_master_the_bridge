@@ -2,29 +2,13 @@ import { triageQuery } from './triage.js';
 import { runNormativaAgent } from '../normativa/agent.js';
 import { runEligibilityAgent } from '../eligibility/agent.js';
 import { runValidatorAgent } from '../validator/index.js';
-import type {
-  OrchestratorHooks,
-  OrchestratorInput,
-  OrchestratorOutput,
-  StreamStatus,
-} from './state.js';
+import type { OrchestratorHooks, OrchestratorInput, OrchestratorOutput } from './state.js';
 
 const OUT_OF_SCOPE_RESPONSE =
   'Lo siento, tu pregunta está fuera del ámbito de información de Lexia. Estoy especializado en la obtención de la nacionalidad española por residencia. Para otras consultas migratorias te recomiendo contactar con CEAR (cear.es), Cruz Roja o un abogado especializado en extranjería.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*';
 
 const VALIDATOR_REJECTION_RESPONSE =
   'No puedo proporcionar esa información de forma adecuada en este momento. Para consultas sobre la nacionalidad española por residencia, te recomiendo revisar el portal del Ministerio de Justicia (mjusticia.gob.es) o consultar con un abogado especializado en extranjería.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*';
-
-// Valida antes de emitir: el texto llega a onToken una sola vez y ya aprobado por el validator
-export async function runOrchestratorStream(
-  input: OrchestratorInput,
-  onToken: (token: string) => void,
-  onStatus?: (status: StreamStatus) => void,
-): Promise<OrchestratorOutput> {
-  const result = await runOrchestrator(input, { onStatus });
-  onToken(result.response);
-  return result;
-}
 
 export async function runOrchestrator(
   input: OrchestratorInput,

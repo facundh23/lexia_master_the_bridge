@@ -101,7 +101,7 @@ Textos de la web por etapa (`apps/web/app/(app)/chat/page.tsx`):
 | `validating` | Verificando la respuesta… |
 | `retrying`   | Ajustando la respuesta…   |
 
-Invariante: en el camino de streaming, el texto emitido por `onToken` desde el orquestador es exactamente `OrchestratorOutput.response`.
+Invariante: en el camino de streaming, el texto emitido por `onToken` desde `runLexiaCoreStream` es exactamente `LexiaCoreResult.response` (ya validado y con output pipeline y bloque de crisis aplicados). Ver _Cambios durante la implementación_.
 
 Secuencia de etapas por ruta:
 
@@ -170,7 +170,16 @@ Secuencia de etapas por ruta:
 - **Sí:** eliminar `runNormativaAgentStream` y `runEligibilityAgentStream`. Quedan sin uso y no se exportan desde `@lexia/core`.
 - **Sí:** igualar eligibility a normativa con un único reintento con recordatorio de cita.
 - **Sí:** tests de integración sobre la ruta SSE de la API (`@lexia/core` mockeado), porque prueban lo que el cliente realmente recibe. El comportamiento ante rechazo se cubre con los unitarios del orquestador.
-- **Sí:** mantener el evento `replace`. Sigue siendo necesario porque el bloque de crisis y el output pipeline modifican la respuesta después del orquestador.
+- **Sí:** mantener el evento `replace`. Sigue siendo necesario porque el bloque de crisis y el output pipeline modifican la respuesta después del orquestador. _(Revisado durante la implementación: queda solo como red de seguridad, ver abajo.)_
+
+---
+
+## Cambios durante la implementación
+
+La verificación manual en el navegador encontró dos problemas que el plan no anticipaba:
+
+1. **El proxy de Next.js acumulaba el SSE.** En dev, el rewrite `/api/*` comprime con gzip y retenía todos los eventos hasta el final, así que las etapas nunca se veían. Se resolvió con `Cache-Control: no-cache, no-transform` en la ruta SSE (test incluido). En producción no ocurre porque Caddy envía `/api/*` directo a la API.
+2. **`replace` anulaba el revelado progresivo.** El output pipeline modifica casi todas las respuestas (por ejemplo, el disclaimer), así que casi siempre llegaba `replace` a los ~100 ms del token y el texto aparecía de golpe. Decisión: `runLexiaCoreStream` llama a `runOrchestrator` y emite `onToken` **una sola vez, después** del output pipeline y del bloque de crisis. `runOrchestratorStream` queda sin uso y se elimina. `replace` se mantiene en la API solo como red de seguridad.
 
 ---
 

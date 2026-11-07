@@ -1,6 +1,6 @@
 import { runInputPipeline } from './guardrails/input/index.js';
 import { runOutputPipeline } from './guardrails/output/index.js';
-import { runOrchestrator, runOrchestratorStream } from './agents/orchestrator/index.js';
+import { runOrchestrator } from './agents/orchestrator/index.js';
 import { startTrace } from './observability/langfuse.js';
 import { detectCrisis, CRISIS_RESOURCES_BLOCK } from './guardrails/input/crisisDetector.js';
 import { logAgentAction } from './nhi/auditLogger.js';
@@ -91,7 +91,7 @@ export async function runLexiaCoreStream(
   }
 
   const orchSpan = trace.span('orchestrator');
-  const orchestratorResult = await runOrchestratorStream(
+  const orchestratorResult = await runOrchestrator(
     {
       content: inputResult.sanitized,
       conversationHistory: input.conversationHistory,
@@ -99,8 +99,7 @@ export async function runLexiaCoreStream(
       vertical: input.vertical,
       caseData: input.caseData,
     },
-    onToken,
-    onStatus,
+    { onStatus },
   );
   orchSpan.end({
     route: orchestratorResult.route,
@@ -129,6 +128,9 @@ export async function runLexiaCoreStream(
       details: { crisisType: crisisResult.crisisType },
     });
   }
+
+  // Se emite el texto final (validado, con guardrails de salida y crisis aplicados) una sola vez
+  onToken(finalResult.response);
 
   if (coreDb) {
     const estimatedTokens = Math.ceil((input.content.length + finalResult.response.length) / 4);

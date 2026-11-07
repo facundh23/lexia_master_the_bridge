@@ -40,7 +40,7 @@ import { triageQuery } from '../../src/agents/orchestrator/triage.js';
 import { runNormativaAgent } from '../../src/agents/normativa/agent.js';
 import { runEligibilityAgent } from '../../src/agents/eligibility/agent.js';
 import { runValidatorAgent } from '../../src/agents/validator/index.js';
-import { runOrchestrator, runOrchestratorStream } from '../../src/agents/orchestrator/graph.js';
+import { runOrchestrator } from '../../src/agents/orchestrator/graph.js';
 
 describe('triageQuery', () => {
   const baseInput = {
@@ -215,83 +215,5 @@ describe('runOrchestrator — onStatus', () => {
   it('funciona sin hooks', async () => {
     const result = await runOrchestrator(baseOrchestratorInput);
     expect(result.route).toBe('normativa');
-  });
-});
-
-describe('runOrchestratorStream', () => {
-  beforeEach(() => vi.clearAllMocks());
-
-  // Registra tokens y etapas en una sola línea de tiempo para verificar el orden
-  function record() {
-    const events: string[] = [];
-    const tokens: string[] = [];
-    const onToken = (t: string) => {
-      tokens.push(t);
-      events.push('token');
-    };
-    const onStatus = (s: string) => events.push(s);
-    return { events, tokens, onToken, onStatus };
-  }
-
-  it('camino feliz: emite la respuesta validada una sola vez, después de validating', async () => {
-    vi.mocked(triageQuery).mockResolvedValueOnce({
-      route: 'normativa',
-      subQuery: 'años de residencia requeridos',
-    });
-    const { events, tokens, onToken, onStatus } = record();
-    const result = await runOrchestratorStream(baseOrchestratorInput, onToken, onStatus);
-    expect(tokens).toEqual(['Según el Art. 22 CC necesitas 10 años.']);
-    expect(events).toEqual(['analyzing', 'searching', 'validating', 'token']);
-    expect(tokens[0]).toBe(result.response);
-  });
-
-  it('rechazo y reintento válido: el texto rechazado nunca se emite', async () => {
-    vi.mocked(triageQuery).mockResolvedValueOnce({
-      route: 'eligibility',
-      subQuery: '¿ya puedo solicitar?',
-    });
-    vi.mocked(runEligibilityAgent)
-      .mockResolvedValueOnce({ response: 'TEXTO RECHAZADO', citations: [] })
-      .mockResolvedValueOnce({ response: 'Sí, ya puedes (Art. 22.1 CC).', citations: [] });
-    vi.mocked(runValidatorAgent)
-      .mockResolvedValueOnce({ valid: false, reason: 'sin cita' })
-      .mockResolvedValueOnce({ valid: true, reason: 'ok' });
-    const { tokens, onToken } = record();
-    await runOrchestratorStream(baseOrchestratorInput, onToken);
-    expect(tokens).toEqual(['Sí, ya puedes (Art. 22.1 CC).']);
-    expect(tokens.join('')).not.toContain('TEXTO RECHAZADO');
-  });
-
-  it('doble rechazo: solo emite el mensaje de rechazo', async () => {
-    vi.mocked(triageQuery).mockResolvedValueOnce({
-      route: 'normativa',
-      subQuery: 'años de residencia requeridos',
-    });
-    vi.mocked(runValidatorAgent)
-      .mockResolvedValueOnce({ valid: false, reason: 'sin cita' })
-      .mockResolvedValueOnce({ valid: false, reason: 'sigue sin cita' });
-    const { tokens, onToken } = record();
-    await runOrchestratorStream(baseOrchestratorInput, onToken);
-    expect(tokens).toHaveLength(1);
-    expect(tokens[0]).toContain('No puedo proporcionar esa información');
-  });
-
-  it('out_of_scope: emite OUT_OF_SCOPE_RESPONSE', async () => {
-    vi.mocked(triageQuery).mockResolvedValueOnce({
-      route: 'out_of_scope',
-      subQuery: 'receta de paella',
-    });
-    const { tokens, onToken } = record();
-    await runOrchestratorStream(baseOrchestratorInput, onToken);
-    expect(tokens).toHaveLength(1);
-    expect(tokens[0]).toContain('fuera del ámbito');
-  });
-
-  it('error del triage: emite el mensaje de rechazo', async () => {
-    vi.mocked(triageQuery).mockRejectedValueOnce(new Error('boom'));
-    const { tokens, onToken } = record();
-    await runOrchestratorStream(baseOrchestratorInput, onToken);
-    expect(tokens).toHaveLength(1);
-    expect(tokens[0]).toContain('No puedo proporcionar esa información');
   });
 });

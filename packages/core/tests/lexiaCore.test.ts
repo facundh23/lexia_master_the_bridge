@@ -6,16 +6,10 @@ vi.mock('../src/agents/orchestrator/graph.js', () => ({
     citations: ['Art. 22 del Código Civil'],
     route: 'normativa',
   }),
-  runOrchestratorStream: vi.fn().mockImplementation(async (_input, onToken, onStatus) => {
-    onStatus?.('analyzing');
-    const response = 'Según el Art. 22 del Código Civil, necesitas 10 años de residencia.';
-    onToken(response);
-    return { response, citations: ['Art. 22 del Código Civil'], route: 'normativa' };
-  }),
 }));
 
 import { runLexiaCore, runLexiaCoreStream } from '../src/lexiaCore.js';
-import { runOrchestrator, runOrchestratorStream } from '../src/agents/orchestrator/graph.js';
+import { runOrchestrator } from '../src/agents/orchestrator/graph.js';
 import type { StreamStatus } from '../src/index.js';
 
 const baseInput = {
@@ -72,14 +66,39 @@ describe('runLexiaCoreStream', () => {
   it('pasa onStatus al orquestador', async () => {
     const onStatus = vi.fn<(status: StreamStatus) => void>();
     await runLexiaCoreStream(baseInput, () => {}, onStatus);
-    expect(vi.mocked(runOrchestratorStream).mock.calls[0]![2]).toBe(onStatus);
-    expect(onStatus).toHaveBeenCalledWith('analyzing');
+    expect(vi.mocked(runOrchestrator).mock.calls[0]![1]).toEqual({ onStatus });
+  });
+
+  it('emite una sola vez el texto final, ya pasado por los guardrails de salida', async () => {
+    const tokens: string[] = [];
+    const result = await runLexiaCoreStream(baseInput, (t) => tokens.push(t));
+    expect(tokens).toEqual([result.response]);
+    // el disclaimer lo agrega el output pipeline después del orquestador
+    expect(tokens[0]).toContain('NO sustituye');
+  });
+
+  it('emite después de que el orquestador terminó', async () => {
+    const order: string[] = [];
+    vi.mocked(runOrchestrator).mockImplementationOnce(async () => {
+      order.push('orchestrator');
+      return { response: 'Según el Art. 22 CC, 10 años.', citations: [], route: 'normativa' };
+    });
+    await runLexiaCoreStream(baseInput, () => order.push('token'));
+    expect(order).toEqual(['orchestrator', 'token']);
+  });
+
+  it('incluye el bloque de crisis en lo emitido', async () => {
+    const tokens: string[] = [];
+    await runLexiaCoreStream(
+      { ...baseInput, content: 'Me van a deportar en 3 días ¿qué hago?' },
+      (t) => tokens.push(t),
+    );
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0]).toContain('CEAR');
   });
 
   it('funciona sin onStatus', async () => {
-    const tokens: string[] = [];
-    const result = await runLexiaCoreStream(baseInput, (t) => tokens.push(t));
-    expect(tokens).toHaveLength(1);
+    const result = await runLexiaCoreStream(baseInput, () => {});
     expect(result.route).toBe('normativa');
   });
 });

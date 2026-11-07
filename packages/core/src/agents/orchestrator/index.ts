@@ -1,4 +1,4 @@
-export { runOrchestrator, runOrchestratorStream } from './graph.js';
+export { runOrchestrator } from './graph.js';
 export type {
   OrchestratorInput,
   OrchestratorOutput,
