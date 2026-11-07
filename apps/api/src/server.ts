@@ -69,6 +69,8 @@ export async function buildServer(): Promise<FastifyInstance> {
       'http://localhost:3000',
       'http://localhost:4000',
     ],
+    // @fastify/cors >= 11 solo permite GET,HEAD,POST por defecto; la web usa PATCH y DELETE.
+    methods: ['GET', 'HEAD', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
   });
   await app.register(sensible);
