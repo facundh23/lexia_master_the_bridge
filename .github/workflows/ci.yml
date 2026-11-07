@@ -93,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: 'fs'
           scan-ref: '.'
@@ -115,21 +115,11 @@ jobs:
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
       - name: Run preflight check
-        run: |
-          node --input-type=module << 'EOF'
-          import { runPreflight } from './packages/core/src/vertical/preflight.js';
-          const result = runPreflight();
-          if (!result.ok) {
-            console.error('Preflight FAILED:', JSON.stringify(result.checks, null, 2));
-            process.exit(1);
-          }
-          console.log('Preflight OK:', result.checks.length, 'checks passed');
-          EOF
+        run: pnpm exec tsx scripts/preflight-check.ts
 
   eval-smoke:
     name: Eval smoke (5 cases)
     runs-on: ubuntu-latest
-    if: ${{ secrets.ANTHROPIC_API_KEY != '' }}
     needs: [test]
     services:
       postgres:
@@ -151,27 +141,35 @@ jobs:
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
       EVAL_JUDGE_MODEL: claude-haiku-4-5-20251001
       NODE_ENV: test
+    # secrets no se puede leer en el if de un job: sin API key se saltean los pasos
     steps:
       - uses: actions/checkout@v4
+        if: env.ANTHROPIC_API_KEY != ''
       - uses: pnpm/action-setup@v4
+        if: env.ANTHROPIC_API_KEY != ''
         with:
           version: ${{ env.PNPM_VERSION }}
       - uses: actions/setup-node@v4
+        if: env.ANTHROPIC_API_KEY != ''
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'pnpm'
       - run: pnpm install --frozen-lockfile
+        if: env.ANTHROPIC_API_KEY != ''
       - name: Enable pgcrypto + run migrations
+        if: env.ANTHROPIC_API_KEY != ''
         run: |
           PGPASSWORD=lexia_ci_password psql -h localhost -U lexia -d lexia \
             -c "CREATE EXTENSION IF NOT EXISTS pgcrypto; CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\";"
           pnpm --filter @lexia/db db:migrate
       - name: Run eval smoke
+        if: env.ANTHROPIC_API_KEY != ''
         run: pnpm eval:smoke --output=eval-report.json
       - name: Check thresholds
-        run: tsx scripts/eval-check-thresholds.ts --from-file=eval-report.json
+        if: env.ANTHROPIC_API_KEY != ''
+        run: pnpm exec tsx scripts/eval-check-thresholds.ts --from-file=eval-report.json
       - name: Upload eval report
-        if: always()
+        if: always() && env.ANTHROPIC_API_KEY != ''
         uses: actions/upload-artifact@v4
         with:
           name: eval-report
