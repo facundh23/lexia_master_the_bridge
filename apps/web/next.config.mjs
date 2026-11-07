@@ -7,6 +7,12 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const nextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname, '../../'),
+  webpack(config, { dev }) {
+    // En dev, caché en memoria: evita escribir .next/cache/webpack/*.pack.gz, que en Windows
+    // dispara el diálogo de "abrir archivo comprimido" cuando algo vigila la carpeta
+    if (dev) config.cache = { type: 'memory' };
+    return config;
+  },
   async rewrites() {
     return [
       {
