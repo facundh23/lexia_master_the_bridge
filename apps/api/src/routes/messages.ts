@@ -230,6 +230,7 @@ export const messagesRoute: FastifyPluginAsync = async (app) => {
             streamedTokens.push(token);
             sendEvent({ type: 'token', content: token });
           },
+          (stage) => sendEvent({ type: 'status', stage }),
         );
 
         // If output guardrails modified the streamed text, tell the client to replace it
