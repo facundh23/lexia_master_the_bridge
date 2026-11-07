@@ -31,6 +31,7 @@ export interface EligibilityAgentInput {
     hasChildren?: boolean;
   };
   conversationHistory: Array<{ role: 'user' | 'assistant'; content: string }>;
+  forceRetryWithCitationReminder?: boolean;
 }
 
 export interface EligibilityAgentResult {
@@ -172,12 +173,16 @@ export async function runEligibilityAgent(
   ];
   if (caseContext) systemContent.push({ type: 'text', text: caseContext });
 
+  const userContent = input.forceRetryWithCitationReminder
+    ? `${input.content}\n\n[Por favor, incluye al menos una cita legal específica como "Art. X del Código Civil" o "Art. Y del RD 557/2011" en tu respuesta]`
+    : input.content;
+
   const messages = [
     new SystemMessage({ content: systemContent }),
     ...safeHistory.map((m) =>
       m.role === 'user' ? new HumanMessage(m.content) : new AIMessage(m.content),
     ),
-    new HumanMessage(input.content),
+    new HumanMessage(userContent),
   ];
 
   const result = await agent.invoke({ messages });
