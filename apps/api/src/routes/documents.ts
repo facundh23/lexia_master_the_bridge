@@ -42,13 +42,11 @@ export const documentsRoute: FastifyPluginAsync = async (app) => {
             mimeType: data.mimetype,
           })
           .returning();
-        return reply
-          .status(400)
-          .send({
-            error: 'PDF_SANITIZATION_FAILED',
-            reason: sanitization.reason,
-            doc: rejectedDoc,
-          });
+        return reply.status(400).send({
+          error: 'PDF_SANITIZATION_FAILED',
+          reason: sanitization.reason,
+          doc: rejectedDoc,
+        });
       }
     }
 

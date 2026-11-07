@@ -7,5 +7,5 @@ export default {
   theme: {
     extend: {},
   },
-  plugins: [tailwindcssAnimate,typography],
+  plugins: [tailwindcssAnimate, typography],
 } satisfies Config;
