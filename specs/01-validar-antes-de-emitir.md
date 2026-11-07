@@ -1,6 +1,6 @@
 # SPEC 01 — Validar la respuesta antes de mostrarla en el chat
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** —
 > **Fecha:** 2026-10-25
 > **Objetivo:** Que el chat en streaming nunca muestre una respuesta que el validator todavía no aprobó, informando al usuario en todo momento en qué etapa está su consulta.

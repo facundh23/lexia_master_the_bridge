@@ -169,6 +169,31 @@ describe('runOrchestrator', () => {
   });
 });
 
+// Junto con el test de lexiaCore que verifica que onToken solo recibe el resultado final del
+// orquestador, esto garantiza que un texto rechazado por el validator nunca llega al usuario
+describe('runOrchestrator — el texto rechazado nunca sale', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it.each(['normativa', 'eligibility'] as const)(
+    '%s: ni el primer intento ni el reintento rechazados aparecen en la respuesta',
+    async (route) => {
+      vi.mocked(triageQuery).mockResolvedValueOnce({ route, subQuery: 'consulta' });
+      const agent = route === 'normativa' ? runNormativaAgent : runEligibilityAgent;
+      vi.mocked(agent)
+        .mockResolvedValueOnce({ response: 'PRIMER INTENTO RECHAZADO', citations: [] })
+        .mockResolvedValueOnce({ response: 'REINTENTO RECHAZADO', citations: [] });
+      vi.mocked(runValidatorAgent)
+        .mockResolvedValueOnce({ valid: false, reason: 'x' })
+        .mockResolvedValueOnce({ valid: false, reason: 'x' });
+
+      const result = await runOrchestrator(baseOrchestratorInput);
+
+      expect(result.response).not.toContain('RECHAZADO');
+      expect(result.response).toContain('No puedo proporcionar esa información');
+    },
+  );
+});
+
 describe('runOrchestrator — onStatus', () => {
   beforeEach(() => vi.clearAllMocks());
 
