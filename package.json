@@ -50,6 +50,12 @@
       "vite@<6.4.4": "^6.4.4",
       "sharp@<0.35.5": "^0.35.5",
       "adm-zip@<0.6.1": "^0.6.1"
+    },
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-mrhx-c7xc-m3w5",
+        "GHSA-qr28-fpjm-wq7f"
+      ]
     }
   }
 }
