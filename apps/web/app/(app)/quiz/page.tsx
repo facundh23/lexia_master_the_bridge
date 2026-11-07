@@ -117,7 +117,6 @@ export default function QuizPage() {
 
   const currentQuestion = quiz?.questions[currentIndex];
   const currentAnswer = currentQuestion ? (quiz?.answers[currentQuestion.id] ?? null) : null;
-  const currentResult = quiz?.results.find((r) => r.questionId === currentQuestion?.id);
   const answeredCount = Object.keys(quiz?.answers ?? {}).length;
   const totalQuestions = quiz?.questions.length ?? 0;
 

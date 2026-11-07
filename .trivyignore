@@ -1,0 +1,5 @@
+# Excepciones de vulnerabilidades sin parche compatible.
+# Cada entrada está documentada en docs/security/dependency-exceptions.md.
+
+# decode-uri-component 0.2.2 (minio > query-string) — el parche solo existe en ESM, incompatible con query-string 7 (CJS)
+CVE-2026-118664
