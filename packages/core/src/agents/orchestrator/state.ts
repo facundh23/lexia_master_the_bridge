@@ -20,3 +20,9 @@ export interface OrchestratorOutput {
   citations: string[];
   route: Route;
 }
+
+export type StreamStatus = 'analyzing' | 'searching' | 'evaluating' | 'validating' | 'retrying';
+
+export interface OrchestratorHooks {
+  onStatus?: (status: StreamStatus) => void;
+}

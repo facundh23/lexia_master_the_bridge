@@ -2,7 +2,7 @@ import { triageQuery } from './triage.js';
 import { runNormativaAgent, runNormativaAgentStream } from '../normativa/agent.js';
 import { runEligibilityAgent, runEligibilityAgentStream } from '../eligibility/agent.js';
 import { runValidatorAgent } from '../validator/index.js';
-import type { OrchestratorInput, OrchestratorOutput } from './state.js';
+import type { OrchestratorHooks, OrchestratorInput, OrchestratorOutput } from './state.js';
 
 const OUT_OF_SCOPE_RESPONSE =
   'Lo siento, tu pregunta está fuera del ámbito de información de Lexia. Estoy especializado en la obtención de la nacionalidad española por residencia. Para otras consultas migratorias te recomiendo contactar con CEAR (cear.es), Cruz Roja o un abogado especializado en extranjería.\n\n---\nℹ️ *Lexia es un asistente informativo. NO sustituye el asesoramiento jurídico de un abogado o gestor habilitado.*';
@@ -75,7 +75,12 @@ export async function runOrchestratorStream(
   }
 }
 
-export async function runOrchestrator(input: OrchestratorInput): Promise<OrchestratorOutput> {
+export async function runOrchestrator(
+  input: OrchestratorInput,
+  hooks: OrchestratorHooks = {},
+): Promise<OrchestratorOutput> {
+  const { onStatus } = hooks;
+  onStatus?.('analyzing');
   let triage: Awaited<ReturnType<typeof triageQuery>>;
   try {
     triage = await triageQuery(input);
@@ -86,6 +91,7 @@ export async function runOrchestrator(input: OrchestratorInput): Promise<Orchest
 
   switch (triage!.route) {
     case 'normativa': {
+      onStatus?.('searching');
       const result = await runNormativaAgent({
         content: triage.subQuery,
         conversationHistory: input.conversationHistory,
@@ -93,6 +99,7 @@ export async function runOrchestrator(input: OrchestratorInput): Promise<Orchest
         vertical: input.vertical,
       });
       console.log('[orchestrator:normativa] response:', result.response.slice(0, 200));
+      onStatus?.('validating');
       const validation = await runValidatorAgent(result.response, 'normativa');
       console.log(
         '[orchestrator:normativa] validation result:',
@@ -102,6 +109,7 @@ export async function runOrchestrator(input: OrchestratorInput): Promise<Orchest
       );
       if (!validation.valid) {
         console.log('[orchestrator:normativa] retrying with citation reminder...');
+        onStatus?.('retrying');
         const retry = await runNormativaAgent({
           content: triage.subQuery,
           conversationHistory: input.conversationHistory,
@@ -109,6 +117,7 @@ export async function runOrchestrator(input: OrchestratorInput): Promise<Orchest
           vertical: input.vertical,
           forceRetryWithCitationReminder: true,
         });
+        onStatus?.('validating');
         const validation2 = await runValidatorAgent(retry.response, 'normativa');
         if (!validation2.valid) {
           console.log('[orchestrator:normativa] retry also failed:', validation2.reason);
@@ -120,15 +129,18 @@ export async function runOrchestrator(input: OrchestratorInput): Promise<Orchest
     }
 
     case 'eligibility': {
+      onStatus?.('evaluating');
       const result = await runEligibilityAgent({
         content: triage.subQuery,
         userId: input.userId,
         caseData: input.caseData,
         conversationHistory: input.conversationHistory,
       });
+      onStatus?.('validating');
       const validation = await runValidatorAgent(result.response, 'eligibility');
       if (!validation.valid) {
         console.log('[orchestrator:eligibility] retrying with citation reminder...');
+        onStatus?.('retrying');
         const retry = await runEligibilityAgent({
           content: triage.subQuery,
           userId: input.userId,
@@ -136,6 +148,7 @@ export async function runOrchestrator(input: OrchestratorInput): Promise<Orchest
           conversationHistory: input.conversationHistory,
           forceRetryWithCitationReminder: true,
         });
+        onStatus?.('validating');
         const validation2 = await runValidatorAgent(retry.response, 'eligibility');
         if (!validation2.valid) {
           console.log('[orchestrator:eligibility] retry also failed:', validation2.reason);

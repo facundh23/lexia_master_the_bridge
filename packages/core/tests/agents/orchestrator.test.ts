@@ -168,3 +168,52 @@ describe('runOrchestrator', () => {
     expect(result.citations).toEqual([]);
   });
 });
+
+describe('runOrchestrator — onStatus', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('normativa válida al primer intento: analyzing → searching → validating', async () => {
+    vi.mocked(triageQuery).mockResolvedValueOnce({
+      route: 'normativa',
+      subQuery: 'años de residencia requeridos',
+    });
+    const stages: string[] = [];
+    await runOrchestrator(baseOrchestratorInput, { onStatus: (s) => stages.push(s) });
+    expect(stages).toEqual(['analyzing', 'searching', 'validating']);
+  });
+
+  it('eligibility con reintento: analyzing → evaluating → validating → retrying → validating', async () => {
+    vi.mocked(triageQuery).mockResolvedValueOnce({
+      route: 'eligibility',
+      subQuery: '¿ya puedo solicitar?',
+    });
+    vi.mocked(runValidatorAgent)
+      .mockResolvedValueOnce({ valid: false, reason: 'sin cita' })
+      .mockResolvedValueOnce({ valid: true, reason: 'ok' });
+    const stages: string[] = [];
+    await runOrchestrator(baseOrchestratorInput, { onStatus: (s) => stages.push(s) });
+    expect(stages).toEqual(['analyzing', 'evaluating', 'validating', 'retrying', 'validating']);
+  });
+
+  it('out_of_scope: solo analyzing', async () => {
+    vi.mocked(triageQuery).mockResolvedValueOnce({
+      route: 'out_of_scope',
+      subQuery: 'receta de paella',
+    });
+    const stages: string[] = [];
+    await runOrchestrator(baseOrchestratorInput, { onStatus: (s) => stages.push(s) });
+    expect(stages).toEqual(['analyzing']);
+  });
+
+  it('error del triage: solo analyzing', async () => {
+    vi.mocked(triageQuery).mockRejectedValueOnce(new Error('boom'));
+    const stages: string[] = [];
+    await runOrchestrator(baseOrchestratorInput, { onStatus: (s) => stages.push(s) });
+    expect(stages).toEqual(['analyzing']);
+  });
+
+  it('funciona sin hooks', async () => {
+    const result = await runOrchestrator(baseOrchestratorInput);
+    expect(result.route).toBe('normativa');
+  });
+});
