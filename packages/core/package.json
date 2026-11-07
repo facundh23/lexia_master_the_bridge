@@ -16,7 +16,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@huggingface/transformers": "^4.2.0",
+    "@huggingface/transformers": "^4.3.2",
     "@langchain/anthropic": "^0.3.0",
     "@langchain/core": "^0.3.0",
     "@langchain/langgraph": "^0.2.0",
