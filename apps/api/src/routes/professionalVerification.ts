@@ -19,12 +19,10 @@ export const professionalVerificationRoute: FastifyPluginAsync = async (app) => 
 
       const { collegiateNumber, collegiateBody } = body ?? {};
       if (!collegiateNumber?.trim() || !collegiateBody?.trim()) {
-        return reply
-          .status(400)
-          .send({
-            error: 'BAD_REQUEST',
-            message: 'collegiateNumber y collegiateBody son requeridos',
-          });
+        return reply.status(400).send({
+          error: 'BAD_REQUEST',
+          message: 'collegiateNumber y collegiateBody son requeridos',
+        });
       }
 
       // Upsert: si ya tiene una verificación, actualizarla a pending

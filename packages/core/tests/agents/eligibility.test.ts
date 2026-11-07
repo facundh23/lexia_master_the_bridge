@@ -17,6 +17,7 @@ vi.mock('@langchain/anthropic', () => ({
   ChatAnthropic: vi.fn().mockImplementation(() => ({})),
 }));
 
+import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { computeEligibility } from '../../src/agents/eligibility/tool.js';
 import { runEligibilityAgent } from '../../src/agents/eligibility/agent.js';
 
@@ -94,5 +95,30 @@ describe('runEligibilityAgent', () => {
       conversationHistory: [],
     });
     expect(typeof result.response).toBe('string');
+  });
+
+  function lastHumanMessageContent(): string {
+    const agent = vi.mocked(createReactAgent).mock.results.at(-1)!.value;
+    const { messages } = agent.invoke.mock.calls.at(-1)![0];
+    return messages[messages.length - 1].content;
+  }
+
+  it('agrega el recordatorio de cita cuando forceRetryWithCitationReminder es true', async () => {
+    await runEligibilityAgent({
+      content: '¿Ya puedo pedir la nacionalidad?',
+      conversationHistory: [],
+      forceRetryWithCitationReminder: true,
+    });
+    const content = lastHumanMessageContent();
+    expect(content).toContain('¿Ya puedo pedir la nacionalidad?');
+    expect(content).toContain('incluye al menos una cita legal específica');
+  });
+
+  it('no agrega el recordatorio de cita sin el flag', async () => {
+    await runEligibilityAgent({
+      content: '¿Ya puedo pedir la nacionalidad?',
+      conversationHistory: [],
+    });
+    expect(lastHumanMessageContent()).toBe('¿Ya puedo pedir la nacionalidad?');
   });
 });

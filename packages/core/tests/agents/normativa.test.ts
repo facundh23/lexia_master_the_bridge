@@ -47,7 +47,12 @@ vi.mock('@langchain/openai', () => ({
   })),
 }));
 
+vi.mock('../../src/nhi/auditLogger.js', () => ({
+  logAgentAction: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { runNormativaAgent } from '../../src/agents/normativa/agent.js';
+import { logAgentAction } from '../../src/nhi/auditLogger.js';
 
 describe('runNormativaAgent', () => {
   it('returns a response string', async () => {
@@ -95,6 +100,25 @@ describe('runNormativaAgent', () => {
           expect.objectContaining({ content: 'Respuesta anterior' }),
           expect.objectContaining({ content: 'Pregunta nueva' }),
         ]),
+      }),
+    );
+  });
+
+  it('registra la respuesta en el audit log con la identidad de normativa', async () => {
+    vi.mocked(logAgentAction).mockClear();
+    await runNormativaAgent({
+      content: '¿Cuántos años?',
+      conversationHistory: [],
+      userId: 'u1',
+      vertical: 'nacionalidad_residencia',
+    });
+
+    expect(logAgentAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: 'agent:normativa:v1',
+        action: 'normativa_response',
+        userId: 'u1',
+        scopeUsed: 'read:rag_chunks',
       }),
     );
   });

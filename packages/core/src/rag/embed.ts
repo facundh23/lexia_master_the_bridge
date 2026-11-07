@@ -6,8 +6,7 @@ export interface EmbeddingClient {
   embedQuery(text: string): Promise<number[]>;
 }
 
-const LOCAL_MODEL =
-  process.env.EMBEDDING_MODEL ?? 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
+const LOCAL_MODEL = process.env.EMBEDDING_MODEL ?? 'Xenova/paraphrase-multilingual-MiniLM-L12-v2';
 
 let extractorPromise: Promise<FeatureExtractionPipeline> | null = null;
 
@@ -25,7 +24,7 @@ function createLocalEmbeddingClient(): EmbeddingClient {
 
   return {
     embedDocuments: (texts) => embedBatch(texts),
-     embedQuery: async (text) => {
+    embedQuery: async (text) => {
       const [vector] = await embedBatch([text]);
       if (!vector) throw new Error('Embedding vacío: el modelo no devolvió vector');
       return vector;

@@ -202,11 +202,12 @@ export const messagesRoute: FastifyPluginAsync = async (app) => {
         .filter((m) => m.role === 'user' || m.role === 'assistant')
         .map((m) => ({ role: m.role as 'user' | 'assistant', content: m.content }));
 
-      // Setup SSE — X-Accel-Buffering: no prevents nginx/Next.js from buffering
+      // Setup SSE — X-Accel-Buffering: no prevents nginx from buffering; no-transform stops
+      // proxies that compress (like the Next.js rewrite in dev) from holding events until the end
       const sseStream = new PassThrough();
       reply
         .header('Content-Type', 'text/event-stream')
-        .header('Cache-Control', 'no-cache')
+        .header('Cache-Control', 'no-cache, no-transform')
         .header('Connection', 'keep-alive')
         .header('X-Accel-Buffering', 'no')
         .send(sseStream);
@@ -230,6 +231,7 @@ export const messagesRoute: FastifyPluginAsync = async (app) => {
             streamedTokens.push(token);
             sendEvent({ type: 'token', content: token });
           },
+          (stage) => sendEvent({ type: 'status', stage }),
         );
 
         // If output guardrails modified the streamed text, tell the client to replace it

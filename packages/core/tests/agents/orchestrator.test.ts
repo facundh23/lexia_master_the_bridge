@@ -39,6 +39,7 @@ vi.mock('../../src/agents/validator/index.js', () => ({
 import { triageQuery } from '../../src/agents/orchestrator/triage.js';
 import { runNormativaAgent } from '../../src/agents/normativa/agent.js';
 import { runEligibilityAgent } from '../../src/agents/eligibility/agent.js';
+import { runValidatorAgent } from '../../src/agents/validator/index.js';
 import { runOrchestrator } from '../../src/agents/orchestrator/graph.js';
 
 describe('triageQuery', () => {
@@ -122,5 +123,122 @@ describe('runOrchestrator', () => {
     expect(runEligibilityAgent).not.toHaveBeenCalled();
     expect(result.route).toBe('out_of_scope');
     expect(result.response).toContain('fuera del ámbito');
+  });
+
+  it('eligibility reintenta con recordatorio de cita y devuelve el reintento si es válido', async () => {
+    vi.mocked(triageQuery).mockResolvedValueOnce({
+      route: 'eligibility',
+      subQuery: '¿ya puedo solicitar?',
+    });
+    vi.mocked(runEligibilityAgent)
+      .mockResolvedValueOnce({ response: 'Sí, ya puedes.', citations: [] })
+      .mockResolvedValueOnce({
+        response: 'Sí, ya puedes (Art. 22.1 CC).',
+        citations: ['Art. 22.1 del Código Civil'],
+      });
+    vi.mocked(runValidatorAgent)
+      .mockResolvedValueOnce({ valid: false, reason: 'sin cita' })
+      .mockResolvedValueOnce({ valid: true, reason: 'ok' });
+
+    const result = await runOrchestrator(baseOrchestratorInput);
+
+    expect(runEligibilityAgent).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(runEligibilityAgent).mock.calls[1]![0]).toMatchObject({
+      forceRetryWithCitationReminder: true,
+    });
+    expect(result.route).toBe('eligibility');
+    expect(result.response).toBe('Sí, ya puedes (Art. 22.1 CC).');
+    expect(result.citations).toEqual(['Art. 22.1 del Código Civil']);
+  });
+
+  it('eligibility devuelve el mensaje de rechazo si el reintento también falla', async () => {
+    vi.mocked(triageQuery).mockResolvedValueOnce({
+      route: 'eligibility',
+      subQuery: '¿ya puedo solicitar?',
+    });
+    vi.mocked(runValidatorAgent)
+      .mockResolvedValueOnce({ valid: false, reason: 'sin cita' })
+      .mockResolvedValueOnce({ valid: false, reason: 'sigue sin cita' });
+
+    const result = await runOrchestrator(baseOrchestratorInput);
+
+    expect(runEligibilityAgent).toHaveBeenCalledTimes(2);
+    expect(result.route).toBe('eligibility');
+    expect(result.response).toContain('No puedo proporcionar esa información');
+    expect(result.citations).toEqual([]);
+  });
+});
+
+// Junto con el test de lexiaCore que verifica que onToken solo recibe el resultado final del
+// orquestador, esto garantiza que un texto rechazado por el validator nunca llega al usuario
+describe('runOrchestrator — el texto rechazado nunca sale', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it.each(['normativa', 'eligibility'] as const)(
+    '%s: ni el primer intento ni el reintento rechazados aparecen en la respuesta',
+    async (route) => {
+      vi.mocked(triageQuery).mockResolvedValueOnce({ route, subQuery: 'consulta' });
+      const agent = route === 'normativa' ? runNormativaAgent : runEligibilityAgent;
+      vi.mocked(agent)
+        .mockResolvedValueOnce({ response: 'PRIMER INTENTO RECHAZADO', citations: [] })
+        .mockResolvedValueOnce({ response: 'REINTENTO RECHAZADO', citations: [] });
+      vi.mocked(runValidatorAgent)
+        .mockResolvedValueOnce({ valid: false, reason: 'x' })
+        .mockResolvedValueOnce({ valid: false, reason: 'x' });
+
+      const result = await runOrchestrator(baseOrchestratorInput);
+
+      expect(result.response).not.toContain('RECHAZADO');
+      expect(result.response).toContain('No puedo proporcionar esa información');
+    },
+  );
+});
+
+describe('runOrchestrator — onStatus', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('normativa válida al primer intento: analyzing → searching → validating', async () => {
+    vi.mocked(triageQuery).mockResolvedValueOnce({
+      route: 'normativa',
+      subQuery: 'años de residencia requeridos',
+    });
+    const stages: string[] = [];
+    await runOrchestrator(baseOrchestratorInput, { onStatus: (s) => stages.push(s) });
+    expect(stages).toEqual(['analyzing', 'searching', 'validating']);
+  });
+
+  it('eligibility con reintento: analyzing → evaluating → validating → retrying → validating', async () => {
+    vi.mocked(triageQuery).mockResolvedValueOnce({
+      route: 'eligibility',
+      subQuery: '¿ya puedo solicitar?',
+    });
+    vi.mocked(runValidatorAgent)
+      .mockResolvedValueOnce({ valid: false, reason: 'sin cita' })
+      .mockResolvedValueOnce({ valid: true, reason: 'ok' });
+    const stages: string[] = [];
+    await runOrchestrator(baseOrchestratorInput, { onStatus: (s) => stages.push(s) });
+    expect(stages).toEqual(['analyzing', 'evaluating', 'validating', 'retrying', 'validating']);
+  });
+
+  it('out_of_scope: solo analyzing', async () => {
+    vi.mocked(triageQuery).mockResolvedValueOnce({
+      route: 'out_of_scope',
+      subQuery: 'receta de paella',
+    });
+    const stages: string[] = [];
+    await runOrchestrator(baseOrchestratorInput, { onStatus: (s) => stages.push(s) });
+    expect(stages).toEqual(['analyzing']);
+  });
+
+  it('error del triage: solo analyzing', async () => {
+    vi.mocked(triageQuery).mockRejectedValueOnce(new Error('boom'));
+    const stages: string[] = [];
+    await runOrchestrator(baseOrchestratorInput, { onStatus: (s) => stages.push(s) });
+    expect(stages).toEqual(['analyzing']);
+  });
+
+  it('funciona sin hooks', async () => {
+    const result = await runOrchestrator(baseOrchestratorInput);
+    expect(result.route).toBe('normativa');
   });
 });

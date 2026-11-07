@@ -6,7 +6,7 @@ import type { CorpusChunk } from './types.js';
 
 export async function ingestChunks(
   chroma: ChromaClient,
-   embeddings: EmbeddingClient,
+  embeddings: EmbeddingClient,
   chunks: CorpusChunk[],
   collectionName = 'lexia_corpus',
 ): Promise<void> {

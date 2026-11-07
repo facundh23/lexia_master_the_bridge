@@ -6,11 +6,6 @@ vi.mock('../src/agents/orchestrator/graph.js', () => ({
     citations: [],
     route: 'normativa',
   }),
-  runOrchestratorStream: vi.fn().mockImplementation(async (_input, onToken) => {
-    onToken('respuesta ');
-    onToken('del orquestador');
-    return { response: 'respuesta del orquestador', citations: [], route: 'normativa' };
-  }),
 }));
 
 const mockTraceUpdate = vi.fn();

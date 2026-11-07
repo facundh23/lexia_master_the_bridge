@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { MessageList } from '@/components/chat/MessageList';
 import { MessageInput } from '@/components/chat/MessageInput';
 import { Disclaimer } from '@/components/Disclaimer';
+import { createTextReveal } from '@/lib/textReveal';
 
 interface Message {
   id: string;
@@ -11,7 +12,18 @@ interface Message {
   content: string;
 }
 
+type StreamStatus = 'analyzing' | 'searching' | 'evaluating' | 'validating' | 'retrying';
+
+const STATUS_LABELS: Record<StreamStatus, string> = {
+  analyzing: 'Analizando tu pregunta…',
+  searching: 'Buscando en la normativa…',
+  evaluating: 'Evaluando tu caso…',
+  validating: 'Verificando la respuesta…',
+  retrying: 'Ajustando la respuesta…',
+};
+
 type SseEvent =
+  | { type: 'status'; stage: StreamStatus }
   | { type: 'token'; content: string }
   | { type: 'replace'; content: string }
   | {
@@ -27,6 +39,7 @@ export default function ChatPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [statusLabel, setStatusLabel] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/conversations', {
@@ -52,6 +65,14 @@ export default function ChatPage() {
       { id: tempUserId, role: 'user', content },
       { id: tempAssistantId, role: 'assistant', content: '' },
     ]);
+
+    const reveal = createTextReveal((text) =>
+      setMessages((prev) =>
+        prev.map((m) => (m.id === tempAssistantId ? { ...m, content: text } : m)),
+      ),
+    );
+    // Los IDs reales se aplican al terminar el revelado, que actualiza el mensaje por su ID temporal
+    let doneEvent: Extract<SseEvent, { type: 'done' }> | null = null;
 
     try {
       const res = await fetch(`/api/conversations/${conversationId}/messages/stream`, {
@@ -92,34 +113,41 @@ export default function ChatPage() {
             continue;
           }
 
+          if (event.type === 'status') {
+            setStatusLabel(STATUS_LABELS[event.stage] ?? null);
+            continue;
+          }
+          setStatusLabel(null);
+
           if (event.type === 'token') {
-            setMessages((prev) =>
-              prev.map((m) =>
-                m.id === tempAssistantId ? { ...m, content: m.content + event.content } : m,
-              ),
-            );
+            reveal.append(event.content);
           } else if (event.type === 'replace') {
-            setMessages((prev) =>
-              prev.map((m) => (m.id === tempAssistantId ? { ...m, content: event.content } : m)),
-            );
+            reveal.showNow(event.content);
           } else if (event.type === 'done') {
-            // Replace temp IDs with the real DB IDs
-            setMessages((prev) =>
-              prev.map((m) => {
-                if (m.id === tempUserId) return { ...m, id: event.userMessageId };
-                if (m.id === tempAssistantId) return { ...m, id: event.assistantMessageId };
-                return m;
-              }),
-            );
+            doneEvent = event;
           } else if (event.type === 'error') {
-            setMessages((prev) =>
-              prev.map((m) => (m.id === tempAssistantId ? { ...m, content: event.message } : m)),
-            );
+            reveal.showNow(event.message);
           }
         }
       }
+
+      // El TypingIndicator sigue visible hasta que termina el revelado
+      await reveal.done();
+
+      if (doneEvent) {
+        const { userMessageId, assistantMessageId } = doneEvent;
+        // Replace temp IDs with the real DB IDs
+        setMessages((prev) =>
+          prev.map((m) => {
+            if (m.id === tempUserId) return { ...m, id: userMessageId };
+            if (m.id === tempAssistantId) return { ...m, id: assistantMessageId };
+            return m;
+          }),
+        );
+      }
     } catch (err) {
       console.error(err);
+      reveal.showNow();
       setMessages((prev) =>
         prev.map((m) =>
           m.id === `temp-assistant-${Date.now()}` || (m.role === 'assistant' && m.content === '')
@@ -135,6 +163,7 @@ export default function ChatPage() {
       );
     } finally {
       setLoading(false);
+      setStatusLabel(null);
     }
   };
 
@@ -143,8 +172,8 @@ export default function ChatPage() {
       <div className="px-4 pt-3">
         <Disclaimer />
       </div>
-      <MessageList messages={messages} loading={loading} />
-       <div className="border-t border-gray-200 bg-white px-4 py-3">
+      <MessageList messages={messages} loading={loading} statusLabel={statusLabel} />
+      <div className="border-t border-gray-200 bg-white px-4 py-3">
         <div className="max-w-2xl mx-auto">
           <div className="rounded-xl border border-gray-300 bg-gray-50 overflow-hidden focus-within:border-blue-400 transition-colors">
             <MessageInput onSend={handleSend} disabled={loading || !conversationId} />
