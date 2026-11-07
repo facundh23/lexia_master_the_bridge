@@ -61,15 +61,29 @@ describe('POST /api/conversations/:id/messages/stream', () => {
     vi.mocked(runLexiaCoreStream).mockReset();
   });
 
-  async function postStream() {
-    const response = await app.inject({
+  async function postStreamRaw() {
+    return app.inject({
       method: 'POST',
       url: `/api/conversations/${conversationId}/messages/stream`,
       headers: { cookie: sessionCookie },
       payload: { content: '¿Cuántos años necesito?' },
     });
-    return parseSse(response.payload);
   }
+
+  async function postStream() {
+    return parseSse((await postStreamRaw()).payload);
+  }
+
+  it('pide a los proxies no transformar la respuesta, para que no compriman ni acumulen eventos', async () => {
+    vi.mocked(runLexiaCoreStream).mockImplementation(async (_input, onToken) => {
+      onToken(VALIDATED);
+      return { response: VALIDATED, blocked: false, citations: [], route: 'normativa' };
+    });
+
+    const response = await postStreamRaw();
+
+    expect(response.headers['cache-control']).toContain('no-transform');
+  });
 
   it('emite las etapas en orden, después el token y done, sin replace', async () => {
     vi.mocked(runLexiaCoreStream).mockImplementation(async (_input, onToken, onStatus) => {
