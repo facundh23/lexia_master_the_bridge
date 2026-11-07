@@ -23,7 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <header className="border-b px-4 py-3 flex items-center justify-between">
+      <header className="border-b border-gray-200 bg-white px-4 py-3 flex items-center justify-between">
         <Link href="/chat" className="font-semibold text-lg">
           Lexia
         </Link>
