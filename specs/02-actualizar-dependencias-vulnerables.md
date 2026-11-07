@@ -1,6 +1,6 @@
 # SPEC 02 — Actualizar las dependencias vulnerables
 
-> **Estado:** Aprobado
+> **Estado:** Implementado
 > **Depende de:** —
 > **Fecha:** 2026-11-07
 > **Objetivo:** Dejar en verde los jobs `pnpm audit` y `Trivy filesystem scan` de la CI eliminando todas las vulnerabilidades de severidad alta y crítica, sin romper la aplicación.
@@ -114,21 +114,21 @@ Rama: `spec-02-actualizar-dependencias-vulnerables`. Cada paso es un commit inde
 
 ## Criterios de aceptación
 
-- [ ] `pnpm audit --audit-level=high` termina con código de salida 0 en local.
-- [ ] El job `pnpm audit` de la CI pasa en el PR.
-- [ ] El job `Trivy filesystem scan` de la CI pasa en el PR.
-- [ ] Los jobs `Lint & Typecheck`, `Tests (with Postgres)` y `Preflight verticals` siguen pasando en el PR.
-- [ ] `pnpm ls -r next` solo muestra versiones ≥ 15.5.29 y < 16.
-- [ ] `pnpm ls -r better-auth` solo muestra versiones ≥ 1.7.7.
-- [ ] `pnpm ls -r vitest` solo muestra versiones ≥ 3.2.6 y < 4.
-- [ ] `pnpm ls -r nodemailer` solo muestra versiones ≥ 10.0.6.
-- [ ] Ningún override de `package.json` fija una versión con una vulnerabilidad alta o crítica conocida.
-- [ ] `pnpm --filter @lexia/web build` termina sin errores en local.
-- [ ] Smoke manual en local: el registro de un usuario nuevo envía el email de verificación y este llega al SMTP de desarrollo.
-- [ ] Smoke manual en local: el enlace de verificación activa la cuenta y el login funciona.
-- [ ] Smoke manual en local: una consulta en el chat recibe respuesta por SSE.
-- [ ] Smoke manual en local: se puede iniciar y responder un examen CCSE.
-- [ ] Toda entrada de `ignoreGhsas` o de `.trivyignore` tiene su fila en `docs/security/dependency-exceptions.md`, con motivo y fecha de revisión.
+- [x] `pnpm audit --audit-level=high` termina con código de salida 0 en local.
+- [x] El job `pnpm audit` de la CI pasa en el PR.
+- [x] El job `Trivy filesystem scan` de la CI pasa en el PR.
+- [x] Los jobs `Lint & Typecheck`, `Tests (with Postgres)` y `Preflight verticals` siguen pasando en el PR.
+- [x] `pnpm ls -r next` solo muestra versiones ≥ 15.5.29 y < 16.
+- [x] `pnpm ls -r better-auth` solo muestra versiones ≥ 1.7.7.
+- [x] `pnpm ls -r vitest` solo muestra versiones ≥ 3.2.6 y < 4.
+- [x] `pnpm ls -r nodemailer` solo muestra versiones ≥ 10.0.6.
+- [x] Ningún override de `package.json` fija una versión con una vulnerabilidad alta o crítica conocida.
+- [x] `pnpm --filter @lexia/web build` termina sin errores en local.
+- [x] Smoke manual en local: el registro de un usuario nuevo envía el email de verificación y este llega al SMTP de desarrollo.
+- [x] Smoke manual en local: el enlace de verificación activa la cuenta y el login funciona.
+- [x] Smoke manual en local: una consulta en el chat recibe respuesta por SSE.
+- [x] Smoke manual en local: se puede iniciar y responder un examen CCSE.
+- [x] Toda entrada de `ignoreGhsas` o de `.trivyignore` tiene su fila en `docs/security/dependency-exceptions.md`, con motivo y fecha de revisión.
 
 ---
 
@@ -161,6 +161,7 @@ Rama: `spec-02-actualizar-dependencias-vulnerables`. Cada paso es un commit inde
 6. **Transitivas con salto de major aceptado por el padre.** `vite` pasa a `^6.4.4` (vitest 3.2 declara `^5 || ^6 || ^7`), `sharp` a `^0.35.5` (`next` 15.5.29 acepta `^0.35.5`) y `adm-zip` a `^0.6.1` (la versión que usa `onnxruntime-node` desde la 1.30). Para que `sharp` 0.35 encaje en el rango de `@huggingface/transformers`, este se sube a `^4.3.2`, lo que a su vez arrastra `onnxruntime-node` 1.30. No contradice la decisión «No forzar saltos de major en transitivas», porque en los tres casos la major nueva está dentro del rango que declara el padre. Se verifica con `pnpm test`, con `next build` y con un embedding real con el modelo local (384 dimensiones, normalizado).
 7. **Overrides existentes corregidos.** `postcss@<8.5.10` y `brace-expansion@>=5.0.0 <5.0.6` (que fijaba la 5.0.6, vulnerable) se sustituyen por versiones parcheadas con techo de major: `postcss` `^8.5.18`, `brace-expansion` `^1.1.20` y `^5.0.11`. Se mantienen `langsmith`, `esbuild` y `fast-xml-parser`, que no resuelven a ninguna versión vulnerable.
 8. **Dos excepciones.** Quedan `zod` (solo se corrige en zod 4, que exige migrar a LangChain 1.x y LangGraph 1.x) y `decode-uri-component` (el parche es solo ESM y rompe a `query-string` 7, que lo carga con `require`). Ambas se documentan en `docs/security/dependency-exceptions.md`. Trivy solo detecta `decode-uri-component`, así que `.trivyignore` contiene únicamente esa entrada. La migración a LangChain 1.x con zod 4 queda para un spec propio.
+9. **Smokes por HTTP en vez de navegador.** Los smokes manuales se ejecutan con un script `curl` contra la API local (la extensión de Chrome no estaba disponible): registro, rechazo del login sin verificar (403), email en MailHog, verificación (302), login, chat por SSE con cita y ruta `normativa`, examen CCSE de 5 preguntas, preflight CORS de `PATCH`/`DELETE` (204) y borrado real de la cuenta de prueba. La base local no tenía cargado el banco CCSE; se ejecuta `packages/db/seeds/ccse_questions.ts`, que no es un cambio de código.
 
 ---
 
