@@ -151,6 +151,12 @@ Rama: `spec-02-actualizar-dependencias-vulnerables`. Cada paso es un commit inde
 
 ---
 
+## Cambios durante la implementación
+
+1. **Variable muerta en el quiz.** `next build` (paso 1) fallaba en la fase de lint por `currentResult` sin usar en `apps/web/app/(app)/quiz/page.tsx`, un error previo a este spec que la CI no detectaba porque no ejecuta `next build`. Se elimina la línea para cumplir el criterio de aceptación del build; no cambia el comportamiento.
+
+---
+
 ## Riesgos
 
 | Riesgo                                                                                                                                          | Mitigación                                                                                                                                                                       |
