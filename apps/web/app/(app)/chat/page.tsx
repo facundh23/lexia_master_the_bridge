@@ -139,14 +139,14 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-57px)]">
-      <div className="px-4 pt-3">
-        <Disclaimer />
-      </div>
-      <MessageList messages={messages} loading={loading} />
-       <div className="border-t border-gray-200 bg-white px-4 py-3">
-        <div className="max-w-2xl mx-auto">
-          <div className="rounded-xl border border-gray-300 bg-gray-50 overflow-hidden focus-within:border-blue-400 transition-colors">
+    <div className="h-[calc(100vh-97px)] px-4 py-4">
+      <div className="mx-auto flex h-full max-w-3xl flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white shadow-lg">
+        <div className="px-4 pt-3">
+          <Disclaimer />
+        </div>
+        <MessageList messages={messages} loading={loading} />
+        <div className="border-t border-gray-200 bg-gray-50 px-4 py-3">
+          <div className="overflow-hidden rounded-xl border border-gray-300 bg-white transition-colors focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-100">
             <MessageInput onSend={handleSend} disabled={loading || !conversationId} />
           </div>
         </div>

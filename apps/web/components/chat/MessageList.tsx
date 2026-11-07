@@ -55,7 +55,7 @@ export function MessageList({ messages, loading }: MessageListProps) {
           return (
             <div
               key={msg.id}
-              className="self-start w-full bg-white border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300"
+              className="self-start w-full bg-slate-50 border border-gray-200 rounded-2xl rounded-bl-sm px-4 py-3 shadow-sm animate-in fade-in slide-in-from-bottom-2 duration-300"
             >
               <Markdown content={msg.content} />
             </div>
