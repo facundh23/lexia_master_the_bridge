@@ -128,7 +128,20 @@ export async function runOrchestrator(input: OrchestratorInput): Promise<Orchest
       });
       const validation = await runValidatorAgent(result.response, 'eligibility');
       if (!validation.valid) {
-        return { response: VALIDATOR_REJECTION_RESPONSE, citations: [], route: 'eligibility' };
+        console.log('[orchestrator:eligibility] retrying with citation reminder...');
+        const retry = await runEligibilityAgent({
+          content: triage.subQuery,
+          userId: input.userId,
+          caseData: input.caseData,
+          conversationHistory: input.conversationHistory,
+          forceRetryWithCitationReminder: true,
+        });
+        const validation2 = await runValidatorAgent(retry.response, 'eligibility');
+        if (!validation2.valid) {
+          console.log('[orchestrator:eligibility] retry also failed:', validation2.reason);
+          return { response: VALIDATOR_REJECTION_RESPONSE, citations: [], route: 'eligibility' };
+        }
+        return { response: retry.response, citations: retry.citations, route: 'eligibility' };
       }
       return { response: result.response, citations: result.citations, route: 'eligibility' };
     }

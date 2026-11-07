@@ -39,6 +39,7 @@ vi.mock('../../src/agents/validator/index.js', () => ({
 import { triageQuery } from '../../src/agents/orchestrator/triage.js';
 import { runNormativaAgent } from '../../src/agents/normativa/agent.js';
 import { runEligibilityAgent } from '../../src/agents/eligibility/agent.js';
+import { runValidatorAgent } from '../../src/agents/validator/index.js';
 import { runOrchestrator } from '../../src/agents/orchestrator/graph.js';
 
 describe('triageQuery', () => {
@@ -122,5 +123,48 @@ describe('runOrchestrator', () => {
     expect(runEligibilityAgent).not.toHaveBeenCalled();
     expect(result.route).toBe('out_of_scope');
     expect(result.response).toContain('fuera del ámbito');
+  });
+
+  it('eligibility reintenta con recordatorio de cita y devuelve el reintento si es válido', async () => {
+    vi.mocked(triageQuery).mockResolvedValueOnce({
+      route: 'eligibility',
+      subQuery: '¿ya puedo solicitar?',
+    });
+    vi.mocked(runEligibilityAgent)
+      .mockResolvedValueOnce({ response: 'Sí, ya puedes.', citations: [] })
+      .mockResolvedValueOnce({
+        response: 'Sí, ya puedes (Art. 22.1 CC).',
+        citations: ['Art. 22.1 del Código Civil'],
+      });
+    vi.mocked(runValidatorAgent)
+      .mockResolvedValueOnce({ valid: false, reason: 'sin cita' })
+      .mockResolvedValueOnce({ valid: true, reason: 'ok' });
+
+    const result = await runOrchestrator(baseOrchestratorInput);
+
+    expect(runEligibilityAgent).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(runEligibilityAgent).mock.calls[1]![0]).toMatchObject({
+      forceRetryWithCitationReminder: true,
+    });
+    expect(result.route).toBe('eligibility');
+    expect(result.response).toBe('Sí, ya puedes (Art. 22.1 CC).');
+    expect(result.citations).toEqual(['Art. 22.1 del Código Civil']);
+  });
+
+  it('eligibility devuelve el mensaje de rechazo si el reintento también falla', async () => {
+    vi.mocked(triageQuery).mockResolvedValueOnce({
+      route: 'eligibility',
+      subQuery: '¿ya puedo solicitar?',
+    });
+    vi.mocked(runValidatorAgent)
+      .mockResolvedValueOnce({ valid: false, reason: 'sin cita' })
+      .mockResolvedValueOnce({ valid: false, reason: 'sigue sin cita' });
+
+    const result = await runOrchestrator(baseOrchestratorInput);
+
+    expect(runEligibilityAgent).toHaveBeenCalledTimes(2);
+    expect(result.route).toBe('eligibility');
+    expect(result.response).toContain('No puedo proporcionar esa información');
+    expect(result.citations).toEqual([]);
   });
 });
