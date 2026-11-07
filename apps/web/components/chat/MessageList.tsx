@@ -1,5 +1,3 @@
-
-
 import { useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Markdown } from './Markdown';
@@ -13,24 +11,26 @@ interface Message {
 interface MessageListProps {
   messages: Message[];
   loading?: boolean;
+  statusLabel?: string | null;
 }
 
-function TypingIndicator() {
+function TypingIndicator({ label }: { label?: string | null }) {
   return (
     <div className="self-start bg-gray-100 rounded-lg px-4 py-3 flex items-center gap-1 animate-in fade-in slide-in-from-bottom-2 duration-300">
       <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
       <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
       <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+      {label && <span className="ml-2 text-sm text-gray-500">{label}</span>}
     </div>
   );
 }
 
-export function MessageList({ messages, loading }: MessageListProps) {
+export function MessageList({ messages, loading, statusLabel }: MessageListProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+  }, [messages, loading, statusLabel]);
 
   return (
     <ScrollArea className="flex-1 p-4">
@@ -40,7 +40,7 @@ export function MessageList({ messages, loading }: MessageListProps) {
             Hacé tu primera consulta sobre nacionalidad por residencia.
           </p>
         )}
-         {messages.map((msg) => {
+        {messages.map((msg) => {
           if (msg.role === 'user') {
             return (
               <div
@@ -61,7 +61,7 @@ export function MessageList({ messages, loading }: MessageListProps) {
             </div>
           );
         })}
-        {loading && <TypingIndicator />}
+        {loading && <TypingIndicator label={statusLabel} />}
         <div ref={bottomRef} />
       </div>
     </ScrollArea>

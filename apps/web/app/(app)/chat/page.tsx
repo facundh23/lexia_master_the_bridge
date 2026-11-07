@@ -11,7 +11,18 @@ interface Message {
   content: string;
 }
 
+type StreamStatus = 'analyzing' | 'searching' | 'evaluating' | 'validating' | 'retrying';
+
+const STATUS_LABELS: Record<StreamStatus, string> = {
+  analyzing: 'Analizando tu pregunta…',
+  searching: 'Buscando en la normativa…',
+  evaluating: 'Evaluando tu caso…',
+  validating: 'Verificando la respuesta…',
+  retrying: 'Ajustando la respuesta…',
+};
+
 type SseEvent =
+  | { type: 'status'; stage: StreamStatus }
   | { type: 'token'; content: string }
   | { type: 'replace'; content: string }
   | {
@@ -27,6 +38,7 @@ export default function ChatPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [statusLabel, setStatusLabel] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/conversations', {
@@ -92,6 +104,12 @@ export default function ChatPage() {
             continue;
           }
 
+          if (event.type === 'status') {
+            setStatusLabel(STATUS_LABELS[event.stage] ?? null);
+            continue;
+          }
+          setStatusLabel(null);
+
           if (event.type === 'token') {
             setMessages((prev) =>
               prev.map((m) =>
@@ -135,6 +153,7 @@ export default function ChatPage() {
       );
     } finally {
       setLoading(false);
+      setStatusLabel(null);
     }
   };
 
@@ -143,8 +162,8 @@ export default function ChatPage() {
       <div className="px-4 pt-3">
         <Disclaimer />
       </div>
-      <MessageList messages={messages} loading={loading} />
-       <div className="border-t border-gray-200 bg-white px-4 py-3">
+      <MessageList messages={messages} loading={loading} statusLabel={statusLabel} />
+      <div className="border-t border-gray-200 bg-white px-4 py-3">
         <div className="max-w-2xl mx-auto">
           <div className="rounded-xl border border-gray-300 bg-gray-50 overflow-hidden focus-within:border-blue-400 transition-colors">
             <MessageInput onSend={handleSend} disabled={loading || !conversationId} />
